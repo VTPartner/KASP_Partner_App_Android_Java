@@ -1,0 +1,516 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    package="com.kapstranspvtltd.kaps_partner">
+
+    <uses-feature
+        android:name="android.hardware.telephony"
+        android:required="false" />
+    <uses-feature
+        android:name="android.hardware.camera"
+        android:required="false" />
+
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_BACKGROUND_LOCATION" />
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.CALL_PHONE" />
+    <uses-permission android:name="android.permission.CAMERA" />
+    <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
+    <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS" />
+    <uses-permission android:name="android.permission.ACTION_MANAGE_OVERLAY_PERMISSION" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_LOCATION" />
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
+    <uses-permission android:name="android.permission.DISABLE_KEYGUARD" />
+    <uses-permission android:name="android.permission.USE_FULL_SCREEN_INTENT" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+    <uses-permission
+        android:name="android.permission.WRITE_EXTERNAL_STORAGE"
+        android:maxSdkVersion="28" />
+
+    <application
+        android:name=".MyApplication"
+        android:allowBackup="true"
+        android:dataExtractionRules="@xml/data_extraction_rules"
+        android:fullBackupContent="@xml/backup_rules"
+        android:icon="@drawable/logo"
+        android:label="@string/app_name"
+        android:roundIcon="@drawable/logo"
+        android:screenOrientation="portrait"
+        android:supportsRtl="true"
+        android:theme="@style/Theme.PartnerApp.NoActionBar"
+        android:usesCleartextTraffic="true"
+        android:largeHeap="true"
+        android:hardwareAccelerated="true"
+        tools:targetApi="31">
+        <service
+            android:name=".handyman_agent_activities.HandyManNewBookingAcceptService"
+            android:enabled="true"
+            android:exported="true"></service>
+        <service
+            android:name=".jcb_crane_agent_activities.JcbCraneDriverNewBookingAcceptService"
+            android:enabled="true"
+            android:exported="true" />
+        <service
+            android:name=".driver_app_activities.DriverAgentNewBookingAcceptService"
+            android:enabled="true"
+            android:exported="true" />
+        <service
+            android:name=".cab_driver_activities.CabNewBookingAcceptService"
+            android:enabled="true"
+            android:exported="true" />
+        <service
+            android:name=".BackgroundService"
+            android:enabled="true"
+            android:exported="false"
+            android:foregroundServiceType="specialUse"
+            android:stopWithTask="false" />
+        <service
+            android:name=".GoodsNewBookingFloatingWindowService"
+            android:enabled="true"
+            android:exported="true" />
+
+        <receiver
+            android:name=".BootReceiver"
+            android:enabled="true"
+            android:exported="true"
+            android:permission="android.permission.RECEIVE_BOOT_COMPLETED">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+                <action android:name="android.intent.action.QUICKBOOT_POWERON" />
+                <action android:name="com.htc.intent.action.QUICKBOOT_POWERON" />
+            </intent-filter>
+        </receiver>
+
+        <activity
+            android:name=".jcb_crane_agent_activities.documents.vehicle_documents.JcbCraneAgentPUCUploadActivity"
+            android:exported="false" />
+        <activity
+            android:name=".jcb_crane_agent_activities.documents.vehicle_documents.JcbCraneAgentVehicleImageUploadActivity"
+            android:exported="false" />
+        <activity
+            android:name=".jcb_crane_agent_activities.documents.vehicle_documents.JcbCraneAgentVehicleInsuranceUploadActivity"
+            android:exported="false" />
+        <activity
+            android:name=".jcb_crane_agent_activities.documents.vehicle_documents.JcbCraneAgentVehicleNOCUploadActivity"
+            android:exported="false" />
+        <activity
+            android:name=".jcb_crane_agent_activities.documents.vehicle_documents.JcbCraneAgentVehiclePlateNoUploadActivity"
+            android:exported="false" />
+        <activity
+            android:name=".jcb_crane_agent_activities.documents.vehicle_documents.JcbCraneAgentVehicleRCUploadActivity"
+            android:exported="false" />
+        <activity
+            android:name=".jcb_crane_agent_activities.documents.owner_documents.JcbCraneAgentVehicleOwnerSelfieUploadActivity"
+            android:exported="false" />
+        <activity
+            android:name=".jcb_crane_agent_activities.jcb_crane_main_documents.JcbCraneVehicleOwnerDetailsActivity"
+            android:exported="false" />
+        <activity
+            android:name=".jcb_crane_agent_activities.jcb_crane_main_documents.JcbCraneVehicleDocumentsVerificationActivity"
+            android:exported="false" />
+        <activity
+            android:name=".fcm.popups.CabBookingAcceptActivity"
+            android:exported="false" />
+        <activity
+            android:name=".driver_app_activities.settings_pages.DriverAgentRechargeHomeActivity"
+            android:exported="false" />
+        <activity
+            android:name=".driver_app_activities.settings_pages.DriverAgentRechargeHistoryActivity"
+            android:exported="false" />
+        <activity
+            android:name=".driver_app_activities.settings_pages.DriverAgentRatingsActivity"
+            android:exported="false" />
+        <activity
+            android:name=".driver_app_activities.settings_pages.DriverAgentNewLiveRideActivity"
+            android:exported="false" />
+        <activity
+            android:name=".driver_app_activities.settings_pages.DriverAgentFAQSActivity"
+            android:exported="false" />
+        <activity
+            android:name=".driver_app_activities.settings_pages.DriverAgentEditProfileActivity"
+            android:exported="false" />
+        <activity
+            android:name=".driver_app_activities.settings_pages.DriverAgentEarningsActivity"
+            android:exported="false" />
+        <activity
+            android:name=".driver_app_activities.settings_pages.DriverAgentAllRidesActivity"
+            android:exported="false" />
+        <activity
+            android:name=".cab_driver_activities.settings_pages.CabDriverRechargeHomeActivity"
+            android:exported="false" />
+        <activity
+            android:name=".cab_driver_activities.settings_pages.CabDriverRechargeHistoryActivity"
+            android:exported="false" />
+        <activity
+            android:name=".cab_driver_activities.settings_pages.CabDriverRatingsActivity"
+            android:exported="false" />
+        <activity
+            android:name=".cab_driver_activities.settings_pages.CabDriverNewLiveRideActivity"
+            android:exported="false" />
+        <activity
+            android:name=".cab_driver_activities.settings_pages.CabDriverFAQSActivity"
+            android:exported="false" />
+        <activity
+            android:name=".cab_driver_activities.settings_pages.CabDriverEditProfileActivity"
+            android:exported="false" />
+        <activity
+            android:name=".cab_driver_activities.settings_pages.CabDriverEarningsActivity"
+            android:exported="false" />
+        <activity
+            android:name=".cab_driver_activities.settings_pages.CabDriverAllRidesActivity"
+            android:exported="false" />
+        <activity
+            android:name=".jcb_crane_agent_activities.settings_pages.JcbCraneRechargeHomeActivity"
+            android:exported="false" />
+        <activity
+            android:name=".jcb_crane_agent_activities.settings_pages.JcbCraneRechargeHistoryActivity"
+            android:exported="false" />
+        <activity
+            android:name=".jcb_crane_agent_activities.settings_pages.JcbCraneRatingsActivity"
+            android:exported="false" />
+        <activity
+            android:name=".jcb_crane_agent_activities.settings_pages.JcbCraneNewLiveRideActivity"
+            android:exported="false" />
+        <activity
+            android:name=".jcb_crane_agent_activities.settings_pages.JcbCraneFAQSActivity"
+            android:exported="false" />
+        <activity
+            android:name=".jcb_crane_agent_activities.settings_pages.JcbCraneEditProfileActivity"
+            android:exported="false" />
+        <activity
+            android:name=".jcb_crane_agent_activities.settings_pages.JcbCraneEarningsActivity"
+            android:exported="false" />
+        <activity
+            android:name=".jcb_crane_agent_activities.settings_pages.JcbCraneAllRidesActivity"
+            android:exported="false" />
+        <activity
+            android:name=".handyman_agent_activities.settings_pages.HandyManNewLiveRideActivity"
+            android:exported="false" />
+        <activity
+            android:name=".handyman_agent_activities.settings_pages.HandyManAllRidesActivity"
+            android:exported="false" />
+        <activity
+            android:name=".handyman_agent_activities.settings_pages.HandyManRechargeHomeActivity"
+            android:exported="false" />
+        <activity
+            android:name=".handyman_agent_activities.settings_pages.HandyManRechargeHistoryActivity"
+            android:exported="false" />
+        <activity
+            android:name=".handyman_agent_activities.settings_pages.HandyManRatingsActivity"
+            android:exported="false" />
+        <activity
+            android:name=".handyman_agent_activities.settings_pages.HandyManEarningsActivity"
+            android:exported="false" />
+        <activity
+            android:name=".handyman_agent_activities.settings_pages.HandyManFAQSActivity"
+            android:exported="false" />
+        <activity
+            android:name=".handyman_agent_activities.settings_pages.HandyManEditProfileActivity"
+            android:exported="false" />
+        <activity
+            android:name=".jcb_crane_agent_activities.documents.JcbCraneAgentDrivingLicenseUploadActivity"
+            android:exported="false" />
+        <activity
+            android:name=".jcb_crane_agent_activities.documents.JcbCraneAgentSelfieUploadActivity"
+            android:exported="false" />
+        <activity
+            android:name=".jcb_crane_agent_activities.documents.JcbCraneAgentPanCardUploadActivity"
+            android:exported="false" />
+        <activity
+            android:name=".jcb_crane_agent_activities.documents.JcbCraneAgentAadharCardUploadActivity"
+            android:exported="false" />
+        <activity
+            android:name=".jcb_crane_agent_activities.jcb_crane_main_documents.JcbCraneDocumentVerificationActivity"
+            android:exported="false" />
+        <activity
+            android:name=".jcb_crane_agent_activities.JcbCraneHomeActivity"
+            android:exported="false" />
+        <activity
+            android:name=".jcb_crane_agent_activities.JcbCraneAgentOtpVerificationActivity"
+            android:exported="false" />
+        <activity
+            android:name=".jcb_crane_agent_activities.JcbCraneAgentLoginScreenActivity"
+            android:exported="false" />
+        <activity
+            android:name=".driver_app_activities.DriverAgentHomeActivity"
+            android:exported="false" />
+        <activity
+            android:name=".driver_app_activities.DriverAgentOtpVerificationActivity"
+            android:exported="false" />
+        <activity
+            android:name=".driver_app_activities.DriverAgentLoginScreenActivity"
+            android:exported="false" />
+        <activity
+            android:name=".driver_app_activities.documents.DriverAgentSelfieUploadActivity"
+            android:exported="false" />
+        <activity
+            android:name=".driver_app_activities.documents.DriverAgentPanCardUploadActivity"
+            android:exported="false" />
+        <activity
+            android:name=".driver_app_activities.documents.DriverAgentDrivingLicenseUploadActivity"
+            android:exported="false" />
+        <activity
+            android:name=".driver_app_activities.documents.DriverAgentAadharCardUploadActivity"
+            android:exported="false" />
+        <activity
+            android:name=".driver_app_activities.driver_agent_main_documents.DriverAgentDocumentVerificationActivity"
+            android:exported="false" />
+        <activity
+            android:name=".handyman_agent_activities.documents.handyman_documents.HandyManPanCardUploadActivity"
+            android:exported="false" />
+        <activity
+            android:name=".handyman_agent_activities.documents.handyman_documents.HandyManSelfieUploadActivity"
+            android:exported="false" />
+        <activity
+            android:name=".handyman_agent_activities.documents.handyman_documents.HandyManDrivingLicenseUploadActivity"
+            android:exported="false" />
+        <activity
+            android:name=".handyman_agent_activities.documents.handyman_documents.HandyManAadharCardUploadActivity"
+            android:exported="false" />
+        <activity
+            android:name=".handyman_agent_activities.documents.handyman_main_documents.HandyManDocumentVerificationActivity"
+            android:exported="false" />
+        <activity
+            android:name=".handyman_agent_activities.HandyManAgentHomeActivity"
+            android:exported="false" />
+        <activity
+            android:name=".handyman_agent_activities.HandyManOtpActivity"
+            android:exported="false" />
+        <activity
+            android:name=".handyman_agent_activities.HandyManLoginScreenActivity"
+            android:exported="false" />
+        <activity
+            android:name=".goods_driver_activities.GoodsDriverProfileDetailsActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".cab_driver_activities.bookings.CabBookingAcceptActivity"
+            android:exported="false" />
+
+        <service
+            android:name=".services.CabLocationUpdateService"
+            android:enabled="true"
+            android:exported="true" />
+
+        <activity
+            android:name=".common_activities.DriverTypeActivity"
+            android:exported="false" />
+        <activity
+            android:name=".cab_driver_activities.CabOtpVerificationActivity"
+            android:exported="false" />
+        <activity
+            android:name=".cab_driver_activities.CabDriverHomeActivity"
+            android:exported="false" />
+        <activity
+            android:name=".cab_driver_activities.documents.vehicle_documents.CabDriverVehicleRCUploadActivity"
+            android:exported="false" />
+        <activity
+            android:name=".cab_driver_activities.documents.vehicle_documents.CabDriverVehiclePlateNoUploadActivity"
+            android:exported="false" />
+        <activity
+            android:name=".cab_driver_activities.documents.vehicle_documents.CabDriverVehicleNOCUploadActivity"
+            android:exported="false" />
+        <activity
+            android:name=".cab_driver_activities.documents.vehicle_documents.CabDriverVehicleInsuranceUploadActivity"
+            android:exported="false" />
+        <activity
+            android:name=".cab_driver_activities.documents.vehicle_documents.CabDriverVehicleImageUploadActivity"
+            android:exported="false" />
+        <activity
+            android:name=".cab_driver_activities.documents.vehicle_documents.CabDriverPUCUploadActivity"
+            android:exported="false" />
+        <activity
+            android:name=".cab_driver_activities.documents.owner_documents.CabDriverVehicleOwnerSelfieUploadActivity"
+            android:exported="false" />
+        <activity
+            android:name=".cab_driver_activities.documents.driver_documents.CabDriverPanCardUploadActivity"
+            android:exported="false" />
+        <activity
+            android:name=".cab_driver_activities.documents.driver_documents.CabDriverOwnerSelfieUploadActivity"
+            android:exported="false" />
+        <activity
+            android:name=".cab_driver_activities.documents.driver_documents.CabDriverDrivingLicenseUploadActivity"
+            android:exported="false" />
+        <activity
+            android:name=".cab_driver_activities.documents.driver_documents.CabDriverAadharCardUploadActivity"
+            android:exported="false" />
+        <activity
+            android:name=".cab_driver_activities.documents.main_documents.CabDriverVehicleOwnerDetailsActivity"
+            android:exported="false" />
+        <activity
+            android:name=".cab_driver_activities.documents.main_documents.CabDriverVehicleVerificationDocumentsActivity"
+            android:exported="false" />
+        <activity
+            android:name=".cab_driver_activities.documents.main_documents.CabDriverDocumentVerificationActivity"
+            android:exported="false" />
+        <activity
+            android:name=".cab_driver_activities.CabLoginActivity"
+            android:exported="false" />
+        <activity
+            android:name=".goods_driver_activities.GoodsNotificationsActivity"
+            android:exported="false" />
+        <activity
+            android:name=".common_activities.HelpAndSupportActivity"
+            android:exported="false" />
+        <activity
+            android:name=".goods_driver_activities.GoodsFAQSActivity"
+            android:exported="false" />
+        <activity
+            android:name=".goods_driver_activities.MyRatingsActivity"
+            android:exported="false" />
+        <activity
+            android:name=".goods_driver_activities.MyRechargeHistoryActivity"
+            android:exported="false" />
+        <activity
+            android:name=".goods_driver_activities.MyRechargeHomeActivity"
+            android:exported="false" />
+        <activity
+            android:name=".goods_driver_activities.MyEarningsActivity"
+            android:exported="false" />
+        <activity
+            android:name=".goods_driver_activities.MyRidesActivity"
+            android:exported="false" />
+        <activity
+            android:name=".goods_driver_activities.documents.owner_documents.GoodsDriverVehicleOwnerSelfieUploadActivity"
+            android:exported="false" />
+        <activity
+            android:name=".goods_driver_activities.documents.main_document_screens.GoodsDriverVehicleOwnerDetailsActivity"
+            android:exported="false" />
+        <activity
+            android:name=".goods_driver_activities.documents.vehicle_documents.GoodsDriverPUCUploadActivity"
+            android:exported="false" />
+        <activity
+            android:name=".goods_driver_activities.documents.vehicle_documents.GoodsDriverVehicleNOCUploadActivity"
+            android:exported="false" />
+        <activity
+            android:name=".goods_driver_activities.documents.vehicle_documents.GoodsDriverVehicleInsuranceUploadActivity"
+            android:exported="false" />
+        <activity
+            android:name=".goods_driver_activities.documents.vehicle_documents.GoodsDriverVehicleRCUploadActivity"
+            android:exported="false" />
+        <activity
+            android:name=".goods_driver_activities.documents.vehicle_documents.GoodsDriverVehiclePlateNoUploadActivity"
+            android:exported="false" />
+        <activity
+            android:name=".goods_driver_activities.documents.vehicle_documents.GoodsDriverVehicleImageUploadActivity"
+            android:exported="false" />
+        <activity
+            android:name=".goods_driver_activities.documents.driver_documents.GoodsDriverOwnerSelfieUploadActivity"
+            android:exported="false" />
+        <activity
+            android:name=".goods_driver_activities.documents.driver_documents.GoodsDriverPanCardUploadActivity"
+            android:exported="false" />
+        <activity
+            android:name=".goods_driver_activities.documents.driver_documents.GoodsDriverAadharCardUploadActivity"
+            android:exported="false" />
+        <activity
+            android:name=".goods_driver_activities.documents.driver_documents.GoodsDriverDrivingLicenseUploadActivity"
+            android:exported="false" />
+        <activity
+            android:name=".goods_driver_activities.documents.main_document_screens.GoodsDriverVehicleDocumentsVerificationActivity"
+            android:exported="false" />
+        <activity
+            android:name=".goods_driver_activities.documents.main_document_screens.GoodsDriverDocumentVerificationActivity"
+            android:exported="false" />
+
+        <service
+            android:name=".services.FloatingWindowService"
+            android:enabled="true"
+            android:exported="false"
+            android:foregroundServiceType="specialUse"
+            android:stopWithTask="false" />
+
+        <activity
+            android:name=".common_activities.PermissionsActivity"
+            android:exported="false" />
+
+        <service
+            android:name=".services.LocationUpdateService"
+            android:enabled="true"
+            android:exported="true"
+            android:foregroundServiceType="location">
+            <intent-filter>
+                <action android:name="com.vtpartnertranspvtltd.vt_partner.RESTART_SERVICE" />
+            </intent-filter>
+        </service>
+
+        <activity
+            android:name=".fcm.popups.GoodsBookingAcceptActivity"
+            android:exported="true"
+            android:launchMode="singleTop"
+            android:screenOrientation="portrait"
+            android:showOnLockScreen="true"
+            android:theme="@style/Theme.PartnerApp.NoActionBar"
+            android:turnScreenOn="true">
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+        </activity>
+        <activity
+            android:name=".goods_driver_activities.NewLiveRideActivity"
+            android:exported="false" />
+        <activity
+            android:name=".goods_driver_activities.fragments.RechargeFragment"
+            android:exported="false" />
+        <activity
+            android:name=".goods_driver_activities.HomeActivity"
+            android:configChanges="screenSize|smallestScreenSize|screenLayout|orientation"
+            android:exported="false"
+            android:launchMode="singleTask"
+            android:resizeableActivity="true"
+            android:supportsPictureInPicture="true" />
+        <activity
+            android:name=".SplashScreenActivity"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+        <activity
+            android:name=".common_activities.OtpVerificationActivity"
+            android:exported="false" />
+        <activity
+            android:name=".common_activities.RegistrationActivity"
+            android:exported="false" />
+        <activity
+            android:name=".common_activities.IntroActivity"
+            android:exported="false" />
+        <activity
+            android:name=".common_activities.LoginActivity"
+            android:exported="false" />
+        <activity
+            android:name=".MainActivity"
+            android:exported="true" />
+
+        <meta-data
+            android:name="com.google.android.geo.API_KEY"
+            android:value="@string/google_maps_key" />
+
+        <service
+            android:name=".fcm.FCMService"
+            android:directBootAware="true"
+            android:exported="false"
+            android:stopWithTask="false">
+            <intent-filter>
+                <action android:name="com.google.firebase.MESSAGING_EVENT" />
+            </intent-filter>
+        </service>
+
+        <meta-data
+            android:name="com.google.firebase.messaging.default_notification_channel_id"
+            android:value="kaps_default_channel" />
+        <meta-data
+            android:name="com.google.firebase.messaging.default_notification_icon"
+            android:resource="@drawable/ic_notification" />
+    </application>
+
+</manifest>

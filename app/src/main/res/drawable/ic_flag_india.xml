@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="900"
+    android:viewportHeight="600">
+
+    <!-- Background (White) -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M0,0h900v600h-900z"/>
+
+    <!-- Top stripe (Saffron) -->
+    <path
+        android:fillColor="#FF9933"
+        android:pathData="M0,0h900v200h-900z"/>
+
+    <!-- Bottom stripe (Green) -->
+    <path
+        android:fillColor="#138808"
+        android:pathData="M0,400h900v200h-900z"/>
+
+    <!-- Ashoka Chakra (Navy Blue) -->
+    <path
+        android:fillColor="#000080"
+        android:pathData="M450,300m-60,0a60,60 0,1 1,120 0a60,60 0,1 1,-120 0"/>
+
+    <!-- 24 spokes of the Ashoka Chakra -->
+    <path
+        android:strokeColor="#000080"
+        android:strokeWidth="4"
+        android:strokeLineCap="round"
+        android:pathData="M450,300 l0,-60 M450,300 l42.43,-42.43 M450,300 l60,0 M450,300 l42.43,42.43 M450,300 l0,60 M450,300 l-42.43,42.43 M450,300 l-60,0 M450,300 l-42.43,-42.43
+                         M450,300 l21.21,-56.57 M450,300 l56.57,-21.21 M450,300 l56.57,21.21 M450,300 l21.21,56.57 M450,300 l-21.21,56.57 M450,300 l-56.57,21.21 M450,300 l-56.57,-21.21 M450,300 l-21.21,-56.57
+                         M450,300 l38.97,-51.76 M450,300 l51.76,-38.97 M450,300 l51.76,38.97 M450,300 l38.97,51.76 M450,300 l-38.97,51.76 M450,300 l-51.76,38.97 M450,300 l-51.76,-38.97 M450,300 l-38.97,-51.76"/>
+</vector>

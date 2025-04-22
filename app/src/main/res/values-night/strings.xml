@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="google_maps_key">AIzaSyBt3USGB6g4HKe4DOfXCngbYmbLgb8WmO0</string>
+    <string name="default_notification_channel_id">kaps_default_channel</string>
+    <string name="navigation_drawer_open">open</string>
+    <string name="navigation_drawer_close">close</string>
+    <string name="how_to_continue">Select how you would like to continue</string>
+    <string name="choose_role">Choose Your Role</string>
+</resources>

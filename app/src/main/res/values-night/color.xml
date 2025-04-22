@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="colorPrimary">#2A62FF</color>
+    <color name="apptextcolor">#2A62FF</color>
+    <color name="colorPrimaryclick">#233BC8</color>
+    <color name="colorPrimaryDark">#2A62FF</color>
+
+    <color name="colorAccent">#2A62FF</color>
+    <color name="white">#ffffff</color>
+    <color name="black">#171A29</color>
+    <color name="black1">#404040</color>
+    <color name="colorgrey0">#F9F9F9</color>
+    <color name="colorgrey1">#F4F3F3</color>
+    <color name="colorgrey">#CFCFCF</color>
+    <color name="colorgrey2">#B3B3B3</color>
+    <color name="colorgrey3">#7A7878</color>
+
+
+    <color name="tranfarnt">#00D32A1E</color>
+    <color name="colorgreen">#61B047</color>
+    <color name="colorbg">#F6F5FA</color>
+    <color name="colorerror">#FF5657</color>
+
+    <!-- Status Colors -->
+    <color name="blue">#2196F3</color>
+    <color name="orange">#FF9800</color>
+    <color name="indigo">#3F51B5</color>
+    <color name="green">#4CAF50</color>
+    <color name="grey">#9E9E9E</color>
+
+    <color name="outstation_color">#E64A19</color>  <!-- Deep Orange -->
+    <color name="local_color">#2E7D32</color>      <!-- Dark Green -->
+
+</resources>

@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "72257680842",
+    "project_id": "vt-partner-agent-app",
+    "storage_bucket": "vt-partner-agent-app.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:72257680842:android:3c103adeab075116714b33",
+        "android_client_info": {
+          "package_name": "com.kapstranspvtltd.kaps_partner"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAe3MYguKrEm8okJYatiZZtoKDRY9axPT8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:72257680842:android:9a72c63a7214273f714b33",
+        "android_client_info": {
+          "package_name": "com.vtpartnertranspvtltd.vtpartneragent"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAe3MYguKrEm8okJYatiZZtoKDRY9axPT8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

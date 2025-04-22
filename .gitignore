@@ -1,0 +1,17 @@
+# Create and configure .gitignore
+cat > .gitignore << 'EOL'
+*.iml
+.gradle
+/local.properties
+/.idea
+.DS_Store
+/build
+/captures
+.externalNativeBuild
+.cxx
+local.properties
+/app/build
+/app/release
+*.aab
+*.apk
+EOL

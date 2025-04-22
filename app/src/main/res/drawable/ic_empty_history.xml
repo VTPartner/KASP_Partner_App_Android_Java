@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="240dp"
+    android:height="240dp"
+    android:viewportWidth="240"
+    android:viewportHeight="240">
+
+    <!-- Background Circle -->
+    <path
+        android:fillColor="#F5F5F5"
+        android:pathData="M120,120m-100,0a100,100 0,1 1,200 0a100,100 0,1 1,-200 0"/>
+
+    <!-- Receipt Paper -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:strokeColor="#E0E0E0"
+        android:strokeWidth="2"
+        android:pathData="M80,60h80v120h-80z"/>
+
+    <!-- Receipt Lines -->
+    <path
+        android:strokeColor="#EEEEEE"
+        android:strokeWidth="2"
+        android:strokeLineCap="round"
+        android:pathData="M90,80h60"/>
+
+    <path
+        android:strokeColor="#EEEEEE"
+        android:strokeWidth="2"
+        android:strokeLineCap="round"
+        android:pathData="M90,95h40"/>
+
+    <path
+        android:strokeColor="#EEEEEE"
+        android:strokeWidth="2"
+        android:strokeLineCap="round"
+        android:pathData="M90,110h50"/>
+
+    <path
+        android:strokeColor="#EEEEEE"
+        android:strokeWidth="2"
+        android:strokeLineCap="round"
+        android:pathData="M90,125h45"/>
+
+    <path
+        android:strokeColor="#EEEEEE"
+        android:strokeWidth="2"
+        android:strokeLineCap="round"
+        android:pathData="M90,140h55"/>
+
+    <!-- Calendar Icon -->
+    <path
+        android:fillColor="#1976D2"
+        android:pathData="M150,90h30v30h-30z"/>
+
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M155,100h20v15h-20z"/>
+
+    <path
+        android:fillColor="#1976D2"
+        android:pathData="M160,95h2v10h-2z"/>
+
+    <path
+        android:fillColor="#1976D2"
+        android:pathData="M168,95h2v10h-2z"/>
+
+    <!-- Clock Icon -->
+    <path
+        android:fillColor="#1976D2"
+        android:pathData="M60,90a15,15 0,1 1,30 0a15,15 0,1 1,-30 0"/>
+
+    <path
+        android:strokeColor="#FFFFFF"
+        android:strokeWidth="2"
+        android:strokeLineCap="round"
+        android:pathData="M75,90l0,-8"/>
+
+    <path
+        android:strokeColor="#FFFFFF"
+        android:strokeWidth="2"
+        android:strokeLineCap="round"
+        android:pathData="M75,90l6,4"/>
+
+    <!-- Money Icon -->
+    <path
+        android:fillColor="#4CAF50"
+        android:pathData="M150,140a15,15 0,1 1,30 0a15,15 0,1 1,-30 0"/>
+
+    <path
+        android:strokeColor="#FFFFFF"
+        android:strokeWidth="2"
+        android:strokeLineCap="round"
+        android:pathData="M165,140m-8,0a8,8 0,1 1,16 0a8,8 0,1 1,-16 0"/>
+
+    <path
+        android:strokeColor="#FFFFFF"
+        android:strokeWidth="2"
+        android:strokeLineCap="round"
+        android:pathData="M165,135v10"/>
+
+    <!-- Search Icon -->
+    <path
+        android:fillColor="#FF4081"
+        android:pathData="M60,140a15,15 0,1 1,30 0a15,15 0,1 1,-30 0"/>
+
+    <path
+        android:strokeColor="#FFFFFF"
+        android:strokeWidth="2"
+        android:strokeLineCap="round"
+        android:pathData="M75,140m-6,0a6,6 0,1 1,12 0a6,6 0,1 1,-12 0"/>
+
+    <path
+        android:strokeColor="#FFFFFF"
+        android:strokeWidth="2"
+        android:strokeLineCap="round"
+        android:pathData="M79,144l5,5"/>
+
+</vector>
