@@ -213,10 +213,14 @@ public class JcbCraneHomeActivity extends AppCompatActivity implements OnMapRead
 
         // Setup duty switch with user action tracking
         dutySwitch.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            if (!isUserAction) {
+                return; // Skip if this is a programmatic change
+            }
             if (noPlanYet) {
                 isUserAction = false;
                 dutySwitch.setChecked(false);
                 showError("No active recharge plan found.Please recharge now");
+                isUserAction = true; // Reset after handling
                 return;
             }
 //            if(isLiveRide){
@@ -706,6 +710,7 @@ public class JcbCraneHomeActivity extends AppCompatActivity implements OnMapRead
                     dutySwitch.setChecked(false);
                     stopLocationUpdates();
                     showDutyStatusCheckBox(true, false);
+                    isUserAction = true; // Reset after handling
                 })
                 .show();
     }
@@ -1275,7 +1280,7 @@ public class JcbCraneHomeActivity extends AppCompatActivity implements OnMapRead
     private void clearAllUserData() {
         // Clear all relevant preferences
         preferenceManager.clearPreferences();
-
+        preferenceManager.saveBooleanValue("firstRun",true);
         // Stop any ongoing services
         stopLocationUpdates();
 
@@ -1539,14 +1544,15 @@ public class JcbCraneHomeActivity extends AppCompatActivity implements OnMapRead
                             // Load profile image using Glide
                             Glide.with(JcbCraneHomeActivity.this)
                                     .load(profilePic)
-                                    .placeholder(R.drawable.demo_user)
-                                    .error(R.drawable.demo_user)
+                                    .placeholder(R.drawable.ic_image_placeholder)
+                                    .error(R.drawable.ic_image_placeholder)
+                                    .override(100,100)
                                     .into((ImageView) headerView.findViewById(R.id.profile_image));
 
 //                            Glide.with(HandyManAgentHomeActivity.this)
 //                                    .load(vehicleImage)
-//                                    .placeholder(R.drawable.demo_user)
-//                                    .error(R.drawable.demo_user)
+//                                    .placeholder(R.drawable.ic_image_placeholder)
+//                                    .error(R.drawable.ic_image_placeholder)
 //                                    .into((ImageView) headerView.findViewById(R.id.vehicle_image));
 
                             TextView driverNameTextView = (TextView) headerView.findViewById(R.id.driver_name);
@@ -1586,7 +1592,10 @@ public class JcbCraneHomeActivity extends AppCompatActivity implements OnMapRead
         }
 
         binding.dutySwitch.setText(isOnline ? "Go Off Duty" : "Go On Duty");
-        isUserAction = true;
+        // Reset the flag after a short delay to ensure the switch state is set
+        new Handler().postDelayed(() -> {
+            isUserAction = true;
+        }, 100);
     }
 
 

@@ -67,6 +67,9 @@ public class JcbCraneDriverNewBookingAcceptService extends Service {
     private String bookingId;
     private JSONObject bookingJsonDetails;
 
+    private static View currentFloatingView = null;
+    private static WindowManager currentWindowManager = null;
+
     @Override
     public void onCreate() {
         super.onCreate();
@@ -197,6 +200,17 @@ public class JcbCraneDriverNewBookingAcceptService extends Service {
             return;
         }
 
+        // Remove any existing floating window before adding a new one
+        if (currentWindowManager != null && currentFloatingView != null) {
+            try {
+                currentWindowManager.removeView(currentFloatingView);
+            } catch (Exception e) {
+                // Ignore if already removed
+            }
+            currentFloatingView = null;
+            currentWindowManager = null;
+        }
+
         windowManager = (WindowManager) getSystemService(WINDOW_SERVICE);
         LayoutInflater inflater = (LayoutInflater) getSystemService(LAYOUT_INFLATER_SERVICE);
         floatingView = inflater.inflate(R.layout.jcb_crane_new_booking_accept_layout, null);
@@ -228,6 +242,10 @@ public class JcbCraneDriverNewBookingAcceptService extends Service {
         params.height = (int) (screenHeight * 0.7);
 
         windowManager.addView(floatingView, params);
+
+        //To avoid multiple windows shown at a time
+        currentFloatingView = floatingView;
+        currentWindowManager = windowManager;
         setupUI();
     }
 
@@ -482,6 +500,7 @@ public class JcbCraneDriverNewBookingAcceptService extends Service {
     private void handleNoDataFound() {
         preferenceManager.saveStringValue("current_other_booking_id_assigned", "");
         showToast("Already Assigned to Another Driver.\nPlease be quick at receiving ride requests to earn more.");
+        onDestroy();
     }
 
     private void handleDefaultError(VolleyError error) {
@@ -512,8 +531,21 @@ public class JcbCraneDriverNewBookingAcceptService extends Service {
             countDownTimer.cancel();
         }
 
+//        if (windowManager != null && floatingView != null) {
+//            windowManager.removeView(floatingView);
+//        }
+
+        // Remove floating view if it is the current one
         if (windowManager != null && floatingView != null) {
-            windowManager.removeView(floatingView);
+            try {
+                windowManager.removeView(floatingView);
+            } catch (Exception e) {
+                // Ignore if already removed
+            }
+            if (currentFloatingView == floatingView) {
+                currentFloatingView = null;
+                currentWindowManager = null;
+            }
         }
     }
 

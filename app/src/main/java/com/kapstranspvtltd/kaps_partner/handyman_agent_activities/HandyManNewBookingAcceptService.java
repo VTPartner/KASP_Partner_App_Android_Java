@@ -38,6 +38,7 @@ import com.android.volley.toolbox.JsonObjectRequest;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationServices;
 import com.kapstranspvtltd.kaps_partner.R;
+import com.kapstranspvtltd.kaps_partner.fcm.FCMService;
 import com.kapstranspvtltd.kaps_partner.handyman_agent_activities.settings_pages.HandyManNewLiveRideActivity;
 
 import com.kapstranspvtltd.kaps_partner.fcm.AccessToken;
@@ -384,12 +385,14 @@ public class HandyManNewBookingAcceptService extends Service {
                         url,
                         jsonBody,
                         response -> {
+
                             Intent intent = new Intent(this, HandyManNewLiveRideActivity.class);
                             intent.putExtra("booking_id", bookingId);
                             intent.putExtra("FromFCM", true);
                             intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                             startActivity(intent);
                             stopSelf();
+                            FCMService.cancelAllNotifications(this);
                         },
                         error -> {
                             handleVolleyError(error);
@@ -426,6 +429,7 @@ public class HandyManNewBookingAcceptService extends Service {
     private void handleNoDataFound() {
         preferenceManager.saveStringValue("current_handyman_booking_id_assigned", ""); // Changed key
         showToast("Already Assigned to Another Agent.\nPlease be quick at receiving service requests to earn more.");
+        onDestroy();
     }
 
     private void initializeMediaPlayer() {

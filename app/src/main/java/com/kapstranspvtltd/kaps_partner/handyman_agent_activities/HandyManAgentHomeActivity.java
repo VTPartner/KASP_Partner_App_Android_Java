@@ -226,10 +226,14 @@ public class HandyManAgentHomeActivity extends AppCompatActivity implements OnMa
 
         // Setup duty switch with user action tracking
         dutySwitch.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            if (!isUserAction) {
+                return; // Skip if this is a programmatic change
+            }
             if (noPlanYet) {
                 isUserAction = false;
                 dutySwitch.setChecked(false);
                 showError("No active recharge plan found.Please recharge now");
+                isUserAction = true; // Reset after handling
                 return;
             }
 //            if(isLiveRide){
@@ -719,6 +723,7 @@ public class HandyManAgentHomeActivity extends AppCompatActivity implements OnMa
                     dutySwitch.setChecked(false);
                     stopLocationUpdates();
                     showDutyStatusCheckBox(true, false);
+                    isUserAction = true; // Reset after handling
                 })
                 .show();
     }
@@ -1280,6 +1285,8 @@ public class HandyManAgentHomeActivity extends AppCompatActivity implements OnMa
                     intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
                     startActivity(intent);
                     finish();
+
+
                 })
                 .setNegativeButton("Cancel", null)
                 .show();
@@ -1288,7 +1295,7 @@ public class HandyManAgentHomeActivity extends AppCompatActivity implements OnMa
     private void clearAllUserData() {
         // Clear all relevant preferences
         preferenceManager.clearPreferences();
-
+        preferenceManager.saveBooleanValue("firstRun",true);
         // Stop any ongoing services
         stopLocationUpdates();
 
@@ -1303,6 +1310,8 @@ public class HandyManAgentHomeActivity extends AppCompatActivity implements OnMa
         } catch (Exception e) {
             e.printStackTrace();
         }
+
+
     }
 
     private boolean deleteDir(File dir) {
@@ -1574,22 +1583,22 @@ public class HandyManAgentHomeActivity extends AppCompatActivity implements OnMa
 
                                             @Override
                                             public void onLoadCleared(@Nullable Drawable placeholder) {
-                                                profileImageView.setImageResource(R.drawable.demo_user);
+                                                profileImageView.setImageResource(R.drawable.ic_image_placeholder);
                                             }
                                         });
                             } else {
-                                profileImageView.setImageResource(R.drawable.demo_user);
+                                profileImageView.setImageResource(R.drawable.ic_image_placeholder);
                             }
 //                            Glide.with(HandyManAgentHomeActivity.this)
 //                                    .load(profilePic)
-//                                    .placeholder(R.drawable.demo_user)
-//                                    .error(R.drawable.demo_user)
+//                                    .placeholder(R.drawable.ic_image_placeholder)
+//                                    .error(R.drawable.ic_image_placeholder)
 //                                    .into((ImageView) headerView.findViewById(R.id.profile_image));
 
 //                            Glide.with(HandyManAgentHomeActivity.this)
 //                                    .load(vehicleImage)
-//                                    .placeholder(R.drawable.demo_user)
-//                                    .error(R.drawable.demo_user)
+//                                    .placeholder(R.drawable.ic_image_placeholder)
+//                                    .error(R.drawable.ic_image_placeholder)
 //                                    .into((ImageView) headerView.findViewById(R.id.vehicle_image));
 
                             TextView driverNameTextView = (TextView) headerView.findViewById(R.id.driver_name);
@@ -1629,7 +1638,10 @@ public class HandyManAgentHomeActivity extends AppCompatActivity implements OnMa
         }
 
         binding.dutySwitch.setText(isOnline ? "Go Off Duty" : "Go On Duty");
-        isUserAction = true;
+        // Reset the flag after a short delay to ensure the switch state is set
+        new Handler().postDelayed(() -> {
+            isUserAction = true;
+        }, 100);
     }
 
 

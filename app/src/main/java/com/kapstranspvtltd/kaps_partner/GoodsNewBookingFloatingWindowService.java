@@ -43,6 +43,7 @@ import com.android.volley.toolbox.JsonObjectRequest;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationServices;
 import com.kapstranspvtltd.kaps_partner.fcm.AccessToken;
+import com.kapstranspvtltd.kaps_partner.fcm.FCMService;
 import com.kapstranspvtltd.kaps_partner.fcm.popups.GoodsBookingAcceptActivity;
 import com.kapstranspvtltd.kaps_partner.goods_driver_activities.HomeActivity;
 import com.kapstranspvtltd.kaps_partner.goods_driver_activities.NewLiveRideActivity;
@@ -581,7 +582,8 @@ public class GoodsNewBookingFloatingWindowService extends Service {
                             intent.putExtra("FromFCM", true);
                             intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                             startActivity(intent);
-                            stopSelf();
+                            onDestroy();
+                            FCMService.cancelAllNotifications(this);
                         },
                         error -> {
                             handleVolleyError(error);
@@ -658,6 +660,7 @@ public class GoodsNewBookingFloatingWindowService extends Service {
         // Clear current booking ID
         preferenceManager.saveStringValue("current_booking_id_assigned", "");
         showToast("Already Assigned to Another Driver.\nPlease be quick at receiving ride requests to earn more.");
+        onDestroy();
     }
 
     private void handleDefaultError(VolleyError error) {

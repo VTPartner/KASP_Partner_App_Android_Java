@@ -1,6 +1,7 @@
 package com.kapstranspvtltd.kaps_partner.adapters;
 
 import android.view.LayoutInflater;
+import android.view.View;
 import android.view.ViewGroup;
 
 import androidx.annotation.NonNull;
@@ -57,13 +58,20 @@ public class RidesAdapter extends RecyclerView.Adapter<RidesAdapter.RideViewHold
                     .error(R.drawable.demo_user)
                     .circleCrop()
                     .into(binding.customerImage);
+            String dropAddress = order.getDropAddress();
 
+            if(dropAddress != null && dropAddress.isEmpty() == false && dropAddress.equalsIgnoreCase("NA")){
+                binding.dottedLineLyt.setVisibility(View.GONE);
+                binding.dropLocationLayout.setVisibility(View.GONE);
+            }
             // Set texts
             binding.dateTime.setText(formatDateTime(order.getBookingTiming()));
             binding.customerName.setText(order.getCustomerName());
             binding.amount.setText(String.format("₹%d/-", Math.round(order.getTotalPrice())));
             binding.pickupAddress.setText(order.getPickupAddress());
             binding.dropAddress.setText(order.getDropAddress());
+
+
 
             // Handle click
             binding.getRoot().setOnClickListener(v -> {

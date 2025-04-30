@@ -91,6 +91,9 @@ public class JcbCraneNewLiveRideActivity extends AppCompatActivity implements On
     String pickupAddress = "";
     String distance = "";
     String totalTime = "";
+
+    Double penaltyChargesAmount=1.0;
+
     String senderName = "";
     String senderNumber = "";
     Double totalPrice = 0.0;
@@ -98,6 +101,9 @@ public class JcbCraneNewLiveRideActivity extends AppCompatActivity implements On
     String receivedOTP = "";
     String bookingId = "";
     String pickupLat, pickupLng = "0.0";
+
+    private int penaltyAmount = 0;
+    private int allowedMinutes = 0; // totalTime in minutes
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -304,6 +310,11 @@ public class JcbCraneNewLiveRideActivity extends AppCompatActivity implements On
             pickupAddress = rideDetails.getString("pickup_address");
             distance = rideDetails.getString("distance");
             totalTime = rideDetails.getString("total_time");
+            penaltyChargesAmount = rideDetails.getDouble("penalty_charges_amount");
+
+            // Parse totalTime to allowedMinutes (assume format "HH:mm:ss" or "mm:ss")
+            allowedMinutes = parseMinutesFromTimeString(totalTime);
+
             totalPrice = rideDetails.getDouble("total_price");
             bookingStatus = rideDetails.getString("booking_status");
             receivedOTP = rideDetails.getString("otp");
@@ -326,7 +337,7 @@ public class JcbCraneNewLiveRideActivity extends AppCompatActivity implements On
             binding.txtCustomerName.setText(customerName);
             binding.txtPickAddress.setText(pickupAddress);
             binding.txtDistance.setText(distance + " Km");
-            binding.txtTime.setText(totalTime);
+            binding.txtTime.setText(totalTime+"Hr");
             binding.bookingTiming.setText(formattedBookingTiming);
             binding.txtTotalPrice.setText("₹" + Math.round(totalPrice));
             binding.txtBookingId.setText("#CRN" + assignedBookingId);
@@ -342,6 +353,16 @@ public class JcbCraneNewLiveRideActivity extends AppCompatActivity implements On
         }
     }
 
+    private int parseMinutesFromTimeString(String timeStr) {
+        try {
+            // If timeStr is just a number (e.g., "1", "1.5", "2")
+            double hours = Double.parseDouble(timeStr);
+            return (int) Math.round(hours * 60);
+        } catch (Exception e) {
+            return 0;
+        }
+    }
+
     private void startServiceTimer() {
         if (startServiceTime == 0) {
             startServiceTime = System.currentTimeMillis();
@@ -354,7 +375,29 @@ public class JcbCraneNewLiveRideActivity extends AppCompatActivity implements On
             @Override
             public void run() {
                 long currentTime = System.currentTimeMillis();
+//                long totalElapsedTime = elapsedTime + (currentTime - startServiceTime);
+//
+//                int seconds = (int) (totalElapsedTime / 1000);
+//                int minutes = seconds / 60;
+//                int hours = minutes / 60;
+//
+//                seconds = seconds % 60;
+//                minutes = minutes % 60;
+//
+//                String timeStr = String.format(Locale.getDefault(),
+//                        "%02d:%02d:%02d", hours, minutes, seconds);
+//                timerTextView.setText(timeStr);
+//
+//                preferenceManager.saveLongValue(PreferenceManager.Keys.SERVICE_ELAPSED_TIME, totalElapsedTime);
+
+                /**
+                 * Use this for production and comment out below fake timing
+                  */
                 long totalElapsedTime = elapsedTime + (currentTime - startServiceTime);
+
+                //this is to test a fake timing
+//                long fakeOffset = 2 * 60 * 60 * 1000; // 2 hours in milliseconds
+//                long totalElapsedTime = elapsedTime + (currentTime - startServiceTime) + fakeOffset;
 
                 int seconds = (int) (totalElapsedTime / 1000);
                 int minutes = seconds / 60;
@@ -368,11 +411,39 @@ public class JcbCraneNewLiveRideActivity extends AppCompatActivity implements On
                 timerTextView.setText(timeStr);
 
                 preferenceManager.saveLongValue(PreferenceManager.Keys.SERVICE_ELAPSED_TIME, totalElapsedTime);
+
+// Penalty calculation
+//                penaltyChargesAmount //double precision
+//                int elapsedMinutes = (int) (totalElapsedTime / 60000);
+//                if (allowedMinutes > 0 && elapsedMinutes > allowedMinutes) {
+//                    penaltyAmount = elapsedMinutes - allowedMinutes;
+//                } else {
+//                    penaltyAmount = 0;
+//                }
+                int elapsedMinutes = (int) (totalElapsedTime / 60000);
+                if (allowedMinutes > 0 && elapsedMinutes > allowedMinutes) {
+                    int extraMinutes = elapsedMinutes - allowedMinutes;
+                    penaltyAmount = (int) Math.round(extraMinutes * penaltyChargesAmount);
+                } else {
+                    penaltyAmount = 0;
+                }
+                updatePenaltyUI();
                 timerHandler.postDelayed(this, 1000);
             }
         };
 
         timerHandler.postDelayed(timerRunnable, 0);
+    }
+
+    private void updatePenaltyUI() {
+        runOnUiThread(() -> {
+            if (penaltyAmount > 0) {
+                binding.penaltyText.setVisibility(View.VISIBLE);
+                binding.penaltyText.setText("Penalty: ₹" + penaltyAmount);
+            } else {
+                binding.penaltyText.setVisibility(View.GONE);
+            }
+        });
     }
 
     private void stopServiceTimer() {
@@ -427,11 +498,16 @@ public class JcbCraneNewLiveRideActivity extends AppCompatActivity implements On
         String url = APIClient.baseUrl + "update_booking_status_jcb_crane_driver";
         String accessToken = AccessToken.getAccessToken();
         JSONObject params = new JSONObject();
+        int baseAmount = (int) Math.round(totalPrice);
+        int totalPayable = baseAmount + penaltyAmount;
         try {
             params.put("booking_id", assignedBookingId);
             params.put("booking_status", status);
             params.put("server_token", accessToken);
-            params.put("total_payment", totalPrice.toString());
+//            params.put("total_payment", totalPrice.toString());
+
+            params.put("total_payment", totalPayable+"");
+            params.put("penalty_amount", penaltyAmount+"");
             params.put("customer_id", customerID);
         } catch (JSONException e) {
             e.printStackTrace();
@@ -486,6 +562,8 @@ public class JcbCraneNewLiveRideActivity extends AppCompatActivity implements On
                     params.put("driver_id", driverId);
                     params.put("customer_id", customerID);
                     params.put("total_amount", Math.round(Double.parseDouble(amount)));
+                    params.put("penalty_amount",penaltyAmount);
+
                 } catch (JSONException e) {
                     e.printStackTrace();
                 }
@@ -620,6 +698,41 @@ public class JcbCraneNewLiveRideActivity extends AppCompatActivity implements On
 
     private void showPaymentDialog() {
         String amount = totalPrice.toString();
+        int baseAmount = (int) Math.round(Double.parseDouble(amount));
+        int totalPayable = baseAmount + penaltyAmount;
+
+        DialogPaymentDetailsBinding dialogBinding = DialogPaymentDetailsBinding.inflate(getLayoutInflater());
+        AlertDialog dialog = new AlertDialog.Builder(this, R.style.AlertDialogTheme)
+                .setView(dialogBinding.getRoot())
+                .create();
+
+        dialogBinding.amountValue.setText("₹" + baseAmount);
+        if (penaltyAmount > 0) {
+            dialogBinding.penaltyLabel.setVisibility(View.VISIBLE);
+            dialogBinding.penaltyValue.setVisibility(View.VISIBLE);
+            dialogBinding.totalPayableLabel.setVisibility(View.VISIBLE);
+            dialogBinding.totalPayableValue.setVisibility(View.VISIBLE);
+            dialogBinding.penaltyValue.setText("₹" + penaltyAmount);
+        } else {
+            dialogBinding.penaltyLabel.setVisibility(View.GONE);
+            dialogBinding.penaltyValue.setVisibility(View.GONE);
+            dialogBinding.totalPayableLabel.setVisibility(View.GONE);
+            dialogBinding.totalPayableValue.setVisibility(View.GONE);
+        }
+        dialogBinding.totalPayableValue.setText("₹" + totalPayable);
+
+        dialogBinding.cancelButton.setOnClickListener(v -> dialog.dismiss());
+        dialogBinding.confirmButton.setOnClickListener(v -> {
+            dialog.dismiss();
+            showLoading("Processing payment...");
+            processPayment(String.valueOf(totalPayable), getSelectedPaymentType(dialogBinding));
+        });
+
+        dialog.show();
+    }
+
+    /*private void showPaymentDialog() {
+        String amount = totalPrice.toString();
         DialogPaymentDetailsBinding dialogBinding = DialogPaymentDetailsBinding.inflate(getLayoutInflater());
         AlertDialog dialog = new AlertDialog.Builder(this, R.style.AlertDialogTheme)
                 .setView(dialogBinding.getRoot())
@@ -634,7 +747,7 @@ public class JcbCraneNewLiveRideActivity extends AppCompatActivity implements On
         });
 
         dialog.show();
-    }
+    }*/
 
     private String getSelectedPaymentType(DialogPaymentDetailsBinding dialogBinding) {
         return dialogBinding.paymentTypeGroup.getCheckedRadioButtonId() == R.id.onlineRadioButton

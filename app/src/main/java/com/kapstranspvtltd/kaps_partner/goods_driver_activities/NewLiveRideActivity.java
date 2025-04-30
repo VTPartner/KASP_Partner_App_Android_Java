@@ -898,7 +898,7 @@ public class NewLiveRideActivity extends AppCompatActivity implements OnMapReady
         DialogPaymentDetailsBinding dialogBinding = DialogPaymentDetailsBinding.inflate(getLayoutInflater());
         AlertDialog dialog = new AlertDialog.Builder(this, R.style.AlertDialogTheme)
                 .setView(dialogBinding.getRoot())
-                .setTitle("Payment Details")
+//                .setTitle("Payment Details")
                 .setCancelable(false) // Prevent dismissing easily
                 .create();
 
@@ -1070,6 +1070,7 @@ public class NewLiveRideActivity extends AppCompatActivity implements OnMapReady
         Log.d(TAG, "Map is ready.");
         try {
             // Basic map settings
+            mMap.getUiSettings().setMyLocationButtonEnabled(true);
             mMap.getUiSettings().setZoomControlsEnabled(true);
             mMap.getUiSettings().setCompassEnabled(true);
             mMap.getUiSettings().setMapToolbarEnabled(false); // Disable distracting toolbar

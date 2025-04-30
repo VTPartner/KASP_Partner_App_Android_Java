@@ -77,6 +77,7 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.material.bottomsheet.BottomSheetDialog;
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.snackbar.Snackbar;
 import com.google.android.material.switchmaterial.SwitchMaterial;
 import com.google.common.util.concurrent.ListenableFuture;
@@ -420,22 +421,36 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
         // Initialize toolbar views
         dutySwitch = binding.toolbar.findViewById(R.id.duty_switch);
         ImageView menuIcon = binding.toolbar.findViewById(R.id.menu_icon);
-        ImageView liveOrderIcon = binding.toolbar.findViewById(R.id.live_order_icon);
+
         ImageView notificationIcon = binding.toolbar.findViewById(R.id.notification_icon);
 
+        FloatingActionButton liveOrderFab = binding.liveOrderFab;
+
+// Load GIF using Glide
         Glide.with(this)
                 .asGif()
                 .load(R.drawable.live_ride)
-                .into(liveOrderIcon);
+                .into(liveOrderFab);
+
+// Click listener
+        liveOrderFab.setOnClickListener(v -> {
+            startActivity(new Intent(this, NewLiveRideActivity.class));
+        });
+
+
         // Setup click listeners
         menuIcon.setOnClickListener(v -> binding.drawerLayout.openDrawer(GravityCompat.START));
 
         // Setup duty switch with user action tracking
         dutySwitch.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            if (!isUserAction) {
+                return; // Skip if this is a programmatic change
+            }
             if (noPlanYet) {
                 isUserAction = false;
                 dutySwitch.setChecked(false);
                 showError("No active recharge plan found.Please recharge now");
+                isUserAction = true; // Reset after handling
                 return;
             }
 //            if(isLiveRide){
@@ -455,9 +470,7 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
             isUserAction = true;
         });
 
-        liveOrderIcon.setOnClickListener(v -> {
-            startActivity(new Intent(this, NewLiveRideActivity.class));
-        });
+
 
 //        notificationIcon.setOnClickListener(v -> {
 //            startActivity(new Intent(this, GoodsNotificationsActivity.class));
@@ -1062,6 +1075,7 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
                     dutySwitch.setChecked(false);
                     stopLocationUpdates();
                     showDutyStatusCheckBox(true, false);
+                    isUserAction = true; // Reset after handling
                 })
                 .show();
     }
@@ -1631,7 +1645,7 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
     private void clearAllUserData() {
         // Clear all relevant preferences
         preferenceManager.clearPreferences();
-
+        preferenceManager.saveBooleanValue("firstRun",true);
         // Stop any ongoing services
         stopLocationUpdates();
 
@@ -1897,14 +1911,16 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
                             // Load profile image using Glide
                             Glide.with(HomeActivity.this)
                                     .load(profilePic)
-                                    .placeholder(R.drawable.demo_user)
-                                    .error(R.drawable.demo_user)
+                                    .placeholder(R.drawable.ic_image_placeholder)
+                                    .error(R.drawable.ic_image_placeholder)
+                                    .override(100, 100)
                                     .into((ImageView) headerView.findViewById(R.id.profile_image));
 
                             Glide.with(HomeActivity.this)
                                     .load(vehicleImage)
-                                    .placeholder(R.drawable.demo_user)
-                                    .error(R.drawable.demo_user)
+                                    .placeholder(R.drawable.ic_image_placeholder)
+                                    .error(R.drawable.ic_image_placeholder)
+                                    .override(100, 100)
                                     .into((ImageView) headerView.findViewById(R.id.vehicle_image));
 
                             TextView driverNameTextView = (TextView) headerView.findViewById(R.id.driver_name);
@@ -1944,7 +1960,10 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
         }
 
         binding.dutySwitch.setText(isOnline ? "Go Off Duty" : "Go On Duty");
-        isUserAction = true;
+        // Reset the flag after a short delay to ensure the switch state is set
+        new Handler().postDelayed(() -> {
+            isUserAction = true;
+        }, 100);
     }
 
 

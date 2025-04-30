@@ -18,6 +18,7 @@ import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.android.volley.DefaultRetryPolicy;
@@ -63,6 +64,11 @@ import java.util.Map;
 
 public class DriverAgentNewLiveRideActivity extends AppCompatActivity implements OnMapReadyCallback {
 
+    private long startServiceTime = 0;
+    private long elapsedTime = 0;
+    private Handler timerHandler = new Handler();
+    private Runnable timerRunnable;
+    private TextView timerTextView;
     private BroadcastReceiver serviceRestartReceiver;
     private ActivityDriverAgentNewLiveRideBinding binding;
     private PreferenceManager preferenceManager;
@@ -88,6 +94,8 @@ public class DriverAgentNewLiveRideActivity extends AppCompatActivity implements
     String dropAddress = "";
     String distance = "";
     String totalTime = "";
+
+    Double penaltyChargesAmount=1.0;
     String senderName = "";
     String senderNumber = "";
     String receiverName = "";
@@ -100,6 +108,8 @@ public class DriverAgentNewLiveRideActivity extends AppCompatActivity implements
 
     String pickupLat,pickupLng,destinationLat,destinationLng ="0.0";
 
+    private int penaltyAmount = 0;
+    private int allowedMinutes = 0; // totalTime in minutes
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -111,10 +121,24 @@ public class DriverAgentNewLiveRideActivity extends AppCompatActivity implements
         setupClickListeners();
         getCurrentBookingIdDetails();
         startLocationUpdates();
-
+        setupTimer();
         binding.navigateBtn.setOnClickListener(v -> navigateToDestination());
 
 
+    }
+
+    private void setupTimer() {
+        boolean wasServiceRunning = preferenceManager.getBooleanValue(PreferenceManager.Keys.SERVICE_IS_RUNNING, false);
+        if (wasServiceRunning) {
+            startServiceTime = preferenceManager.getLongValue(PreferenceManager.Keys.SERVICE_START_TIME, 0);
+            elapsedTime = preferenceManager.getLongValue(PreferenceManager.Keys.SERVICE_ELAPSED_TIME, 0);
+            long lastPauseTime = preferenceManager.getLongValue(PreferenceManager.Keys.SERVICE_LAST_PAUSE_TIME, 0);
+
+            if (lastPauseTime > 0) {
+                elapsedTime += (System.currentTimeMillis() - lastPauseTime);
+            }
+            startServiceTimer();
+        }
     }
 
     private void navigateToDestination() {
@@ -164,6 +188,7 @@ public class DriverAgentNewLiveRideActivity extends AppCompatActivity implements
     }
 
     private void initializeViews() {
+        timerTextView = binding.txtServiceTime;
         preferenceManager = new PreferenceManager(this);
         progressDialog = new ProgressDialog(this);
         progressDialog.setMessage("Please wait...");
@@ -181,6 +206,34 @@ public class DriverAgentNewLiveRideActivity extends AppCompatActivity implements
         if (isFromFCM) {
             binding.imgBack.setVisibility(View.GONE);
         }
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        if (timerRunnable != null) {
+            stopServiceTimer();
+        }
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        if (preferenceManager.getBooleanValue(PreferenceManager.Keys.SERVICE_IS_RUNNING, false)) {
+            long lastPauseTime = preferenceManager.getLongValue(PreferenceManager.Keys.SERVICE_LAST_PAUSE_TIME, 0);
+            if (lastPauseTime > 0) {
+                elapsedTime = preferenceManager.getLongValue(PreferenceManager.Keys.SERVICE_ELAPSED_TIME, 0);
+                elapsedTime += (System.currentTimeMillis() - lastPauseTime);
+            }
+            startServiceTime = System.currentTimeMillis();
+            startServiceTimer();
+        }
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        stopServiceTimer();
     }
 
     private void setupClickListeners() {
@@ -224,6 +277,41 @@ public class DriverAgentNewLiveRideActivity extends AppCompatActivity implements
 
     private void showPaymentDialog() {
         String amount = totalPrice.toString();
+        int baseAmount = (int) Math.round(Double.parseDouble(amount));
+        int totalPayable = baseAmount + penaltyAmount;
+
+        DialogPaymentDetailsBinding dialogBinding = DialogPaymentDetailsBinding.inflate(getLayoutInflater());
+        AlertDialog dialog = new AlertDialog.Builder(this, R.style.AlertDialogTheme)
+                .setView(dialogBinding.getRoot())
+                .create();
+
+        dialogBinding.amountValue.setText("₹" + baseAmount);
+        if (penaltyAmount > 0) {
+            dialogBinding.penaltyLabel.setVisibility(View.VISIBLE);
+            dialogBinding.penaltyValue.setVisibility(View.VISIBLE);
+            dialogBinding.totalPayableLabel.setVisibility(View.VISIBLE);
+            dialogBinding.totalPayableValue.setVisibility(View.VISIBLE);
+            dialogBinding.penaltyValue.setText("₹" + penaltyAmount);
+        } else {
+            dialogBinding.penaltyLabel.setVisibility(View.GONE);
+            dialogBinding.penaltyValue.setVisibility(View.GONE);
+            dialogBinding.totalPayableLabel.setVisibility(View.GONE);
+            dialogBinding.totalPayableValue.setVisibility(View.GONE);
+        }
+        dialogBinding.totalPayableValue.setText("₹" + totalPayable);
+
+        dialogBinding.cancelButton.setOnClickListener(v -> dialog.dismiss());
+        dialogBinding.confirmButton.setOnClickListener(v -> {
+            dialog.dismiss();
+            showLoading("Processing payment...");
+            processPayment(String.valueOf(totalPayable), getSelectedPaymentType(dialogBinding));
+        });
+
+        dialog.show();
+    }
+
+   /* private void showPaymentDialog() {
+        String amount = totalPrice.toString();
         // Inflate dialog layout
         DialogPaymentDetailsBinding dialogBinding = DialogPaymentDetailsBinding.inflate(getLayoutInflater());
         AlertDialog dialog = new AlertDialog.Builder(this, R.style.AlertDialogTheme)
@@ -243,7 +331,7 @@ public class DriverAgentNewLiveRideActivity extends AppCompatActivity implements
         });
 
         dialog.show();
-    }
+    }*/
 
     private String getSelectedPaymentType(DialogPaymentDetailsBinding dialogBinding) {
         return dialogBinding.paymentTypeGroup.getCheckedRadioButtonId() == R.id.onlineRadioButton
@@ -278,6 +366,7 @@ public class DriverAgentNewLiveRideActivity extends AppCompatActivity implements
                     params.put("driver_id", driverId);
                     params.put("customer_id", customerID);
                     params.put("total_amount", Math.round(Double.parseDouble(amount)));
+                    params.put("penalty_amount",penaltyAmount);
                 } catch (JSONException e) {
                     e.printStackTrace();
                 }
@@ -515,6 +604,11 @@ public class DriverAgentNewLiveRideActivity extends AppCompatActivity implements
             dropAddress = rideDetails.getString("drop_address");
             distance = rideDetails.getString("distance");
             totalTime = rideDetails.getString("total_time");
+
+            penaltyChargesAmount = rideDetails.getDouble("penalty_charges_amount");
+
+            // Parse totalTime to allowedMinutes (assume format "HH:mm:ss" or "mm:ss")
+            allowedMinutes = parseMinutesFromTimeString(totalTime);
 //            senderName = rideDetails.getString("sender_name");
 //            senderNumber = rideDetails.getString("sender_number");
 //            receiverName = rideDetails.getString("receiver_name");
@@ -530,13 +624,22 @@ public class DriverAgentNewLiveRideActivity extends AppCompatActivity implements
             String formattedBookingTiming = getFormattedBookingTiming(bookingTiming);
 
 
+            // Handle timer based on status this will start the timer
+            if ("Start Trip".equals(bookingStatus)) {
+                boolean wasServiceRunning = preferenceManager.getBooleanValue(
+                        PreferenceManager.Keys.SERVICE_IS_RUNNING, false);
+                if (!wasServiceRunning) {
+                    resetTimer();
+                    startServiceTimer();
+                }
+            }
 
             // Update UI
             binding.txtCustomerName.setText(customerName);
             binding.txtPickAddress.setText(pickupAddress);
             binding.txtDropAddress.setText(dropAddress);
             binding.txtDistance.setText(distance + " Km");
-            binding.txtTime.setText(totalTime);
+            binding.txtTime.setText(totalTime+"Hr");
             binding.bookingTiming.setText(formattedBookingTiming);
             binding.txtTotalPrice.setText("₹" + Math.round(totalPrice));
             binding.txtBookingId.setText("#CRN" + assignedBookingId);
@@ -558,6 +661,119 @@ public class DriverAgentNewLiveRideActivity extends AppCompatActivity implements
             e.printStackTrace();
             showToast("Error updating ride details");
         }
+    }
+
+    private int parseMinutesFromTimeString(String timeStr) {
+        try {
+            // If timeStr is just a number (e.g., "1", "1.5", "2")
+            double hours = Double.parseDouble(timeStr);
+            return (int) Math.round(hours * 60);
+        } catch (Exception e) {
+            return 0;
+        }
+    }
+
+    private void startServiceTimer() {
+        if (startServiceTime == 0) {
+            startServiceTime = System.currentTimeMillis();
+            preferenceManager.saveLongValue(PreferenceManager.Keys.SERVICE_START_TIME, startServiceTime);
+            preferenceManager.saveBooleanValue(PreferenceManager.Keys.SERVICE_IS_RUNNING, true);
+            preferenceManager.saveLongValue(PreferenceManager.Keys.SERVICE_ELAPSED_TIME, elapsedTime);
+        }
+
+        timerRunnable = new Runnable() {
+            @Override
+            public void run() {
+                long currentTime = System.currentTimeMillis();
+//                long totalElapsedTime = elapsedTime + (currentTime - startServiceTime);
+//
+//                int seconds = (int) (totalElapsedTime / 1000);
+//                int minutes = seconds / 60;
+//                int hours = minutes / 60;
+//
+//                seconds = seconds % 60;
+//                minutes = minutes % 60;
+//
+//                String timeStr = String.format(Locale.getDefault(),
+//                        "%02d:%02d:%02d", hours, minutes, seconds);
+//                timerTextView.setText(timeStr);
+//
+//                preferenceManager.saveLongValue(PreferenceManager.Keys.SERVICE_ELAPSED_TIME, totalElapsedTime);
+
+                /**
+                 * Use this for production and comment out below fake timing
+                 */
+                long totalElapsedTime = elapsedTime + (currentTime - startServiceTime);
+
+                //this is to test a fake timing
+//                long fakeOffset = 2 * 60 * 60 * 1000; // 2 hours in milliseconds
+//                long totalElapsedTime = elapsedTime + (currentTime - startServiceTime) + fakeOffset;
+
+                int seconds = (int) (totalElapsedTime / 1000);
+                int minutes = seconds / 60;
+                int hours = minutes / 60;
+
+                seconds = seconds % 60;
+                minutes = minutes % 60;
+
+                String timeStr = String.format(Locale.getDefault(),
+                        "%02d:%02d:%02d", hours, minutes, seconds);
+                timerTextView.setText(timeStr);
+
+                preferenceManager.saveLongValue(PreferenceManager.Keys.SERVICE_ELAPSED_TIME, totalElapsedTime);
+
+// Penalty calculation
+//                penaltyChargesAmount //double precision
+//                int elapsedMinutes = (int) (totalElapsedTime / 60000);
+//                if (allowedMinutes > 0 && elapsedMinutes > allowedMinutes) {
+//                    penaltyAmount = elapsedMinutes - allowedMinutes;
+//                } else {
+//                    penaltyAmount = 0;
+//                }
+                int elapsedMinutes = (int) (totalElapsedTime / 60000);
+                if (allowedMinutes > 0 && elapsedMinutes > allowedMinutes) {
+                    int extraMinutes = elapsedMinutes - allowedMinutes;
+                    penaltyAmount = (int) Math.round(extraMinutes * penaltyChargesAmount);
+                } else {
+                    penaltyAmount = 0;
+                }
+                updatePenaltyUI();
+                timerHandler.postDelayed(this, 1000);
+            }
+        };
+
+        timerHandler.postDelayed(timerRunnable, 0);
+    }
+
+    private void updatePenaltyUI() {
+        runOnUiThread(() -> {
+            if (penaltyAmount > 0) {
+                binding.penaltyText.setVisibility(View.VISIBLE);
+                binding.penaltyText.setText("Penalty: ₹" + penaltyAmount);
+            } else {
+                binding.penaltyText.setVisibility(View.GONE);
+            }
+        });
+    }
+
+    private void stopServiceTimer() {
+        if (timerHandler != null && timerRunnable != null) {
+            timerHandler.removeCallbacks(timerRunnable);
+            long pauseTime = System.currentTimeMillis();
+            preferenceManager.saveLongValue(PreferenceManager.Keys.SERVICE_LAST_PAUSE_TIME, pauseTime);
+            preferenceManager.saveLongValue(PreferenceManager.Keys.SERVICE_ELAPSED_TIME,
+                    elapsedTime + (pauseTime - startServiceTime));
+        }
+    }
+
+    private void resetTimer() {
+        stopServiceTimer();
+        startServiceTime = 0;
+        elapsedTime = 0;
+        preferenceManager.removeValue(PreferenceManager.Keys.SERVICE_START_TIME);
+        preferenceManager.removeValue(PreferenceManager.Keys.SERVICE_IS_RUNNING);
+        preferenceManager.removeValue(PreferenceManager.Keys.SERVICE_ELAPSED_TIME);
+        preferenceManager.removeValue(PreferenceManager.Keys.SERVICE_LAST_PAUSE_TIME);
     }
 
     public String getFormattedBookingTiming(String bookingTiming) {
@@ -666,13 +882,21 @@ public class DriverAgentNewLiveRideActivity extends AppCompatActivity implements
     private void updateRideStatus(String status) {
         showLoading("Updating status...");
         String url = APIClient.baseUrl + "update_booking_status_other_driver";
+
         String accessToken = AccessToken.getAccessToken();
+
+        int baseAmount = (int) Math.round(totalPrice);
+        int totalPayable = baseAmount + penaltyAmount;
+
         JSONObject params = new JSONObject();
+
         try {
             params.put("booking_id", assignedBookingId);
             params.put("booking_status", status);
             params.put("server_token", accessToken);
-            params.put("total_payment", totalPrice.toString());
+//            params.put("total_payment", totalPrice.toString());
+            params.put("total_payment", totalPayable+"");
+            params.put("penalty_amount", penaltyAmount+"");
             params.put("customer_id", customerID);
             // Add other required parameters
         } catch (JSONException e) {

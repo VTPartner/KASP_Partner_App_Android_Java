@@ -111,6 +111,41 @@
                     app:tint="@color/colorPrimary" />
             </LinearLayout>
 
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_weight="1.2"
+                android:gravity="center"
+                android:orientation="horizontal"
+                android:padding="5dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Service Time"
+                    android:textColor="@color/black"
+                    android:textSize="12dp" />
+
+                <TextView
+                    android:id="@+id/txt_service_time"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginLeft="5dp"
+                    android:text="00:00:00"
+                    android:textStyle="bold"
+                    android:textColor="@color/colorPrimary"
+                    android:textSize="14dp" />
+            </LinearLayout>
+
+            <TextView
+                android:id="@+id/penaltyText"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Penalty: ₹0"
+                android:textAlignment="center"
+                android:textColor="@color/colorerror"
+                android:visibility="gone"
+                />
 
             <LinearLayout
                 android:id="@+id/lvl_click"
@@ -300,7 +335,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginLeft="5dp"
-                            android:text="23km"
+                            android:text="0km"
                             android:textStyle="bold"
                             android:textColor="@color/black"
                             android:textSize="12dp" />

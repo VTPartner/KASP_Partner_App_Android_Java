@@ -34,10 +34,10 @@
                         android:id="@+id/menu_icon"
                         android:layout_width="24dp"
                         android:layout_height="24dp"
-                        android:layout_centerVertical="true"
                         android:layout_alignParentStart="true"
-                        android:src="@drawable/ic_menu"
+                        android:layout_centerVertical="true"
                         android:contentDescription="Menu"
+                        android:src="@drawable/ic_menu"
                         app:tint="@color/white" />
 
                     <!-- Duty Toggle Switch (Center) -->
@@ -47,17 +47,17 @@
                         android:layout_height="wrap_content"
                         android:layout_centerInParent="true"
                         android:text="Go On Duty"
-                        android:visibility="gone"
-                        android:textColor="@color/white" />
+                        android:textColor="@color/white"
+                        android:visibility="gone" />
 
                     <TextView
                         android:id="@+id/verification_status"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text=""
-                        android:visibility="gone"
                         android:layout_centerInParent="true"
-                        android:textColor="@color/white"/>
+                        android:text=""
+                        android:textColor="@color/white"
+                        android:visibility="gone" />
 
                     <!-- Right Icons Container -->
                     <LinearLayout
@@ -68,14 +68,14 @@
                         android:orientation="horizontal">
 
                         <!-- Live Order Icon -->
-                        <ImageView
-                            android:id="@+id/live_order_icon"
-                            android:layout_width="25dp"
-                            android:layout_height="25dp"
-                            android:layout_marginEnd="16dp"
-                            android:src="@drawable/live_ride"
-                            android:contentDescription="Live Orders"
-                            app:tint="@color/white" />
+                        <!--                        <ImageView-->
+                        <!--                            android:id="@+id/live_order_icon"-->
+                        <!--                            android:layout_width="25dp"-->
+                        <!--                            android:layout_height="25dp"-->
+                        <!--                            android:layout_marginEnd="16dp"-->
+                        <!--                            android:src="@drawable/live_ride"-->
+                        <!--                            android:contentDescription="Live Orders"-->
+                        <!--                            app:tint="@color/white" />-->
 
                         <!-- Body Type Icon -->
                         <ImageView
@@ -83,16 +83,16 @@
                             android:layout_width="24dp"
                             android:layout_height="24dp"
                             android:layout_marginEnd="16dp"
-                            android:src="@drawable/body_type"
-                            android:contentDescription="Body Type"/>
+                            android:contentDescription="Body Type"
+                            android:src="@drawable/body_type" />
 
                         <ImageView
                             android:id="@+id/location_type"
                             android:layout_width="24dp"
                             android:layout_height="24dp"
                             android:layout_marginEnd="16dp"
-                            android:src="@drawable/map_icon"
-                            android:contentDescription="Location Type"/>
+                            android:contentDescription="Location Type"
+                            android:src="@drawable/map_icon" />
                     </LinearLayout>
                 </RelativeLayout>
 
@@ -111,27 +111,24 @@
                 android:id="@+id/map"
                 android:name="com.google.android.gms.maps.SupportMapFragment"
                 android:layout_width="match_parent"
-                android:layout_height="match_parent"/>
-
-
+                android:layout_height="match_parent" />
 
 
             <androidx.cardview.widget.CardView
+                android:id="@+id/ride_details_lyt"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_margin="10dp"
-                app:cardCornerRadius="16dp"
                 android:background="@color/white"
-                android:id="@+id/ride_details_lyt"
+                android:orientation="vertical"
                 android:visibility="gone"
-                android:orientation="vertical">
+                app:cardCornerRadius="16dp">
 
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_margin="12dp"
                     android:orientation="horizontal">
-
 
 
                     <LinearLayout
@@ -186,14 +183,14 @@
 
             <!-- Current Plan Card -->
             <com.google.android.material.card.MaterialCardView
+                android:id="@+id/plan_details_lyt"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-android:id="@+id/plan_details_lyt"
+                android:layout_marginStart="10dp"
+                android:layout_marginTop="90dp"
+                android:layout_marginEnd="10dp"
                 android:visibility="gone"
                 app:cardCornerRadius="12dp"
-                android:layout_marginTop="90dp"
-                android:layout_marginStart="10dp"
-                android:layout_marginEnd="10dp"
                 app:cardElevation="4dp">
 
                 <LinearLayout
@@ -207,7 +204,7 @@ android:id="@+id/plan_details_lyt"
                         android:layout_height="wrap_content"
                         android:text="Current Plan"
                         android:textSize="18sp"
-                        android:textStyle="bold"/>
+                        android:textStyle="bold" />
 
                     <TextView
                         android:id="@+id/currentPlanTitle"
@@ -215,7 +212,7 @@ android:id="@+id/plan_details_lyt"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="8dp"
                         android:textSize="16sp"
-                        tools:text="Premium Plan"/>
+                        tools:text="Premium Plan" />
 
                     <TextView
                         android:id="@+id/currentPlanValidity"
@@ -223,7 +220,7 @@ android:id="@+id/plan_details_lyt"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="4dp"
                         android:textColor="@android:color/darker_gray"
-                        tools:text="Valid till: 20 Mar 2024"/>
+                        tools:text="Valid till: 20 Mar 2024" />
 
                     <TextView
                         android:id="@+id/planPrice"
@@ -233,21 +230,35 @@ android:id="@+id/plan_details_lyt"
                         android:textColor="@color/green"
                         android:textSize="20sp"
                         android:textStyle="bold"
-                        tools:text="₹500"/>
+                        tools:text="₹500" />
 
                     <com.google.android.material.button.MaterialButton
                         android:id="@+id/btnPurchasePlan"
+                        style="@style/Widget.MaterialComponents.Button"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="16dp"
                         android:text="Purchase Plan"
-                        android:visibility="gone"
-                        style="@style/Widget.MaterialComponents.Button"/>
+                        android:visibility="gone" />
 
                 </LinearLayout>
 
             </com.google.android.material.card.MaterialCardView>
         </FrameLayout>
+
+
+
+        <com.google.android.material.floatingactionbutton.FloatingActionButton
+            android:id="@+id/live_order_fab"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="20dp"
+            android:layout_marginBottom="30dp"
+            android:backgroundTint="@color/white"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:srcCompat="@drawable/live_ride"
+            android:contentDescription="Live Orders" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 

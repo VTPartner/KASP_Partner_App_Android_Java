@@ -795,6 +795,15 @@ public class FCMService extends FirebaseMessagingService {
         notificationManager.notify((int) System.currentTimeMillis(), builder.build());
     }
 
+    public static void cancelAllNotifications(Context context) {
+        NotificationManager notificationManager =
+                (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
+        if (notificationManager != null) {
+            notificationManager.cancelAll();
+            Log.d("FCMService", "All notifications cancelled");
+        }
+    }
+
     @Override
     public void onDestroy() {
         super.onDestroy();

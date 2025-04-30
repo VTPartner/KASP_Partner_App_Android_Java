@@ -97,6 +97,8 @@ public class HandyManNewLiveRideActivity extends AppCompatActivity implements On
     String dropAddress = "";
     String distance = "";
     String totalTime = "";
+
+    Double penaltyChargesAmount=1.0;
     String senderName = "";
     String senderNumber = "";
     String receiverName = "";
@@ -108,6 +110,9 @@ public class HandyManNewLiveRideActivity extends AppCompatActivity implements On
     String bookingId = "";
 
     String pickupLat,pickupLng,destinationLat,destinationLng ="0.0";
+
+    private int penaltyAmount = 0;
+    private int allowedMinutes = 0; // totalTime in minutes
 
 
     @Override
@@ -202,7 +207,7 @@ public class HandyManNewLiveRideActivity extends AppCompatActivity implements On
             String phoneNumber;
             // Call sender until trip starts, then call receiver
             if (currentStatus.equals("Driver Accepted") ||
-                    currentStatus.equals("Driver Arrived") ||
+                    currentStatus.equals("Agent Arrived") ||
                     currentStatus.equals("Otp Verified")) {
                 phoneNumber = senderNumber; // This should be a class variable set during updateRideDetails
             } else {
@@ -232,7 +237,7 @@ public class HandyManNewLiveRideActivity extends AppCompatActivity implements On
     }
 
     private void setupStatusButtonListeners() {
-        binding.btnArrived.setOnClickListener(v -> showConfirmationDialog("Driver Arrived"));
+        binding.btnArrived.setOnClickListener(v -> showConfirmationDialog("Agent Arrived"));
         binding.btnVerifyOtp.setOnClickListener(v -> showOtpDialog());
         binding.btnSendTrip.setOnClickListener(v -> showConfirmationDialog("Start Service"));
         binding.btnSendPaymentDetails.setOnClickListener(v -> showConfirmationDialog("Make Payment"));
@@ -290,12 +295,13 @@ public class HandyManNewLiveRideActivity extends AppCompatActivity implements On
                     params.put("booking_id", bookingId);
                     params.put("payment_method", paymentMethod);
                     params.put("payment_id", -1);
-                    params.put("booking_status", "End Trip");
+                    params.put("booking_status", "End Service");
                     params.put("server_token", accessToken);
                     params.put("driver_id", driverId);
                     params.put("customer_id", customerID);
                     params.put("total_amount", Math.round(Double.parseDouble(amount)));
                     params.put("service_name", (serviceName.isEmpty() && serviceName.equalsIgnoreCase("NA")==false) ? serviceName : subCategoryName);
+                    params.put("penalty_amount",penaltyAmount);
                 } catch (JSONException e) {
                     e.printStackTrace();
                 }
@@ -535,6 +541,12 @@ public class HandyManNewLiveRideActivity extends AppCompatActivity implements On
 //            dropAddress = rideDetails.getString("drop_address");
             distance = rideDetails.getString("distance");
             totalTime = rideDetails.getString("total_time");
+
+            penaltyChargesAmount = rideDetails.getDouble("penalty_charges_amount");
+
+            // Parse totalTime to allowedMinutes (assume format "HH:mm:ss" or "mm:ss")
+            allowedMinutes = parseMinutesFromTimeString(totalTime);
+
 //            senderName = rideDetails.getString("sender_name");
 //            senderNumber = rideDetails.getString("sender_number");
 //            receiverName = rideDetails.getString("receiver_name");
@@ -566,7 +578,7 @@ public class HandyManNewLiveRideActivity extends AppCompatActivity implements On
             binding.txtPickAddress.setText(pickupAddress);
 //            binding.txtDropAddress.setText(dropAddress);
             binding.txtDistance.setText(distance + " Km");
-            binding.txtTime.setText(totalTime);
+            binding.txtTime.setText(totalTime+"Hr");
             binding.bookingTiming.setText(formattedBookingTiming);
             binding.txtTotalPrice.setText("₹" + Math.round(totalPrice));
             binding.txtBookingId.setText("#CRN" + assignedBookingId);
@@ -576,7 +588,7 @@ public class HandyManNewLiveRideActivity extends AppCompatActivity implements On
 //            binding.txtReceiverNameAndPhoneNumber.setText(receiverName+" . "+receiverNumber);
 
 //            String callButtonText = (currentStatus.equals("Driver Accepted") ||
-//                    currentStatus.equals("Driver Arrived") ||
+//                    currentStatus.equals("Agent Arrived") ||
 //                    currentStatus.equals("Otp Verified"))
 //                    ? "Call Sender" : "Call Receiver";
 //            binding.imgCall.setContentDescription(callButtonText);
@@ -590,7 +602,7 @@ public class HandyManNewLiveRideActivity extends AppCompatActivity implements On
         }
     }
 
-    private void startServiceTimer() {
+    /*private void startServiceTimer() {
         if (startServiceTime == 0) {
             startServiceTime = System.currentTimeMillis();
             // Save start time
@@ -624,8 +636,99 @@ public class HandyManNewLiveRideActivity extends AppCompatActivity implements On
         };
 
         timerHandler.postDelayed(timerRunnable, 0);
+    }*/
+
+    private int parseMinutesFromTimeString(String timeStr) {
+        try {
+            // If timeStr is just a number (e.g., "1", "1.5", "2")
+            double hours = Double.parseDouble(timeStr);
+            return (int) Math.round(hours * 60);
+        } catch (Exception e) {
+            return 0;
+        }
+    }
+    private void startServiceTimer() {
+        if (startServiceTime == 0) {
+            startServiceTime = System.currentTimeMillis();
+            preferenceManager.saveLongValue(PreferenceManager.Keys.SERVICE_START_TIME, startServiceTime);
+            preferenceManager.saveBooleanValue(PreferenceManager.Keys.SERVICE_IS_RUNNING, true);
+            preferenceManager.saveLongValue(PreferenceManager.Keys.SERVICE_ELAPSED_TIME, elapsedTime);
+        }
+
+        timerRunnable = new Runnable() {
+            @Override
+            public void run() {
+                long currentTime = System.currentTimeMillis();
+//                long totalElapsedTime = elapsedTime + (currentTime - startServiceTime);
+//
+//                int seconds = (int) (totalElapsedTime / 1000);
+//                int minutes = seconds / 60;
+//                int hours = minutes / 60;
+//
+//                seconds = seconds % 60;
+//                minutes = minutes % 60;
+//
+//                String timeStr = String.format(Locale.getDefault(),
+//                        "%02d:%02d:%02d", hours, minutes, seconds);
+//                timerTextView.setText(timeStr);
+//
+//                preferenceManager.saveLongValue(PreferenceManager.Keys.SERVICE_ELAPSED_TIME, totalElapsedTime);
+
+                /**
+                 * Use this for production and comment out below fake timing
+                 */
+                long totalElapsedTime = elapsedTime + (currentTime - startServiceTime);
+
+                //this is to test a fake timing
+//                long fakeOffset = 2 * 60 * 60 * 1000; // 2 hours in milliseconds
+//                long totalElapsedTime = elapsedTime + (currentTime - startServiceTime) + fakeOffset;
+
+                int seconds = (int) (totalElapsedTime / 1000);
+                int minutes = seconds / 60;
+                int hours = minutes / 60;
+
+                seconds = seconds % 60;
+                minutes = minutes % 60;
+
+                String timeStr = String.format(Locale.getDefault(),
+                        "%02d:%02d:%02d", hours, minutes, seconds);
+                timerTextView.setText(timeStr);
+
+                preferenceManager.saveLongValue(PreferenceManager.Keys.SERVICE_ELAPSED_TIME, totalElapsedTime);
+
+// Penalty calculation
+//                penaltyChargesAmount //double precision
+//                int elapsedMinutes = (int) (totalElapsedTime / 60000);
+//                if (allowedMinutes > 0 && elapsedMinutes > allowedMinutes) {
+//                    penaltyAmount = elapsedMinutes - allowedMinutes;
+//                } else {
+//                    penaltyAmount = 0;
+//                }
+                int elapsedMinutes = (int) (totalElapsedTime / 60000);
+                if (allowedMinutes > 0 && elapsedMinutes > allowedMinutes) {
+                    int extraMinutes = elapsedMinutes - allowedMinutes;
+                    penaltyAmount = (int) Math.round(extraMinutes * penaltyChargesAmount);
+                } else {
+                    penaltyAmount = 0;
+                }
+                updatePenaltyUI();
+                timerHandler.postDelayed(this, 1000);
+            }
+        };
+
+        timerHandler.postDelayed(timerRunnable, 0);
     }
 
+    private void updatePenaltyUI() {
+        runOnUiThread(() -> {
+            if (penaltyAmount > 0) {
+                binding.penaltyText.setVisibility(View.VISIBLE);
+                binding.penaltyText.setText("Penalty: ₹" + penaltyAmount);
+            } else {
+                binding.penaltyText.setVisibility(View.GONE);
+            }
+        });
+    }
     private void stopServiceTimer() {
         if (timerHandler != null && timerRunnable != null) {
             timerHandler.removeCallbacks(timerRunnable);
@@ -700,7 +803,7 @@ public class HandyManNewLiveRideActivity extends AppCompatActivity implements On
             case "Driver Accepted":
                 nextStatus = "Update to Arrived Location";
                 break;
-            case "Driver Arrived":
+            case "Agent Arrived":
                 nextStatus = "Verify OTP";
                 break;
             case "Otp Verified":
@@ -792,12 +895,16 @@ public class HandyManNewLiveRideActivity extends AppCompatActivity implements On
         showLoading("Updating status...");
         String url = APIClient.baseUrl + "update_booking_status_handyman";
         String accessToken = AccessToken.getAccessToken();
+        int baseAmount = (int) Math.round(totalPrice);
+        int totalPayable = baseAmount + penaltyAmount;
         JSONObject params = new JSONObject();
         try {
             params.put("booking_id", assignedBookingId);
             params.put("booking_status", status);
             params.put("server_token", accessToken);
-            params.put("total_payment", totalPrice.toString());
+//            params.put("total_payment", totalPrice.toString());
+            params.put("total_payment", totalPayable+"");
+            params.put("penalty_amount", penaltyAmount+"");
             params.put("customer_id", customerID);
             // Add other required parameters
         } catch (JSONException e) {

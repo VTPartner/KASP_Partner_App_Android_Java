@@ -37,11 +37,13 @@ import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationServices;
+import com.google.firebase.messaging.FirebaseMessagingService;
 import com.kapstranspvtltd.kaps_partner.R;
 import com.kapstranspvtltd.kaps_partner.cab_driver_activities.bookings.CabBookingAcceptActivity;
 
 import com.kapstranspvtltd.kaps_partner.cab_driver_activities.settings_pages.CabDriverNewLiveRideActivity;
 import com.kapstranspvtltd.kaps_partner.fcm.AccessToken;
+import com.kapstranspvtltd.kaps_partner.fcm.FCMService;
 import com.kapstranspvtltd.kaps_partner.network.APIClient;
 import com.kapstranspvtltd.kaps_partner.network.VolleySingleton;
 import com.kapstranspvtltd.kaps_partner.utils.PreferenceManager;
@@ -425,12 +427,14 @@ public class CabNewBookingAcceptService extends Service {
                         url,
                         jsonBody,
                         response -> {
+
                             Intent intent = new Intent(this, CabDriverNewLiveRideActivity.class);
                             intent.putExtra("booking_id", bookingId);
                             intent.putExtra("FromFCM", true);
                             intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                             startActivity(intent);
                             stopSelf();
+                            FCMService.cancelAllNotifications(this);
                         },
                         error -> {
                             handleVolleyError(error);
@@ -495,6 +499,7 @@ public class CabNewBookingAcceptService extends Service {
     private void handleNoDataFound() {
         preferenceManager.saveStringValue("current_cab_booking_id_assigned", "");
         showToast("Already Assigned to Another Driver.\nPlease be quick at receiving ride requests to earn more.");
+        onDestroy();
     }
 
     private void handleDefaultError(VolleyError error) {

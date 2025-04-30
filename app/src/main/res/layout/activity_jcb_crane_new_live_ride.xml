@@ -137,6 +137,16 @@
                     android:textSize="14dp" />
             </LinearLayout>
 
+            <TextView
+                android:id="@+id/penaltyText"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Penalty: ₹0"
+                android:textAlignment="center"
+                android:textColor="@color/colorerror"
+                android:visibility="gone"
+                />
+
             <LinearLayout
                 android:id="@+id/lvl_click"
                 android:layout_width="match_parent"
@@ -262,6 +272,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="Distance"
+                            android:visibility="gone"
                             android:textColor="@color/black"
                             android:textSize="11dp" />
 
@@ -271,6 +282,7 @@
                             android:layout_height="wrap_content"
                             android:layout_marginLeft="5dp"
                             android:text="23km"
+                            android:visibility="gone"
                             android:textStyle="bold"
                             android:textColor="@color/black"
                             android:textSize="12dp" />
