@@ -762,7 +762,7 @@ public class FCMService extends FirebaseMessagingService {
 
         NotificationCompat.Builder builder = new NotificationCompat.Builder(this, BOOKING_CHANNEL_ID)
                 .setContentTitle(data.get("title"))
-                .setContentText(data.get("message"))
+                .setContentText(data.get("body"))
                 .setSmallIcon(R.drawable.logo)
                 .setPriority(NotificationCompat.PRIORITY_HIGH)
                 .setAutoCancel(true)

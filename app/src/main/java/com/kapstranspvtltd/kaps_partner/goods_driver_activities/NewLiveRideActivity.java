@@ -739,10 +739,7 @@ public class NewLiveRideActivity extends AppCompatActivity implements OnMapReady
                     // Update the status via API
                     updateRideStatus(apiStatusUpdate);
 
-                    // --- IMPORTANT ---
-                    // The local currentDropIndex should ideally be updated *after* the API call succeeds,
-                    // or based on the API response, to ensure consistency.
-                    // For now, we'll update it optimistically within updateRideStatus's success handler.
+
                 })
                 .setNegativeButton("No", null)
                 .show();
