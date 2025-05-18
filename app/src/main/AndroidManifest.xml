@@ -50,19 +50,23 @@
         <service
             android:name=".handyman_agent_activities.HandyManNewBookingAcceptService"
             android:enabled="true"
-            android:exported="true"></service>
+            android:exported="true"
+            android:foregroundServiceType="specialUse"></service>
         <service
             android:name=".jcb_crane_agent_activities.JcbCraneDriverNewBookingAcceptService"
             android:enabled="true"
-            android:exported="true" />
+            android:exported="true"
+            android:foregroundServiceType="specialUse"/>
         <service
             android:name=".driver_app_activities.DriverAgentNewBookingAcceptService"
             android:enabled="true"
-            android:exported="true" />
+            android:exported="true"
+            android:foregroundServiceType="specialUse"/>
         <service
             android:name=".cab_driver_activities.CabNewBookingAcceptService"
             android:enabled="true"
-            android:exported="true" />
+            android:exported="true"
+            android:foregroundServiceType="specialUse" />
         <service
             android:name=".BackgroundService"
             android:enabled="true"
@@ -72,7 +76,8 @@
         <service
             android:name=".GoodsNewBookingFloatingWindowService"
             android:enabled="true"
-            android:exported="true" />
+            android:exported="true"
+            android:foregroundServiceType="specialUse"/>
 
         <receiver
             android:name=".BootReceiver"

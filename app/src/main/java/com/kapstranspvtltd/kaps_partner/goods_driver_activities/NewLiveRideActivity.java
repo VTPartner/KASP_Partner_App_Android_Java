@@ -95,7 +95,7 @@ public class NewLiveRideActivity extends AppCompatActivity implements OnMapReady
     // --- End Constants ---
 
 
-    private BroadcastReceiver serviceRestartReceiver;
+
     private ActivityNewLiveRideBinding binding;
     private PreferenceManager preferenceManager;
     private GoogleMap mMap;
@@ -1567,15 +1567,7 @@ public class NewLiveRideActivity extends AppCompatActivity implements OnMapReady
         super.onDestroy();
         Log.d(TAG, "onDestroy");
         // Clean up resources
-        if (serviceRestartReceiver != null) {
-            try {
-                unregisterReceiver(serviceRestartReceiver);
-                serviceRestartReceiver = null;
-                Log.d(TAG,"Unregistered serviceRestartReceiver.");
-            } catch (IllegalArgumentException e) {
-                Log.w(TAG, "Receiver not registered or already unregistered.", e);
-            }
-        }
+
         if (progressDialog != null && progressDialog.isShowing()) {
             progressDialog.dismiss();
         }
@@ -1611,23 +1603,7 @@ public class NewLiveRideActivity extends AppCompatActivity implements OnMapReady
         }
 
 
-        // Register broadcast receiver for service restart ONLY if it doesn't exist
-        if (serviceRestartReceiver == null) {
-            serviceRestartReceiver = new BroadcastReceiver() {
-                @Override
-                public void onReceive(Context context, Intent intent) {
-                    Log.d(TAG, "Received RESTART_SERVICE broadcast. isStoppedManually: " + LocationUpdateService.isStoppedManually);
-                    if ("com.vtpartnertranspvtltd.vt_partner.RESTART_SERVICE".equals(intent.getAction()) && !LocationUpdateService.isStoppedManually) {
-                        Log.i(TAG, "Restarting LocationUpdateService due to broadcast.");
-                        startLocationUpdates(); // Call the start method again
-                    }
-                }
-            };
 
-            // Use ContextCompat for broader compatibility if needed, though registerReceiver is standard
-            registerReceiver(serviceRestartReceiver, new IntentFilter("com.vtpartnertranspvtltd.vt_partner.RESTART_SERVICE"));
-            Log.d(TAG,"Registered serviceRestartReceiver.");
-        }
     }
 
     private void stopLocationUpdates() {
