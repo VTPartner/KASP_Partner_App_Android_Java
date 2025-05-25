@@ -355,6 +355,9 @@ public class DriverAgentNewLiveRideActivity extends AppCompatActivity implements
                     return;
                 }
 
+
+                String token = preferenceManager.getStringValue("other_driver_token");
+
                 // Create request body
                 JSONObject params = new JSONObject();
                 try {
@@ -367,6 +370,8 @@ public class DriverAgentNewLiveRideActivity extends AppCompatActivity implements
                     params.put("customer_id", customerID);
                     params.put("total_amount", Math.round(Double.parseDouble(amount)));
                     params.put("penalty_amount",penaltyAmount);
+                    params.put("driver_unique_id", driverId);
+                    params.put("auth", token);
                 } catch (JSONException e) {
                     e.printStackTrace();
                 }
@@ -456,6 +461,7 @@ public class DriverAgentNewLiveRideActivity extends AppCompatActivity implements
         showLoading("Fetching booking details...");
 
         String driverId = preferenceManager.getStringValue("other_driver_id");
+        String token = preferenceManager.getStringValue("other_driver_token");
 
         if (driverId == null || driverId.isEmpty()) {
 
@@ -469,6 +475,8 @@ public class DriverAgentNewLiveRideActivity extends AppCompatActivity implements
         JSONObject params = new JSONObject();
         try {
             params.put("other_driver_id", driverId);
+            params.put("driver_unique_id", driverId);
+            params.put("auth", token);
         } catch (JSONException e) {
             e.printStackTrace();
         }
@@ -544,11 +552,16 @@ public class DriverAgentNewLiveRideActivity extends AppCompatActivity implements
     private void fetchBookingDetails() {
         System.out.println("Fetching ride details...");
         showLoading("Fetching ride details...");
+        String driverId = preferenceManager.getStringValue("other_driver_id");
+        String token = preferenceManager.getStringValue("other_driver_token");
+
         String url = APIClient.baseUrl + "other_driver_booking_details_live_track";
 
         JSONObject params = new JSONObject();
         try {
             params.put("booking_id", assignedBookingId);
+            params.put("driver_unique_id", driverId);
+            params.put("auth", token);
         } catch (JSONException e) {
             e.printStackTrace();
         }
@@ -881,6 +894,9 @@ public class DriverAgentNewLiveRideActivity extends AppCompatActivity implements
 
     private void updateRideStatus(String status) {
         showLoading("Updating status...");
+        String driverId = preferenceManager.getStringValue("other_driver_id");
+        String token = preferenceManager.getStringValue("other_driver_token");
+
         String url = APIClient.baseUrl + "update_booking_status_other_driver";
 
         String accessToken = AccessToken.getAccessToken();
@@ -898,6 +914,8 @@ public class DriverAgentNewLiveRideActivity extends AppCompatActivity implements
             params.put("total_payment", totalPayable+"");
             params.put("penalty_amount", penaltyAmount+"");
             params.put("customer_id", customerID);
+            params.put("driver_unique_id", driverId);
+            params.put("auth", token);
             // Add other required parameters
         } catch (JSONException e) {
             e.printStackTrace();

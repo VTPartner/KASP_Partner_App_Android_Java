@@ -114,34 +114,45 @@ public class FCMService extends FirebaseMessagingService {
         String otherDriverId = preferenceManager.getStringValue("other_driver_id");
         String jcbCraneAgentId = preferenceManager.getStringValue("jcb_crane_agent_id");
         String handymanAgentId = preferenceManager.getStringValue("handyman_agent_id");
-//        if (driverId.isEmpty() || token.isEmpty()) return;
+
+
         String url = "";
-        String key = "",value="";
-        if(driverId.isEmpty() == false) {
+        String key = "", value = "";
+        String tokenKey; // Key for saving token in preferences
+
+        if (!driverId.isEmpty()) {
             url = APIClient.baseUrl + "update_firebase_goods_driver_token";
             key = "goods_driver_id";
             value = driverId;
-        }
-        if(cabDriverId.isEmpty() == false){
+            tokenKey = "goods_driver_token";
+        } else if (!cabDriverId.isEmpty()) {
             url = APIClient.baseUrl + "update_firebase_cab_driver_token";
             key = "cab_driver_id";
             value = cabDriverId;
-        }
-        if(otherDriverId.isEmpty() == false){
+            tokenKey = "cab_driver_token";
+        } else if (!otherDriverId.isEmpty()) {
             url = APIClient.baseUrl + "update_firebase_other_driver_token";
             key = "other_driver_id";
             value = otherDriverId;
-        }
-        if(jcbCraneAgentId.isEmpty() == false){
+            tokenKey = "other_driver_token";
+        } else if (!jcbCraneAgentId.isEmpty()) {
             url = APIClient.baseUrl + "update_firebase_jcb_crane_driver_token";
             key = "jcb_crane_driver_id";
             value = jcbCraneAgentId;
-        }
-        if(handymanAgentId.isEmpty() == false){
+            tokenKey = "jcb_crane_token";
+        } else if (!handymanAgentId.isEmpty()) {
             url = APIClient.baseUrl + "update_firebase_handyman_token";
             key = "handyman_id";
             value = handymanAgentId;
+            tokenKey = "handyman_token";
+        } else {
+            tokenKey = "";
         }
+
+        // If no valid driver type found, return
+        if (url.isEmpty() || token.isEmpty()) return;
+
+
 
         JSONObject params = new JSONObject();
         try {
@@ -152,8 +163,15 @@ public class FCMService extends FirebaseMessagingService {
                     Request.Method.POST,
                     url,
                     params,
-                    response -> Log.d(TAG, "Token updated successfully"),
-                    error -> Log.e(TAG, "Error updating token: " + error.getMessage())
+                    response -> {
+                        Log.d(TAG, "Token updated successfully");
+                        // Save token based on driver type
+                        preferenceManager.saveStringValue(tokenKey, token);
+                    },
+                    error -> {
+                        Log.e(TAG, "Error updating token: " + error.getMessage());
+                        // You might want to handle error here
+                    }
             );
 
             VolleySingleton.getInstance(this).addToRequestQueue(request);
@@ -161,6 +179,60 @@ public class FCMService extends FirebaseMessagingService {
             Log.e(TAG, "Error creating token update request: " + e.getMessage());
         }
     }
+
+//    private void updateDriverToken(String token) {
+//        String driverId = preferenceManager.getStringValue("goods_driver_id");
+//        String cabDriverId = preferenceManager.getStringValue("cab_driver_id");
+//        String otherDriverId = preferenceManager.getStringValue("other_driver_id");
+//        String jcbCraneAgentId = preferenceManager.getStringValue("jcb_crane_agent_id");
+//        String handymanAgentId = preferenceManager.getStringValue("handyman_agent_id");
+////        if (driverId.isEmpty() || token.isEmpty()) return;
+//        String url = "";
+//        String key = "",value="";
+//        if(driverId.isEmpty() == false) {
+//            url = APIClient.baseUrl + "update_firebase_goods_driver_token";
+//            key = "goods_driver_id";
+//            value = driverId;
+//        }
+//        if(cabDriverId.isEmpty() == false){
+//            url = APIClient.baseUrl + "update_firebase_cab_driver_token";
+//            key = "cab_driver_id";
+//            value = cabDriverId;
+//        }
+//        if(otherDriverId.isEmpty() == false){
+//            url = APIClient.baseUrl + "update_firebase_other_driver_token";
+//            key = "other_driver_id";
+//            value = otherDriverId;
+//        }
+//        if(jcbCraneAgentId.isEmpty() == false){
+//            url = APIClient.baseUrl + "update_firebase_jcb_crane_driver_token";
+//            key = "jcb_crane_driver_id";
+//            value = jcbCraneAgentId;
+//        }
+//        if(handymanAgentId.isEmpty() == false){
+//            url = APIClient.baseUrl + "update_firebase_handyman_token";
+//            key = "handyman_id";
+//            value = handymanAgentId;
+//        }
+//
+//        JSONObject params = new JSONObject();
+//        try {
+//            params.put(key, value);
+//            params.put("authToken", token);
+//
+//            JsonObjectRequest request = new JsonObjectRequest(
+//                    Request.Method.POST,
+//                    url,
+//                    params,
+//                    response -> Log.d(TAG, "Token updated successfully"),
+//                    error -> Log.e(TAG, "Error updating token: " + error.getMessage())
+//            );
+//
+//            VolleySingleton.getInstance(this).addToRequestQueue(request);
+//        } catch (Exception e) {
+//            Log.e(TAG, "Error creating token update request: " + e.getMessage());
+//        }
+//    }
 
     @Override
     public void onMessageReceived(@NonNull RemoteMessage remoteMessage) {
@@ -217,12 +289,14 @@ public class FCMService extends FirebaseMessagingService {
             //Below intents are for cancelled bookings
             else if ("driver_home".equals(data.get("intent"))) {
                 String bookingId = data.get("booking_id");
+                String title = data.get("title");
+                String body = data.get("body");
                 System.out.println("driver home bookingId::" + bookingId);
 // Create notification channel for Android O and above
                 createDriverNotificationChannel();
 
                 // Show notification
-                showNotification("Ride Canceled - [Booking ID: "+ bookingId.toString()+"]", "The ride request has been canceled by the customer!");
+                showNotification(title, body);
                 // Launch activity on main thread
                 new Handler(Looper.getMainLooper()).post(() -> {
                     Intent intent = new Intent(this, HomeActivity.class);
@@ -234,12 +308,15 @@ public class FCMService extends FirebaseMessagingService {
             }
             else if ("cab_driver_home".equals(data.get("intent"))) {
                 String bookingId = data.get("booking_id");
+                String title = data.get("title");
+                String body = data.get("body");
                 System.out.println("cab driver home bookingId::" + bookingId);
 // Create notification channel for Android O and above
                 createDriverNotificationChannel();
 
                 // Show notification
-                showNotification("Cab Ride Canceled - [Booking ID: "+ bookingId.toString()+"]", "The ride request has been canceled by the customer!");
+//                showNotification("Cab Ride Canceled - [Booking ID: "+ bookingId.toString()+"]", "The ride request has been canceled by the customer!");
+                showNotification(title, body);
                 // Launch activity on main thread
                 new Handler(Looper.getMainLooper()).post(() -> {
                     Intent intent = new Intent(this, CabDriverHomeActivity.class);
@@ -251,12 +328,15 @@ public class FCMService extends FirebaseMessagingService {
             }
             else if ("other_driver_home".equals(data.get("intent"))) {
                 String bookingId = data.get("booking_id");
+                String title = data.get("title");
+                String body = data.get("body");
                 System.out.println("other driver home bookingId::" + bookingId);
 // Create notification channel for Android O and above
                 createDriverNotificationChannel();
 
                 // Show notification
-                showNotification("Ride Canceled - [Booking ID: "+ bookingId.toString()+"]", "The ride request has been canceled by the customer!");
+//                showNotification("Ride Canceled - [Booking ID: "+ bookingId.toString()+"]", "The ride request has been canceled by the customer!");
+                showNotification(title, body);
                 // Launch activity on main thread
                 new Handler(Looper.getMainLooper()).post(() -> {
                     Intent intent = new Intent(this, DriverAgentHomeActivity.class);
@@ -268,12 +348,15 @@ public class FCMService extends FirebaseMessagingService {
             }
             else if ("jcb_crane_driver_home".equals(data.get("intent"))) {
                 String bookingId = data.get("booking_id");
+                String title = data.get("title");
+                String body = data.get("body");
                 System.out.println("jcb / crane driver home bookingId::" + bookingId);
 // Create notification channel for Android O and above
                 createDriverNotificationChannel();
 
                 // Show notification
-                showNotification("Service Canceled - [Booking ID: "+ bookingId.toString()+"]", "The service request has been canceled by the customer!");
+//                showNotification("Service Canceled - [Booking ID: "+ bookingId.toString()+"]", "The service request has been canceled by the customer!");
+                showNotification(title, body);
                 // Launch activity on main thread
                 new Handler(Looper.getMainLooper()).post(() -> {
                     Intent intent = new Intent(this, JcbCraneHomeActivity.class);
@@ -285,12 +368,15 @@ public class FCMService extends FirebaseMessagingService {
             }
             else if ("handyman_agent_home".equals(data.get("intent"))) {
                 String bookingId = data.get("booking_id");
+                String title = data.get("title");
+                String body = data.get("body");
                 System.out.println("Handyman Agent home bookingId::" + bookingId);
 // Create notification channel for Android O and above
                 createDriverNotificationChannel();
 
                 // Show notification
-                showNotification("Service Canceled - [Booking ID: "+ bookingId.toString()+"]", "The service request has been canceled by the customer!");
+//                showNotification("Service Canceled - [Booking ID: "+ bookingId.toString()+"]", "The service request has been canceled by the customer!");
+                showNotification(title, body);
                 // Launch activity on main thread
                 new Handler(Looper.getMainLooper()).post(() -> {
                     Intent intent = new Intent(this, HandyManAgentHomeActivity.class);

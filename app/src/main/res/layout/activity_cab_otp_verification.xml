@@ -158,7 +158,7 @@
                 android:layout_gravity="center"
                 android:gravity="center"
                 android:padding="3dp"
-                android:text="Did not receive the code?"
+                android:text="@string/message_no_code"
                 android:textColor="@color/black" />
 
             <TextView
@@ -197,7 +197,7 @@
                 android:background="@drawable/rounded_button"
                 android:elevation="10dp"
                 android:gravity="center"
-                android:text="Submit"
+                android:text="@string/button_submit"
                 android:textColor="@color/white" />
             <View
                 android:layout_width="match_parent"

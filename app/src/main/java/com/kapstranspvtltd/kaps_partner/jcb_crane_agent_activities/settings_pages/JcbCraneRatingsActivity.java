@@ -75,10 +75,14 @@ public class JcbCraneRatingsActivity extends AppCompatActivity {
         isLoading = true;
         ordersList.clear();
         binding.progressBar.setVisibility(View.VISIBLE);
+        String token = preferenceManager.getStringValue("jcb_crane_token");
+        String driverId = preferenceManager.getStringValue("jcb_crane_agent_id");
 
         JSONObject jsonObject = new JSONObject();
         try {
-            jsonObject.put("driver_id", getDriverId());
+            jsonObject.put("driver_id", driverId);
+            jsonObject.put("driver_unique_id", driverId);
+            jsonObject.put("auth", token);
         } catch (JSONException e) {
             e.printStackTrace();
         }

@@ -24,6 +24,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -253,7 +254,8 @@ public class DriverAgentNewBookingAcceptService extends Service {
         DisplayMetrics displayMetrics = new DisplayMetrics();
         windowManager.getDefaultDisplay().getMetrics(displayMetrics);
         int screenHeight = displayMetrics.heightPixels;
-        params.height = (int) (screenHeight * 0.7);
+        params.height = (int) (screenHeight);
+//        params.height = (int) (screenHeight * 0.7);
 
         windowManager.addView(floatingView, params);
         setupUI();
@@ -267,9 +269,13 @@ public class DriverAgentNewBookingAcceptService extends Service {
             TextView customerNameView = floatingView.findViewById(R.id.customerName);
             TextView rideFareView = floatingView.findViewById(R.id.rideFare);
             TextView distanceView = floatingView.findViewById(R.id.distance);
+
+            TextView hikePriceTxt = floatingView.findViewById(R.id.hikePriceTxt);
+            TextView tripTimeTxt = floatingView.findViewById(R.id.tripTime);
+
             TextView pickupDistanceView = floatingView.findViewById(R.id.pickupLocationDistance);
             Button acceptButton = floatingView.findViewById(R.id.acceptButton);
-            Button rejectButton = floatingView.findViewById(R.id.rejectButton);
+            ImageView rejectButton = floatingView.findViewById(R.id.rejectButton);
 
             startCountdownTimer(timerText);
 
@@ -281,6 +287,16 @@ public class DriverAgentNewBookingAcceptService extends Service {
             String customerName = bookingJsonDetails.optString("customer_name", "N/A");
             double totalPrice = bookingJsonDetails.optDouble("total_price", 0);
             double distance = bookingJsonDetails.optDouble("distance", 0);
+            String totalTime = bookingJsonDetails.optString("total_time", "0 Mins");
+            int hikePrice = bookingJsonDetails.optInt("hike_price", 0); //hike price
+
+
+            if(hikePrice>0){
+                hikePriceTxt.setVisibility(View.VISIBLE);
+                hikePriceTxt.setText("+ ₹"+hikePrice+"");
+                totalPrice-=hikePrice;
+            }
+            tripTimeTxt.setText(totalTime+" trip");
 
             pickupAddressView.setText(pickupAddress);
             dropAddressView.setText(dropAddress);

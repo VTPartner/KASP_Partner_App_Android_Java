@@ -43,7 +43,7 @@ public class MyApplication extends Application {
 
         FirebaseApp.initializeApp(this);
 
-//        getFCMToken();
+        getFCMToken();
     }
 
     private void getFCMToken() {
@@ -56,46 +56,85 @@ public class MyApplication extends Application {
 
                     String token = task.getResult();
                     System.out.println("Driver device token::"+token);
-                    preferenceManager.saveStringValue("fcm_token", token);
+
                     updateDriverAuthToken(token);
                 });
     }
 
     private void updateDriverAuthToken(String deviceToken) {
-        Log.d("FCMNewTokenFound", "updating goods driver authToken");
+        Log.d("FCMNewTokenFound", "updating driver authToken");
 
         String driverId = preferenceManager.getStringValue("goods_driver_id");
         String cabDriverId = preferenceManager.getStringValue("cab_driver_id");
-        if (driverId.isEmpty() || deviceToken == null || deviceToken.isEmpty()) {
+        String otherDriverId = preferenceManager.getStringValue("other_driver_id");
+        String jcbCraneAgentId = preferenceManager.getStringValue("jcb_crane_agent_id");
+        String handymanAgentId = preferenceManager.getStringValue("handyman_agent_id");
 
-            return;
+        String url = "";
+        String key = "", value = "";
+        String tokenKey = "";
+
+        if (!driverId.isEmpty()) {
+            url = APIClient.baseUrl + "update_firebase_goods_driver_token";
+            key = "goods_driver_id";
+            value = driverId;
+            tokenKey = "goods_driver_token";
+        } else if (!cabDriverId.isEmpty()) {
+            url = APIClient.baseUrl + "update_firebase_cab_driver_token";
+            key = "cab_driver_id";
+            value = cabDriverId;
+            tokenKey = "cab_driver_token";
+        } else if (!otherDriverId.isEmpty()) {
+            url = APIClient.baseUrl + "update_firebase_other_driver_token";
+            key = "other_driver_id";
+            value = otherDriverId;
+            tokenKey = "other_driver_token";
+        } else if (!jcbCraneAgentId.isEmpty()) {
+            url = APIClient.baseUrl + "update_firebase_jcb_crane_driver_token";
+            key = "jcb_crane_driver_id";
+            value = jcbCraneAgentId;
+            tokenKey = "jcb_crane_token";
+        } else if (!handymanAgentId.isEmpty()) {
+            url = APIClient.baseUrl + "update_firebase_handyman_token";
+            key = "handyman_id";
+            value = handymanAgentId;
+            tokenKey = "handyman_token";
         }
 
-
+        // If no valid driver type or token, return
+        if (url.isEmpty() || deviceToken == null || deviceToken.isEmpty()) {
+            return;
+        }
 
         // Using ExecutorService instead of Coroutines
         ExecutorService executor = Executors.newSingleThreadExecutor();
         Handler handler = new Handler(Looper.getMainLooper());
 
+        final String finalUrl = url;
+        final String finalKey = key;
+        final String finalValue = value;
+        final String finalTokenKey = tokenKey;
+
         executor.execute(() -> {
             try {
                 String serverToken = AccessToken.getAccessToken();
-                System.out.println("deviceToken::"+deviceToken);
+                System.out.println("deviceToken::" + deviceToken);
                 System.out.println("------------");
-                System.out.println("serverToken::"+serverToken);
-                String url = APIClient.baseUrl + "update_firebase_goods_driver_token";
+                System.out.println("serverToken::" + serverToken);
 
                 JSONObject jsonBody = new JSONObject();
-                jsonBody.put("goods_driver_id", driverId);
+                jsonBody.put(finalKey, finalValue);
                 jsonBody.put("authToken", deviceToken);
 
                 JsonObjectRequest request = new JsonObjectRequest(
                         Request.Method.POST,
-                        url,
+                        finalUrl,
                         jsonBody,
                         response -> {
                             String message = response.optString("message");
                             Log.d("Auth", "Token update response: " + message);
+                            // Save token on successful update
+                            preferenceManager.saveStringValue(finalTokenKey, deviceToken);
                         },
                         error -> {
                             Log.e("Auth", "Error updating token: " + error.getMessage());

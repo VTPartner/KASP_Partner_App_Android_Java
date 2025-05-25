@@ -78,11 +78,16 @@ public class HandyManEarningsActivity extends AppCompatActivity {
     private void fetchWholeYearsEarnings() {
         showLoading();
 
+        String handymanAgentId = preferenceManager.getStringValue("handyman_agent_id");
+        String handymanToken = preferenceManager.getStringValue("handyman_token");
+
         JSONObject jsonObject = new JSONObject();
         try {
             String goodsDriverId = getDriverId();
             System.out.println("goodsDriverId::" + goodsDriverId);
             jsonObject.put("driver_id", goodsDriverId);
+            jsonObject.put("handyman_agent_id", handymanAgentId);
+            jsonObject.put("auth", handymanToken);
         } catch (JSONException e) {
             e.printStackTrace();
         }
@@ -125,9 +130,14 @@ public class HandyManEarningsActivity extends AppCompatActivity {
     }
 
     private void fetchAllOrders() {
+        String handymanAgentId = preferenceManager.getStringValue("handyman_agent_id");
+        String handymanToken = preferenceManager.getStringValue("handyman_token");
+
         JSONObject jsonObject = new JSONObject();
         try {
             jsonObject.put("driver_id", getDriverId());
+            jsonObject.put("handyman_agent_id", handymanAgentId);
+            jsonObject.put("auth", handymanToken);
         } catch (JSONException e) {
             e.printStackTrace();
         }

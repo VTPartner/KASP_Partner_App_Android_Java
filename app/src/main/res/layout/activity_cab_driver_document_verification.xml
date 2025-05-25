@@ -28,7 +28,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="24dp"
-                android:text="Cab Driver Information"
+                android:text="@string/cab_driver_info"
                 android:textColor="@color/black"
                 android:textSize="24sp"
                 android:textStyle="bold" />
@@ -37,7 +37,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"
-                android:text="Note: Your information is kept confidential and used solely for verification and communication purposes."
+                android:text="@string/driver_info_note"
                 android:textColor="@color/text_secondary"
                 android:textSize="14sp" />
 
@@ -51,7 +51,7 @@
                     android:id="@+id/nameInput"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:hint="Full Name *"
+                    android:hint="@string/full_name"
                     android:inputType="textCapWords" />
 
             </com.google.android.material.textfield.TextInputLayout>
@@ -66,7 +66,7 @@
                     android:id="@+id/genderDropdown"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:hint="Gender *"
+                    android:hint="@string/gender"
                     android:inputType="none" />
 
             </com.google.android.material.textfield.TextInputLayout>
@@ -81,7 +81,7 @@
                     android:id="@+id/addressInput"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:hint="Full Address *"
+                    android:hint="@string/full_address"
                     android:inputType="textMultiLine"
                     android:minLines="2" />
 
@@ -97,7 +97,7 @@
                     android:id="@+id/cityDropdown"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:hint="Register for City *"
+                    android:hint="@string/register_for_city"
                     android:inputType="none" />
 
             </com.google.android.material.textfield.TextInputLayout>
@@ -106,7 +106,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="24dp"
-                android:text="Upload the required documents *"
+                android:text="@string/upload_required_documents"
                 android:textColor="@color/black"
                 android:textSize="16sp"
                 android:textStyle="bold" />
@@ -138,7 +138,7 @@
                         android:layout_height="wrap_content"
                         android:layout_marginStart="12dp"
                         android:layout_weight="1"
-                        android:text="Driving License Photo"
+                        android:text="@string/driving_license_photo"
                         android:textColor="@color/black"
                         android:textSize="14sp" />
 
@@ -173,7 +173,7 @@
                         android:layout_height="wrap_content"
                         android:layout_marginStart="12dp"
                         android:layout_weight="1"
-                        android:text="Aadhar Card [ Owner ]"
+                        android:text="@string/aadhar_card_owner"
                         android:textColor="@color/black"
                         android:textSize="14sp" />
 
@@ -208,7 +208,7 @@
                         android:layout_height="wrap_content"
                         android:layout_marginStart="12dp"
                         android:layout_weight="1"
-                        android:text="PAN Card [ Owner ]"
+                        android:text="@string/pan_card_owner"
                         android:textColor="@color/black"
                         android:textSize="14sp" />
 
@@ -243,7 +243,7 @@
                         android:layout_height="wrap_content"
                         android:layout_marginStart="12dp"
                         android:layout_weight="1"
-                        android:text="Selfie"
+                        android:text="@string/selfie"
                         android:textColor="@color/black"
                         android:textSize="14sp" />
 

@@ -75,9 +75,14 @@ public class CabDriverRatingsActivity extends AppCompatActivity {
         ordersList.clear();
         binding.progressBar.setVisibility(View.VISIBLE);
 
+        String driverId = preferenceManager.getStringValue("cab_driver_id");
+        String token = preferenceManager.getStringValue("cab_driver_token");
+
         JSONObject jsonObject = new JSONObject();
         try {
             jsonObject.put("driver_id", getDriverId());
+            jsonObject.put("driver_unique_id", driverId);
+            jsonObject.put("auth", token);
         } catch (JSONException e) {
             e.printStackTrace();
         }

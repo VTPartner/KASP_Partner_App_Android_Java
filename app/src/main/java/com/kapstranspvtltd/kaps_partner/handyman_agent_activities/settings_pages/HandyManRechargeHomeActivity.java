@@ -80,9 +80,14 @@ public class HandyManRechargeHomeActivity extends AppCompatActivity implements P
     private void fetchCurrentPlanDetails() {
         showLoading(true);
 
+        String handymanAgentId = preferenceManager.getStringValue("handyman_agent_id");
+        String handymanToken = preferenceManager.getStringValue("handyman_token");
+
         try {
             JSONObject params = new JSONObject();
             params.put("driver_id", preferenceManager.getStringValue("handyman_agent_id"));
+            params.put("handyman_agent_id", handymanAgentId);
+            params.put("auth", handymanToken);
 
             JsonObjectRequest request = new JsonObjectRequest(
                     Request.Method.POST,
@@ -350,6 +355,9 @@ public class HandyManRechargeHomeActivity extends AppCompatActivity implements P
             // Calculate expiry time with proper format
             String expiryTime = calculateExpiryDate(Integer.parseInt(selectedPlan.getExpiryDays()));
 
+            String handymanAgentId = preferenceManager.getStringValue("handyman_agent_id");
+            String handymanToken = preferenceManager.getStringValue("handyman_token");
+
             JSONObject params = new JSONObject();
             try {
                 params.put("razorpay_payment_id", razorpayPaymentID);
@@ -357,6 +365,8 @@ public class HandyManRechargeHomeActivity extends AppCompatActivity implements P
                 params.put("driver_id", preferenceManager.getStringValue("handyman_agent_id"));
                 params.put("amount", String.format(Locale.US, "%.2f", selectedPlan.getPrice()));
                 params.put("expiry_time", expiryTime);
+                params.put("handyman_agent_id", handymanAgentId);
+                params.put("auth", handymanToken);
             } catch (JSONException e) {
                 Log.e("Payment", "Error creating params: " + e.getMessage());
                 showError("Error processing payment parameters");

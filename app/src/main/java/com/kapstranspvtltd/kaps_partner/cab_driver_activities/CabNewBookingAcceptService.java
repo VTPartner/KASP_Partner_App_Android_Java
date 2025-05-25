@@ -24,6 +24,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -167,10 +168,16 @@ public class CabNewBookingAcceptService extends Service {
         new Thread(() -> {
             try {
                 String serverToken = AccessToken.getAccessToken();
+
+                String driverId = preferenceManager.getStringValue("cab_driver_id");
+                String token = preferenceManager.getStringValue("cab_driver_token");
+
                 String url = APIClient.baseUrl + "cab_booking_details_for_ride_acceptance";
 
                 JSONObject jsonBody = new JSONObject();
                 jsonBody.put("booking_id", bookingId);
+                jsonBody.put("driver_unique_id", driverId);
+                jsonBody.put("auth", token);
 
                 JsonObjectRequest request = new JsonObjectRequest(
                         Request.Method.POST,
@@ -256,7 +263,8 @@ public class CabNewBookingAcceptService extends Service {
         DisplayMetrics displayMetrics = new DisplayMetrics();
         windowManager.getDefaultDisplay().getMetrics(displayMetrics);
         int screenHeight = displayMetrics.heightPixels;
-        params.height = (int) (screenHeight * 0.7);
+//        params.height = (int) (screenHeight * 0.7);
+        params.height = (int) (screenHeight);
 
         windowManager.addView(floatingView, params);
         setupUI();
@@ -269,10 +277,14 @@ public class CabNewBookingAcceptService extends Service {
             TextView dropAddressView = floatingView.findViewById(R.id.dropAddress);
             TextView customerNameView = floatingView.findViewById(R.id.customerName);
             TextView rideFareView = floatingView.findViewById(R.id.rideFare);
+
+            TextView hikePriceTxt = floatingView.findViewById(R.id.hikePriceTxt);
+            TextView tripTimeTxt = floatingView.findViewById(R.id.tripTime);
+
             TextView distanceView = floatingView.findViewById(R.id.distance);
             TextView pickupDistanceView = floatingView.findViewById(R.id.pickupLocationDistance);
             Button acceptButton = floatingView.findViewById(R.id.acceptButton);
-            Button rejectButton = floatingView.findViewById(R.id.rejectButton);
+            ImageView rejectButton = floatingView.findViewById(R.id.rejectButton);
 
             startCountdownTimer(timerText);
 
@@ -284,6 +296,15 @@ public class CabNewBookingAcceptService extends Service {
             String customerName = bookingJsonDetails.optString("customer_name", "N/A");
             double totalPrice = bookingJsonDetails.optDouble("total_price", 0);
             double distance = bookingJsonDetails.optDouble("distance", 0);
+            String totalTime = bookingJsonDetails.optString("total_time", "0 Mins");
+            int hikePrice = bookingJsonDetails.optInt("hike_price", 0); //hike price
+
+            if(hikePrice>0){
+                hikePriceTxt.setVisibility(View.VISIBLE);
+                hikePriceTxt.setText("+ ₹"+hikePrice+"");
+                totalPrice-=hikePrice;
+            }
+            tripTimeTxt.setText(totalTime+" trip");
 
             pickupAddressView.setText(pickupAddress);
             dropAddressView.setText(dropAddress);
@@ -414,11 +435,16 @@ public class CabNewBookingAcceptService extends Service {
 
                 preferenceManager.saveStringValue("current_cab_booking_id_assigned", bookingId);
 
+
+                String token = preferenceManager.getStringValue("cab_driver_token");
+
                 JSONObject jsonBody = new JSONObject();
                 jsonBody.put("booking_id", bookingId);
                 jsonBody.put("driver_id", driverId);
                 jsonBody.put("server_token", accessToken);
                 jsonBody.put("customer_id", bookingJsonDetails.optString("customer_id"));
+                jsonBody.put("driver_unique_id", driverId);
+                jsonBody.put("auth", token);
 
                 String url = APIClient.baseUrl + "cab_driver_booking_accepted";
 

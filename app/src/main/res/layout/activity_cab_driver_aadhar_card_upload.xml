@@ -29,7 +29,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="24dp"
-                android:text="Upload Aadhar Card Document"
+                android:text="@string/upload_aadhar_card_text_document"
                 android:textColor="@color/text_dark"
                 android:textSize="24sp"
                 android:textStyle="bold" />
@@ -38,7 +38,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"
-                android:text="Note: Your information is kept confidential and used solely for verification and communication purposes."
+                android:text="@string/aadhar_card_document_note"
                 android:textColor="@color/text_secondary"
                 android:textSize="14sp" />
 
@@ -52,7 +52,7 @@
                     android:id="@+id/aadharNumberInput"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:hint="Aadhar No *"
+                    android:hint="@string/aadhar_no"
                     android:inputType="textCapWords"
                     android:maxLength="12" />
 
@@ -63,7 +63,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="24dp"
-                android:text="Aadhar Card Front Photo"
+                android:text="@string/aadhar_card_front_photo"
                 android:textColor="@color/text_dark"
                 android:textSize="16sp" />
 
@@ -103,7 +103,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="24dp"
-                android:text="Aadhar Card Back Photo"
+                android:text="@string/aadhar_card_back_photo"
                 android:textColor="@color/text_dark"
                 android:textSize="16sp" />
 

@@ -67,9 +67,14 @@ public class CabDriverEditProfileActivity extends AppCompatActivity {
     private void loadDriverDetails() {
         progressDialog.show();
 
+        String driverId = preferenceManager.getStringValue("cab_driver_id");
+        String token = preferenceManager.getStringValue("cab_driver_token");
+
         JSONObject jsonBody = new JSONObject();
         try {
             jsonBody.put("driver_id", driverId);
+            jsonBody.put("driver_unique_id", driverId);
+            jsonBody.put("auth", token);
         } catch (JSONException e) {
             e.printStackTrace();
         }
@@ -324,6 +329,9 @@ public class CabDriverEditProfileActivity extends AppCompatActivity {
     private void updateProfile() {
         progressDialog.show();
 
+
+        String token = preferenceManager.getStringValue("cab_driver_token");
+
         JSONObject jsonBody = new JSONObject();
         try {
             jsonBody.put("driver_id", driverId);
@@ -333,6 +341,8 @@ public class CabDriverEditProfileActivity extends AppCompatActivity {
             jsonBody.put("ifsc_code", binding.editTextIfscCode.getText().toString());
             jsonBody.put("account_number", binding.editTextAccountNumber.getText().toString());
             jsonBody.put("account_name", binding.editTextAccountName.getText().toString());
+            jsonBody.put("driver_unique_id", driverId);
+            jsonBody.put("auth", token);
         } catch (JSONException e) {
             e.printStackTrace();
         }

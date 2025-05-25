@@ -473,6 +473,7 @@ public class OtpVerificationActivity extends AppCompatActivity {
             if (goodsDriverID != null && !goodsDriverID.isEmpty() &&
                     goodsDriverName != null && !goodsDriverName.isEmpty() &&
                     !goodsDriverName.equals("NA")) {
+                preferenceManager.saveBooleanValue("need_goods_restart_app",true);
                 startActivity(new Intent(this, HomeActivity.class));
             } else {
                 startActivity(new Intent(this, GoodsDriverDocumentVerificationActivity.class));

@@ -72,9 +72,14 @@ public class DriverAgentRechargeHistoryActivity extends AppCompatActivity {
     private void fetchRechargeHistory() {
         showLoading(true);
 
+        String driverId = preferenceManager.getStringValue("other_driver_id");
+        String token = preferenceManager.getStringValue("other_driver_token");
+
         try {
             JSONObject params = new JSONObject();
             params.put("driver_id", preferenceManager.getStringValue("other_driver_id"));
+            params.put("driver_unique_id", driverId);
+            params.put("auth", token);
 
             JsonObjectRequest request = new JsonObjectRequest(
                     Request.Method.POST,

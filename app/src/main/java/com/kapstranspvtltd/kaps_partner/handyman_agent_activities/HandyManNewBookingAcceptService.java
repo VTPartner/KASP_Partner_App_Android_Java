@@ -24,6 +24,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -135,6 +136,8 @@ public class HandyManNewBookingAcceptService extends Service {
     }
 
     private void fetchBookingDetails(String bookingId) {
+        String handymanAgentId = preferenceManager.getStringValue("handyman_agent_id");
+        String handymanToken = preferenceManager.getStringValue("handyman_token");
         new Thread(() -> {
             try {
                 String serverToken = AccessToken.getAccessToken();
@@ -142,6 +145,8 @@ public class HandyManNewBookingAcceptService extends Service {
 
                 JSONObject jsonBody = new JSONObject();
                 jsonBody.put("booking_id", bookingId);
+                jsonBody.put("handyman_agent_id", handymanAgentId);
+                jsonBody.put("auth", handymanToken);
 
                 JsonObjectRequest request = new JsonObjectRequest(
                         Request.Method.POST,
@@ -227,7 +232,8 @@ public class HandyManNewBookingAcceptService extends Service {
         DisplayMetrics displayMetrics = new DisplayMetrics();
         windowManager.getDefaultDisplay().getMetrics(displayMetrics);
         int screenHeight = displayMetrics.heightPixels;
-        params.height = (int) (screenHeight * 0.7);
+        params.height = (int) (screenHeight);
+//        params.height = (int) (screenHeight * 0.7);
 
         windowManager.addView(floatingView, params);
         setupUI();
@@ -240,10 +246,11 @@ public class HandyManNewBookingAcceptService extends Service {
             TextView customerNameView = floatingView.findViewById(R.id.customerName);
             TextView serviceFareView = floatingView.findViewById(R.id.serviceFare); // Changed from rideFare
             TextView distanceView = floatingView.findViewById(R.id.distance);
-            TextView workLocationDistanceView = floatingView.findViewById(R.id.workLocationDistance); // Changed from pickupLocationDistance
+//            TextView workLocationDistanceView = floatingView.findViewById(R.id.workLocationDistance); // Changed from pickupLocationDistance
             TextView serviceTypeView = floatingView.findViewById(R.id.serviceType); // New view for service type
             Button acceptButton = floatingView.findViewById(R.id.acceptButton);
-            Button rejectButton = floatingView.findViewById(R.id.rejectButton);
+            ImageView rejectButton = floatingView.findViewById(R.id.rejectButton);
+            TextView hikePriceTxt = floatingView.findViewById(R.id.hikePriceTxt);
 
             startCountdownTimer(timerText);
 
@@ -255,13 +262,20 @@ public class HandyManNewBookingAcceptService extends Service {
             double totalPrice = bookingJsonDetails.optDouble("total_price", 0);
             String subCatName = bookingJsonDetails.optString("sub_cat_name", "N/A");
             String serviceName = bookingJsonDetails.optString("service_name", "N/A");
+            int hikePrice = bookingJsonDetails.optInt("hike_price", 0); //hike price
+
+            if(hikePrice>0){
+                hikePriceTxt.setVisibility(View.VISIBLE);
+                hikePriceTxt.setText("+ ₹"+hikePrice+"");
+                totalPrice-=hikePrice;
+            }
 
             workLocationView.setText(workLocation);
             customerNameView.setText(customerName);
             serviceFareView.setText(String.format("₹%.0f", totalPrice));
             serviceTypeView.setText(String.format("%s - %s", subCatName, serviceName));
 
-            calculateWorkLocationDistance(workLocationDistanceView);
+//            calculateWorkLocationDistance(workLocationDistanceView);
 
         } catch (Exception e) {
             Log.e(TAG, "Error setting up UI: " + e.getMessage());
@@ -354,6 +368,9 @@ public class HandyManNewBookingAcceptService extends Service {
         }
         stopNotificationSound();
 
+        String handymanAgentId = preferenceManager.getStringValue("handyman_agent_id");
+        String handymanToken = preferenceManager.getStringValue("handyman_token");
+
         ExecutorService executor = Executors.newSingleThreadExecutor();
         Handler handler = new Handler(Looper.getMainLooper());
 
@@ -377,6 +394,8 @@ public class HandyManNewBookingAcceptService extends Service {
                 jsonBody.put("driver_id", handymanId);
                 jsonBody.put("server_token", accessToken);
                 jsonBody.put("customer_id", bookingJsonDetails.optString("customer_id"));
+                jsonBody.put("handyman_agent_id", handymanAgentId);
+                jsonBody.put("auth", handymanToken);
 
                 String url = APIClient.baseUrl + "handyman_booking_accepted"; // Changed API endpoint
 

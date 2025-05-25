@@ -24,6 +24,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -128,7 +129,7 @@ public class JcbCraneDriverNewBookingAcceptService extends Service {
         return new NotificationCompat.Builder(this, CHANNEL_ID)
                 .setContentTitle("New JCB/Crane Booking Alert")
                 .setContentText("You have a new booking request")
-                .setSmallIcon(R.drawable.ic_notification)
+                .setSmallIcon(R.drawable.logo)
                 .setContentIntent(pendingIntent)
                 .setPriority(NotificationCompat.PRIORITY_HIGH)
                 .setCategory(NotificationCompat.CATEGORY_CALL)
@@ -139,10 +140,14 @@ public class JcbCraneDriverNewBookingAcceptService extends Service {
         new Thread(() -> {
             try {
                 String serverToken = AccessToken.getAccessToken();
+                String token = preferenceManager.getStringValue("jcb_crane_token");
+                String driverId = preferenceManager.getStringValue("jcb_crane_agent_id");
                 String url = APIClient.baseUrl + "jcb_crane_booking_details_for_ride_acceptance";
 
                 JSONObject jsonBody = new JSONObject();
                 jsonBody.put("booking_id", bookingId);
+                jsonBody.put("driver_unique_id", driverId);
+                jsonBody.put("auth", token);
 
                 JsonObjectRequest request = new JsonObjectRequest(
                         Request.Method.POST,
@@ -239,7 +244,8 @@ public class JcbCraneDriverNewBookingAcceptService extends Service {
         DisplayMetrics displayMetrics = new DisplayMetrics();
         windowManager.getDefaultDisplay().getMetrics(displayMetrics);
         int screenHeight = displayMetrics.heightPixels;
-        params.height = (int) (screenHeight * 0.7);
+//        params.height = (int) (screenHeight * 0.7);
+        params.height = (int) (screenHeight);
 
         windowManager.addView(floatingView, params);
 
@@ -256,10 +262,11 @@ public class JcbCraneDriverNewBookingAcceptService extends Service {
             TextView customerNameView = floatingView.findViewById(R.id.customerName);
             TextView serviceFareView = floatingView.findViewById(R.id.serviceFare); // Changed from rideFare
             TextView distanceView = floatingView.findViewById(R.id.distance);
-            TextView workLocationDistanceView = floatingView.findViewById(R.id.workLocationDistance); // Changed from pickupLocationDistance
+//            TextView workLocationDistanceView = floatingView.findViewById(R.id.workLocationDistance); // Changed from pickupLocationDistance
             TextView serviceTypeView = floatingView.findViewById(R.id.serviceType); // New view for service type
             Button acceptButton = floatingView.findViewById(R.id.acceptButton);
-            Button rejectButton = floatingView.findViewById(R.id.rejectButton);
+            ImageView rejectButton = floatingView.findViewById(R.id.rejectButton);
+            TextView hikePriceTxt = floatingView.findViewById(R.id.hikePriceTxt);
 
             startCountdownTimer(timerText);
 
@@ -271,13 +278,20 @@ public class JcbCraneDriverNewBookingAcceptService extends Service {
             double totalPrice = bookingJsonDetails.optDouble("total_price", 0);
             String subCatName = bookingJsonDetails.optString("sub_cat_name", "N/A");
             String serviceName = bookingJsonDetails.optString("service_name", "N/A");
+            int hikePrice = bookingJsonDetails.optInt("hike_price", 0); //hike price
+
+            if(hikePrice>0){
+                hikePriceTxt.setVisibility(View.VISIBLE);
+                hikePriceTxt.setText("+ ₹"+hikePrice+"");
+                totalPrice-=hikePrice;
+            }
 
             workLocationView.setText(workLocation);
             customerNameView.setText(customerName);
             serviceFareView.setText(String.format("₹%.0f", totalPrice));
             serviceTypeView.setText(String.format("%s - %s", subCatName, serviceName));
 
-            calculateWorkLocationDistance(workLocationDistanceView);
+//            calculateWorkLocationDistance(workLocationDistanceView);
 
         } catch (Exception e) {
             Log.e(TAG, "Error setting up UI: " + e.getMessage());
@@ -385,12 +399,16 @@ public class JcbCraneDriverNewBookingAcceptService extends Service {
                 }
 
                 preferenceManager.saveStringValue("current_jcb_crane_booking_id_assigned", bookingId);
+                String token = preferenceManager.getStringValue("jcb_crane_token");
+
 
                 JSONObject jsonBody = new JSONObject();
                 jsonBody.put("booking_id", bookingId);
                 jsonBody.put("driver_id", driverId);
                 jsonBody.put("server_token", accessToken);
                 jsonBody.put("customer_id", bookingJsonDetails.optString("customer_id"));
+                jsonBody.put("driver_unique_id", driverId);
+                jsonBody.put("auth", token);
 
                 String url = APIClient.baseUrl + "jcb_crane_driver_booking_accepted";
 

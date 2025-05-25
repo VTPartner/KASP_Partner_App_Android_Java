@@ -289,6 +289,8 @@ public class HandyManNewLiveRideActivity extends AppCompatActivity implements On
                     return;
                 }
 
+                String handymanAgentId = preferenceManager.getStringValue("handyman_agent_id");
+                String handymanToken = preferenceManager.getStringValue("handyman_token");
                 // Create request body
                 JSONObject params = new JSONObject();
                 try {
@@ -302,6 +304,8 @@ public class HandyManNewLiveRideActivity extends AppCompatActivity implements On
                     params.put("total_amount", Math.round(Double.parseDouble(amount)));
                     params.put("service_name", (serviceName.isEmpty() && serviceName.equalsIgnoreCase("NA")==false) ? serviceName : subCategoryName);
                     params.put("penalty_amount",penaltyAmount);
+                    params.put("handyman_agent_id", handymanAgentId);
+                    params.put("auth", handymanToken);
                 } catch (JSONException e) {
                     e.printStackTrace();
                 }
@@ -392,6 +396,8 @@ public class HandyManNewLiveRideActivity extends AppCompatActivity implements On
         showLoading("Fetching booking details...");
 
         String driverId = preferenceManager.getStringValue("handyman_agent_id");
+        String handymanAgentId = preferenceManager.getStringValue("handyman_agent_id");
+        String handymanToken = preferenceManager.getStringValue("handyman_token");
 
         if (driverId == null || driverId.isEmpty()) {
 
@@ -405,6 +411,8 @@ public class HandyManNewLiveRideActivity extends AppCompatActivity implements On
         JSONObject params = new JSONObject();
         try {
             params.put("handyman_id", driverId);
+            params.put("handyman_agent_id", handymanAgentId);
+            params.put("auth", handymanToken);
         } catch (JSONException e) {
             e.printStackTrace();
         }
@@ -892,6 +900,8 @@ public class HandyManNewLiveRideActivity extends AppCompatActivity implements On
     }
 
     private void updateRideStatus(String status) {
+        String handymanAgentId = preferenceManager.getStringValue("handyman_agent_id");
+        String handymanToken = preferenceManager.getStringValue("handyman_token");
         showLoading("Updating status...");
         String url = APIClient.baseUrl + "update_booking_status_handyman";
         String accessToken = AccessToken.getAccessToken();
@@ -906,6 +916,8 @@ public class HandyManNewLiveRideActivity extends AppCompatActivity implements On
             params.put("total_payment", totalPayable+"");
             params.put("penalty_amount", penaltyAmount+"");
             params.put("customer_id", customerID);
+            params.put("handyman_agent_id", handymanAgentId);
+            params.put("auth", handymanToken);
             // Add other required parameters
         } catch (JSONException e) {
             e.printStackTrace();

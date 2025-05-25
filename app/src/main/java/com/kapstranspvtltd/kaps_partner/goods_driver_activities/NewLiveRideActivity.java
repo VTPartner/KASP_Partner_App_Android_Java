@@ -45,6 +45,7 @@ import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.Polyline;
 import com.google.android.gms.maps.model.PolylineOptions;
 import com.kapstranspvtltd.kaps_partner.fcm.AccessToken;
+import com.kapstranspvtltd.kaps_partner.goods_driver_activities.helper.UnloadingTimerManager;
 import com.kapstranspvtltd.kaps_partner.network.APIClient;
 import com.kapstranspvtltd.kaps_partner.network.VolleySingleton;
 import com.kapstranspvtltd.kaps_partner.services.FloatingWindowService;
@@ -113,7 +114,11 @@ public class NewLiveRideActivity extends AppCompatActivity implements OnMapReady
     private final Handler mainThreadHandler = new Handler(Looper.getMainLooper());
 
     // Ride Details
-    String customerName = "";
+    int minimumWaitingTime = 0;
+    double penaltyCharges = 0;
+    String vehicleMapImage = "";
+    double hikePrice = 0;
+            String customerName = "";
     String customerID = "";
     String pickupAddress = "";
     String dropAddress = ""; // For single drop display
@@ -356,10 +361,55 @@ public class NewLiveRideActivity extends AppCompatActivity implements OnMapReady
         configureAndAddRequest(request);
     }
 
+    private UnloadingTimerManager timerManager;
+
+
+
     private void updateRideDetails(JSONObject rideDetails) {
         try {
             // --- Basic Details ---
-            bookingIdStr = rideDetails.getString("booking_id"); // Keep string version if needed
+            currentApiStatus = rideDetails.getString("booking_status"); // Store the status from API
+            minimumWaitingTime = rideDetails.getInt("minimum_waiting_time");
+            penaltyCharges = rideDetails.getDouble("penalty_charge");
+            vehicleMapImage = rideDetails.getString("vehicle_map_image");
+            hikePrice = rideDetails.getDouble("hike_price");
+            System.out.println("minimumWaitingTime::"+minimumWaitingTime);
+            System.out.println("penaltyCharges::"+penaltyCharges);
+            System.out.println("currentApiStatus::"+currentApiStatus);
+            //It will start can culating the timings
+            if (currentApiStatus.equalsIgnoreCase("Otp Verified")) {
+                // Initialize timer
+                timerManager = new UnloadingTimerManager(this, assignedBookingId,
+                        binding.txtUnloadingTime, binding.txtPenaltyInfo,
+                        new UnloadingTimerManager.UnloadingTimerListener() {
+                            @Override
+                            public void onPenaltyUpdated(double totalPenalty, long penaltyMinutes) {
+                                // Store penalty for API update
+                                penaltyCharges = totalPenalty;
+                            }
+
+                            @Override
+                            public void onTimerFinished() {
+                                showToast("Free unloading time finished!");
+                            }
+                        });
+
+                binding.timerContainer.setVisibility(View.VISIBLE);
+                timerManager.startTimer(minimumWaitingTime, penaltyCharges);
+            } else if (currentApiStatus.equalsIgnoreCase(STATUS_START_TRIP)) {
+                if (timerManager != null) {
+                    double finalPenalty = timerManager.getCurrentPenalty();
+                    if (finalPenalty > 0) {
+                        penaltyCharges = finalPenalty;
+                        // Update penalty amount in backend
+                        updatePenaltyAmount(finalPenalty);
+                    }
+                    timerManager.stopTimer();
+                }
+                binding.timerContainer.setVisibility(View.GONE);
+            }
+
+            bookingIdStr = rideDetails.getString("booking_id");
             // assignedBookingId should already be set
             customerName = rideDetails.getString("customer_name");
             customerID = rideDetails.getString("customer_id");
@@ -372,7 +422,7 @@ public class NewLiveRideActivity extends AppCompatActivity implements OnMapReady
             receiverName = rideDetails.getString("receiver_name"); // Primary receiver
             receiverNumber = rideDetails.getString("receiver_number"); // Primary receiver
             totalPrice = rideDetails.getDouble("total_price");
-            currentApiStatus = rideDetails.getString("booking_status"); // Store the status from API
+
             receivedOTP = rideDetails.getString("otp");
             pickupLat = rideDetails.getString("pickup_lat");
             pickupLng = rideDetails.getString("pickup_lng");
@@ -793,14 +843,31 @@ public class NewLiveRideActivity extends AppCompatActivity implements OnMapReady
                     return;
                 }
 
+
+
                 JSONObject params = new JSONObject();
                 try {
                     params.put("booking_id", assignedBookingId);
                     params.put("booking_status", statusToUpdate);
                     params.put("server_token", finalAccessToken);
-                    params.put("total_payment", totalPrice != null ? totalPrice.toString() : "0.0"); // Ensure totalPrice isn't null
+//                    params.put("total_payment", totalPrice != null ? totalPrice.toString() : "0.0"); // Ensure totalPrice isn't null
                     params.put("customer_id", customerID != null ? customerID : ""); // Ensure customerID isn't null
 
+                    // Calculate final amount including penalty if status is Make Payment
+                    if (STATUS_MAKE_PAYMENT.equals(statusToUpdate)) {
+                        // Get saved penalty amount if any
+                        float penaltyAmount = preferenceManager.getFloatValue(
+                                "penalty_amount_" + assignedBookingId, 0.0f);
+                        double finalAmount = totalPrice + penaltyAmount;
+
+                        params.put("total_payment", Math.round(finalAmount));
+                        params.put("penalty_amount", Math.round(penaltyAmount));
+
+                        Log.d(TAG, String.format("Sending payment details - Base: ₹%.2f, Penalty: ₹%.2f, Total: ₹%.2f",
+                                totalPrice, penaltyAmount, finalAmount));
+                    } else {
+                        params.put("total_payment", totalPrice != null ? totalPrice.toString() : "0.0");
+                    }
 
                     // --- Include current_drop_index if relevant ---
                     // Send the index of the drop that was *just completed* when confirming reach.
@@ -889,19 +956,34 @@ public class NewLiveRideActivity extends AppCompatActivity implements OnMapReady
             showToast("Cannot process payment, amount is missing.");
             return;
         }
-        String amountStr = String.valueOf(Math.round(totalPrice));
 
-        // Inflate dialog layout using ViewBinding
+        // Get saved penalty amount if any
+        float penaltyAmount = preferenceManager.getFloatValue("penalty_amount_" + assignedBookingId, 0.0f);
+        double finalAmount = Math.round(totalPrice + penaltyAmount);
+
         DialogPaymentDetailsBinding dialogBinding = DialogPaymentDetailsBinding.inflate(getLayoutInflater());
         AlertDialog dialog = new AlertDialog.Builder(this, R.style.AlertDialogTheme)
                 .setView(dialogBinding.getRoot())
-//                .setTitle("Payment Details")
-                .setCancelable(false) // Prevent dismissing easily
+                .setCancelable(false)
                 .create();
 
-        dialogBinding.amountValue.setText("₹" + amountStr);
 
-        // Ensure Cash is selected by default or based on preference
+
+        // Show penalty amount if exists
+        if (penaltyAmount > 0) {
+            dialogBinding.penaltyContainer.setVisibility(View.VISIBLE);
+            dialogBinding.baseFareValue.setVisibility(View.VISIBLE);
+            dialogBinding.penaltyValue.setText("₹" + Math.round(penaltyAmount));
+            // Show base fare
+            dialogBinding.baseFareValue.setText("Base Fare ₹" + Math.round(totalPrice));
+        } else {
+            dialogBinding.penaltyContainer.setVisibility(View.GONE);
+            dialogBinding.baseFareValue.setVisibility(View.GONE);
+        }
+
+        // Show final amount
+        dialogBinding.amountValue.setText("₹" + Math.round(finalAmount));
+
         dialogBinding.cashRadioButton.setChecked(true);
 
         dialogBinding.cancelButton.setOnClickListener(v -> dialog.dismiss());
@@ -909,7 +991,7 @@ public class NewLiveRideActivity extends AppCompatActivity implements OnMapReady
         dialogBinding.confirmButton.setOnClickListener(v -> {
             String paymentMethod = getSelectedPaymentType(dialogBinding);
             dialog.dismiss();
-            processPayment(amountStr, paymentMethod);
+            processPayment(String.valueOf(finalAmount), paymentMethod);
         });
 
         dialog.show();
@@ -960,6 +1042,13 @@ public class NewLiveRideActivity extends AppCompatActivity implements OnMapReady
                     params.put("driver_id", driverId);
                     params.put("customer_id", customerID);
                     params.put("total_amount", Math.round(Double.parseDouble(amount))); // Send rounded amount
+
+                    // Add penalty amount if exists
+                    float penaltyAmount = preferenceManager.getFloatValue(
+                            "penalty_amount_" + assignedBookingId, 0.0f);
+                    if (penaltyAmount > 0) {
+                        params.put("penalty_amount", Math.round(penaltyAmount));
+                    }
                 } catch (JSONException | NumberFormatException e) {
                     Log.e(TAG, "Error creating payment JSON params", e);
                     hideLoading();
@@ -1025,6 +1114,7 @@ public class NewLiveRideActivity extends AppCompatActivity implements OnMapReady
         Log.d(TAG,"Clearing ride state for booking ID: " + assignedBookingId);
         preferenceManager.saveBooleanValue("isLiveRide", false);
         preferenceManager.saveStringValue("current_booking_id_assigned", "");
+        preferenceManager.removeValue("penalty_amount_" + assignedBookingId);
         if (assignedBookingId > 0) {
             // Clear the drop index specific to this booking
             String key = "current_drop_index_" + assignedBookingId;
@@ -1567,6 +1657,9 @@ public class NewLiveRideActivity extends AppCompatActivity implements OnMapReady
         super.onDestroy();
         Log.d(TAG, "onDestroy");
         // Clean up resources
+        if (timerManager != null) {
+            timerManager.pauseTimer();
+        }
 
         if (progressDialog != null && progressDialog.isShowing()) {
             progressDialog.dismiss();
@@ -1618,5 +1711,73 @@ public class NewLiveRideActivity extends AppCompatActivity implements OnMapReady
         } catch (Exception e) {
             Log.e(TAG, "Error stopping services", e);
         }
+    }
+
+    private void updatePenaltyAmount(double penaltyAmount) {
+        if (assignedBookingId <= 0 || !STATUS_START_TRIP.equals(currentApiStatus)) {
+            Log.d(TAG, "Cannot update penalty - Invalid state or status");
+            return;
+        }
+
+        showLoading("Updating penalty amount...");
+
+        executorService.submit(() -> {
+            String accessToken = null;
+            try {
+                accessToken = AccessToken.getAccessToken();
+            } catch (Exception e) {
+                Log.e(TAG, "Error getting access token for penalty update", e);
+            }
+
+            final String finalAccessToken = accessToken;
+            mainThreadHandler.post(() -> {
+                if (finalAccessToken == null || finalAccessToken.isEmpty()) {
+                    hideLoading();
+                    showToast("Authentication error");
+                    return;
+                }
+
+                JSONObject params = new JSONObject();
+                try {
+                    params.put("booking_id", assignedBookingId);
+                    params.put("server_token", finalAccessToken);
+                    params.put("penalty_amount", penaltyAmount);
+                } catch (JSONException e) {
+                    hideLoading();
+                    Log.e(TAG, "Error creating penalty update params", e);
+                    return;
+                }
+
+                JsonObjectRequest request = new JsonObjectRequest(Request.Method.POST,
+                        APIClient.baseUrl+"update_goods_booking_penalty_amount", params,
+                        response -> {
+                            hideLoading();
+                            try {
+                                boolean success = response.optBoolean("success", false);
+                                if (success) {
+                                    // Save penalty amount in preferences
+                                    preferenceManager.saveFloatValue("penalty_amount_" + assignedBookingId,
+                                            (float) penaltyAmount);
+                                    Log.d(TAG, "Penalty amount updated: " + penaltyAmount);
+                                } else {
+                                    Log.w(TAG, "Penalty update failed: " + response.toString());
+                                }
+                            } catch (Exception e) {
+                                Log.e(TAG, "Error processing penalty update response", e);
+                            }
+                        },
+                        error -> {
+                            hideLoading();
+                            handleVolleyError(error);
+                        }
+                ) {
+                    @Override
+                    public Map<String, String> getHeaders() {
+                        return getApiHeaders();
+                    }
+                };
+                configureAndAddRequest(request);
+            });
+        });
     }
 }

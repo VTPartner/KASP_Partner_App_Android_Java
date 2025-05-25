@@ -69,7 +69,7 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Personal Information"
+                    android:text="@string/personal_information"
                     android:textStyle="bold"
                     android:textSize="18sp"
                     android:layout_marginBottom="8dp"/>
@@ -83,7 +83,7 @@
                         android:id="@+id/editTextFirstName"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:hint="First Name"/>
+                        android:hint="@string/first_name"/>
                 </com.google.android.material.textfield.TextInputLayout>
 
                 <com.google.android.material.textfield.TextInputLayout
@@ -112,7 +112,7 @@
                         android:id="@+id/textViewMobile"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:hint="Mobile Number"/>
+                        android:hint="@string/mobile_number"/>
                 </com.google.android.material.textfield.TextInputLayout>
 
                 <com.google.android.material.textfield.TextInputLayout
@@ -126,7 +126,7 @@
                         android:id="@+id/textViewGender"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:hint="Gender"/>
+                        android:hint="@string/gender"/>
                 </com.google.android.material.textfield.TextInputLayout>
 
                 <com.google.android.material.textfield.TextInputLayout
@@ -140,7 +140,7 @@
                         android:id="@+id/textViewAddress"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:hint="Full Address"/>
+                        android:hint="@string/full_address"/>
                 </com.google.android.material.textfield.TextInputLayout>
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
@@ -161,7 +161,7 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Bank Details"
+                    android:text="@string/bank_details"
                     android:textStyle="bold"
                     android:textSize="18sp"
                     android:layout_marginBottom="8dp"/>
@@ -175,7 +175,7 @@
                         android:id="@+id/editTextBankName"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:hint="Bank Name"/>
+                        android:hint="@string/bank_name"/>
                 </com.google.android.material.textfield.TextInputLayout>
 
                 <com.google.android.material.textfield.TextInputLayout
@@ -188,7 +188,7 @@
                         android:id="@+id/editTextAccountName"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:hint="Account Holder Name"/>
+                        android:hint="@string/account_holder_name"/>
                 </com.google.android.material.textfield.TextInputLayout>
 
                 <com.google.android.material.textfield.TextInputLayout
@@ -201,7 +201,7 @@
                         android:id="@+id/editTextAccountNumber"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:hint="Account Number"/>
+                        android:hint="@string/account_number"/>
                 </com.google.android.material.textfield.TextInputLayout>
 
                 <com.google.android.material.textfield.TextInputLayout
@@ -214,7 +214,7 @@
                         android:id="@+id/editTextIfscCode"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:hint="IFSC Code"/>
+                        android:hint="@string/ifsc_code"/>
                 </com.google.android.material.textfield.TextInputLayout>
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
@@ -235,7 +235,7 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Vehicle Information"
+                    android:text="@string/vehicle_information"
                     android:textStyle="bold"
                     android:textSize="18sp"
                     android:layout_marginBottom="8dp"/>
@@ -264,7 +264,7 @@
                         android:id="@+id/textViewVehicleName"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:hint="Vehicle Name"/>
+                        android:hint="@string/vehicle_name"/>
                 </com.google.android.material.textfield.TextInputLayout>
 
                 <com.google.android.material.textfield.TextInputLayout
@@ -278,7 +278,7 @@
                         android:id="@+id/textViewVehiclePlateNo"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:hint="Vehicle Plate Number"/>
+                        android:hint="@string/vehicle_plate_number"/>
                 </com.google.android.material.textfield.TextInputLayout>
 
                 <com.google.android.material.textfield.TextInputLayout
@@ -292,7 +292,7 @@
                         android:id="@+id/textViewFuelType"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:hint="Fuel Type"/>
+                        android:hint="@string/fuel_type"/>
                 </com.google.android.material.textfield.TextInputLayout>
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
@@ -313,7 +313,7 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Document Information"
+                    android:text="@string/document_information"
                     android:textStyle="bold"
                     android:textSize="18sp"
                     android:layout_marginBottom="8dp"/>
@@ -322,7 +322,7 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Aadhar Card"
+                    android:text="@string/aadhar_card"
                     android:textStyle="bold"
                     android:layout_marginTop="8dp"/>
 
@@ -360,14 +360,14 @@
                         android:id="@+id/textViewAadharNo"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:hint="Aadhar Number"/>
+                        android:hint="@string/aadhar_number"/>
                 </com.google.android.material.textfield.TextInputLayout>
 
                 <!-- PAN Card -->
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="PAN Card"
+                    android:text="@string/pan_card"
                     android:textStyle="bold"
                     android:layout_marginTop="16dp"/>
 
@@ -405,14 +405,14 @@
                         android:id="@+id/textViewPanNo"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:hint="PAN Number"/>
+                        android:hint="@string/pan_number"/>
                 </com.google.android.material.textfield.TextInputLayout>
 
                 <!-- License -->
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Driving License"
+                    android:text="@string/driving_license"
                     android:textStyle="bold"
                     android:layout_marginTop="16dp"/>
 
@@ -450,14 +450,14 @@
                         android:id="@+id/textViewLicenseNo"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:hint="License Number"/>
+                        android:hint="@string/license_number"/>
                 </com.google.android.material.textfield.TextInputLayout>
 
                 <!-- Vehicle Documents -->
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Vehicle Documents"
+                    android:text="@string/vehicle_documents"
                     android:textStyle="bold"
                     android:layout_marginTop="16dp"/>
 
@@ -479,7 +479,7 @@
                         android:id="@+id/textViewRcNo"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:hint="RC Number"/>
+                        android:hint="@string/rc_number"/>
                 </com.google.android.material.textfield.TextInputLayout>
 
                 <ImageView
@@ -500,7 +500,7 @@
                         android:id="@+id/textViewInsuranceNo"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:hint="Insurance Number"/>
+                        android:hint="@string/insurance_number"/>
                 </com.google.android.material.textfield.TextInputLayout>
 
                 <ImageView
@@ -528,7 +528,7 @@
                         android:id="@+id/textViewNocNo"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:hint="NOC Number"/>
+                        android:hint="@string/noc_number"/>
                 </com.google.android.material.textfield.TextInputLayout>
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
@@ -537,7 +537,7 @@
             android:id="@+id/buttonUpdate"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Update Profile"
+            android:text="@string/update_profile"
             android:layout_marginTop="16dp"
             android:layout_marginBottom="16dp"/>
         </LinearLayout>

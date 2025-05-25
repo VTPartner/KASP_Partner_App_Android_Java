@@ -78,18 +78,23 @@ public class CabDriverEarningsActivity extends AppCompatActivity {
     private void fetchWholeYearsEarnings() {
         showLoading();
 
+        String driverId = preferenceManager.getStringValue("cab_driver_id");
+        String token = preferenceManager.getStringValue("cab_driver_token");
+
         JSONObject jsonObject = new JSONObject();
         try {
             String goodsDriverId = getDriverId();
             System.out.println("goodsDriverId::" + goodsDriverId);
             jsonObject.put("driver_id", goodsDriverId);
+            jsonObject.put("driver_unique_id", driverId);
+            jsonObject.put("auth", token);
         } catch (JSONException e) {
             e.printStackTrace();
         }
 
         JsonObjectRequest request = new JsonObjectRequest(
                 Request.Method.POST,
-                APIClient.baseUrl + "goods_driver_whole_year_earnings",
+                APIClient.baseUrl + "cab_driver_whole_year_earnings",
                 jsonObject,
                 response -> {
                     try {
@@ -125,9 +130,14 @@ public class CabDriverEarningsActivity extends AppCompatActivity {
     }
 
     private void fetchAllOrders() {
+        String driverId = preferenceManager.getStringValue("cab_driver_id");
+        String token = preferenceManager.getStringValue("cab_driver_token");
+
         JSONObject jsonObject = new JSONObject();
         try {
             jsonObject.put("driver_id", getDriverId());
+            jsonObject.put("driver_unique_id", driverId);
+            jsonObject.put("auth", token);
         } catch (JSONException e) {
             e.printStackTrace();
         }

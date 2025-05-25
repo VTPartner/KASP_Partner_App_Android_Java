@@ -29,7 +29,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="24dp"
-                android:text="Upload Your Selfie"
+                android:text="@string/title_upload_selfie"
                 android:textColor="@color/text_dark"
                 android:textSize="24sp"
                 android:textStyle="bold" />
@@ -38,7 +38,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"
-                android:text="Note: Your information is kept confidential and used solely for verification and communication purposes."
+                android:text="@string/note_confidentiality_selfie"
                 android:textColor="@color/text_secondary" />
 
             <TextView
@@ -46,7 +46,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="24dp"
                 android:padding="8dp"
-                android:text="Upload Selfie"
+                android:text="@string/label_upload_selfie"
                 android:textColor="@color/text_secondary" />
 
             <FrameLayout
@@ -96,7 +96,7 @@
         android:layout_gravity="bottom"
         android:layout_margin="16dp"
         android:padding="16dp"
-        android:text="Update"
+        android:text="@string/button_update"
         android:textAllCaps="false"
         app:cornerRadius="16dp"
         android:backgroundTint="@color/colorPrimary" />

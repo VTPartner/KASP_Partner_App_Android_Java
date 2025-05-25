@@ -1,9 +1,14 @@
 package com.kapstranspvtltd.kaps_partner.common_activities;
 
 import android.content.Intent;
+import android.content.res.Configuration;
+import android.content.res.Resources;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.LayoutInflater;
+import android.view.View;
 import android.view.ViewGroup;
+import android.widget.RadioGroup;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.Fragment;
@@ -11,11 +16,16 @@ import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentPagerAdapter;
 import androidx.viewpager.widget.ViewPager;
 
+import com.google.android.material.bottomsheet.BottomSheetDialog;
+import com.google.android.material.button.MaterialButton;
+import com.kapstranspvtltd.kaps_partner.R;
 import com.kapstranspvtltd.kaps_partner.goods_driver_activities.fragments.Info1Fragment;
 import com.kapstranspvtltd.kaps_partner.goods_driver_activities.fragments.Info2Fragment;
 import com.kapstranspvtltd.kaps_partner.goods_driver_activities.fragments.Info3Fragment;
 import com.kapstranspvtltd.kaps_partner.utils.PreferenceManager;
 import com.kapstranspvtltd.kaps_partner.databinding.ActivityIntroBinding;
+
+import java.util.Locale;
 
 public class IntroActivity extends AppCompatActivity {
     private ActivityIntroBinding binding;
@@ -23,6 +33,8 @@ public class IntroActivity extends AppCompatActivity {
     private MyPagerAdapter adapterViewPager;
 
     PreferenceManager preferenceManager;
+
+    private BottomSheetDialog languageBottomSheet;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -64,6 +76,65 @@ public class IntroActivity extends AppCompatActivity {
                 Log.e("sjlkj", "sjahdal");
             }
         });
+
+        binding.languageButton.setOnClickListener(v -> showLanguageBottomSheet());
+    }
+
+    private void showLanguageBottomSheet() {
+        if (languageBottomSheet == null) {
+            languageBottomSheet = new BottomSheetDialog(this);
+            View sheetView = LayoutInflater.from(this).inflate(R.layout.bottom_sheet_language, null);
+            languageBottomSheet.setContentView(sheetView);
+
+            RadioGroup languageGroup = sheetView.findViewById(R.id.languageRadioGroup);
+            MaterialButton applyButton = sheetView.findViewById(R.id.btnApply);
+
+            // Set current language as checked
+            String currentLang = preferenceManager.getStringValue("language", "en");
+            switch (currentLang) {
+                case "hi":
+                    languageGroup.check(R.id.radioHindi);
+                    break;
+                case "mr":
+                    languageGroup.check(R.id.radioMarathi);
+                    break;
+                case "kn":
+                    languageGroup.check(R.id.radioKannada);
+                    break;
+                default:
+                    languageGroup.check(R.id.radioEnglish);
+            }
+
+            applyButton.setOnClickListener(v -> {
+                int selectedId = languageGroup.getCheckedRadioButtonId();
+                String langCode;
+
+                if (selectedId == R.id.radioHindi) {
+                    langCode = "hi";
+                } else if (selectedId == R.id.radioMarathi) {
+                    langCode = "mr";
+                } else if (selectedId == R.id.radioKannada) {
+                    langCode = "kn";
+                } else {
+                    langCode = "en";
+                }
+
+                preferenceManager.saveStringValue("language", langCode);
+                setLocale(langCode);
+                languageBottomSheet.dismiss();
+                recreate();
+            });
+        }
+        languageBottomSheet.show();
+    }
+
+    private void setLocale(String langCode) {
+        Locale locale = new Locale(langCode);
+        Locale.setDefault(locale);
+        Resources resources = getResources();
+        Configuration config = resources.getConfiguration();
+        config.setLocale(locale);
+        resources.updateConfiguration(config, resources.getDisplayMetrics());
     }
 
     public class MyPagerAdapter extends FragmentPagerAdapter {

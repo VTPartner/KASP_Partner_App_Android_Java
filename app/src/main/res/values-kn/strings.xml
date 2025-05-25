@@ -1,0 +1,254 @@
+<resources>
+        <string name="app_name">KAPS ಪಾರ್ಟ್ನರ್</string>
+        <string name="continues">ಮುಂದುವರೆಯಿರಿ</string>
+        <!-- TODO: Remove or change this placeholder text -->
+        <string name="API_KEY">***********************</string>
+        <string name="application_json">application/json</string>
+
+        <string name="google_maps_key">AIzaSyBt3USGB6g4HKe4DOfXCngbYmbLgb8WmO0</string>
+        <!-- TODO: Remove or change this placeholder text -->
+        <string name="hello_blank_fragment">ಹೆಲೋ ಖಾಲಿ ಫ್ರಾಗ್ಮೆಂಟ್</string>
+        <string name="default_notification_channel_id">kaps_ಡೀಫಾಲ್ಟ್_ಚಾನೆಲ್</string>
+        <string name="navigation_drawer_open">ತೆರೆಯಿರಿ</string>
+        <string name="navigation_drawer_close">ಮುಚ್ಚಿ</string>
+        <string name="how_to_continue">ಮುಂದುವರಿಯಲು ಹೇಗೆ ಇಚ್ಛಿಸುತ್ತೀರಿ ಆಯ್ಕೆಮಾಡಿ</string>
+        <string name="choose_role">ನಿಮ್ಮ ಪಾತ್ರವನ್ನು ಆಯ್ಕೆಮಾಡಿ</string>
+        <string name="work_address">ಕೆಲಸದ ವಿಳಾಸ</string>
+        <string name="work_distance">ಕೆಲಸದ ದೂರ</string>
+        <string name="service_type">ಸೇವೆಯ ಪ್ರಕಾರ</string>
+        <string name="incoming_booking">ಬರುವ ಬುಕ್ಕಿಂಗ್‌ಗಳು</string>
+        <string name="distance">ದೂರ</string>
+        <string name="time">ಸಮಯ</string>
+        <string name="customer_name">ಗ್ರಾಹಕನ ಹೆಸರು</string>
+        <string name="pickup_address">ಪಿಕಪ್ ವಿಳಾಸ</string>
+        <string name="multiple_drops">ಬಹು-ಡ್ರಾಪ್‌ಗಳು</string>
+        <string name="drop_address">ಡ್ರಾಪ್ ವಿಳಾಸ</string>
+        <string name="receiver">"ಗ್ರಾಹಕ "</string>
+        <string name="sender">"ಪাঠಕ "</string>
+        <string name="available_plans">ಲಭ್ಯವಿರುವ ಯೋಜನೆಗಳು</string>
+        <string name="recharge_plan">ರಿಚಾರ್ಜ್ ಯೋಜನೆಗಳು</string>
+        <string name="current_plan">ಪ್ರಸ್ತುತ ಯೋಜನೆ</string>
+        <string name="pickup_distance">ಪಿಕಪ್ ದೂರ</string>
+        <string name="upload_aadhar_card_text_document">ಆಧಾರ್ ಕಾರ್ಡ್ ದಾಖಲೆ ಅಪ್‌ಲೋಡ್ ಮಾಡಿ</string>
+        <string name="aadhar_card_document_note">ಟಿಪ್ಪಣಿ: ನಿಮ್ಮ ಮಾಹಿತಿ ಗೌಪ್ಯವಾಗಿರಿಸಲಾಗಿದ್ದು, ಪರಿಶೀಲನೆ ಮತ್ತು ಸಂವಹನಕ್ಕಾಗಿ ಮಾತ್ರ ಬಳಸಲಾಗುತ್ತದೆ.</string>
+        <string name="aadhar_no">ಆಧಾರ್ ನಂ *</string>
+        <string name="aadhar_card_front_photo">ಆಧಾರ್ ಕಾರ್ಡ್ ಮುಂಭಾಗದ ಫೋಟೋ</string>
+        <string name="aadhar_card_back_photo">ಆಧಾರ್ ಕಾರ್ಡ್ ಹಿಂಭಾಗದ ಫೋಟೋ</string>
+        <string name="my_rides">ನನ್ನ ಸವಾರಿ</string>
+        <string name="cab_driver_info">ಕ್ಯಾಬ್ ಚಾಲಕ ಮಾಹಿತಿ</string>
+        <string name="driver_info_note">ಟಿಪ್ಪಣಿ: ನಿಮ್ಮ ಮಾಹಿತಿ ಗೌಪ್ಯವಾಗಿರಿಸಲಾಗಿದ್ದು, ಪರಿಶೀಲನೆ ಮತ್ತು ಸಂವಹನಕ್ಕಾಗಿ ಮಾತ್ರ ಬಳಸಲಾಗುತ್ತದೆ.</string>
+        <string name="full_name">ಪೂರ್ಣ ಹೆಸರು *</string>
+        <string name="gender">ಲಿಂಗ *</string>
+        <string name="full_address">ಪೂರ್ಣ ವಿಳಾಸ *</string>
+        <string name="register_for_city">ನಗರದಿಗಾಗಿ ನೋಂದಣಿ *</string>
+        <string name="upload_required_documents">ಅಗತ್ಯ ದಾಖಲೆಗಳನ್ನು ಅಪ್‌ಲೋಡ್ ಮಾಡಿ *</string>
+        <string name="driving_license_photo">ಚಾಲನಾ ಪರವಾನಗಿ ಫೋಟೋ</string>
+        <string name="aadhar_card_owner">ಆಧಾರ್ ಕಾರ್ಡ್ [ ಮಾಲೀಕ ]</string>
+        <string name="pan_card_owner">ಪ್ಯಾನ್ ಕಾರ್ಡ್ [ ಮಾಲೀಕ ]</string>
+        <string name="selfie">ಸೆಲ್ಫಿ</string>
+        <string name="upload_driving_license_details">ಚಾಲನಾ ಪರವಾನಗಿ ವಿವರಗಳನ್ನು ಅಪ್‌ಲೋಡ್ ಮಾಡಿ</string>
+        <string name="upload_driving_license_details_note">ಟಿಪ್ಪಣಿ: ನಿಮ್ಮ ಮಾಹಿತಿ ಗೌಪ್ಯವಾಗಿರಿಸಲಾಗಿದ್ದು, ಪರಿಶೀಲನೆ ಮತ್ತು ಸಂವಹನಕ್ಕಾಗಿ ಮಾತ್ರ ಬಳಸಲಾಗುತ್ತದೆ.</string>
+        <string name="driving_license_no">ಚಾಲನಾ ಪರವಾನಗಿ ಸಂಖ್ಯೆ *</string>
+        <string name="driving_license_front_photo">ಚಾಲನಾ ಪರವಾನಗಿ ಮುಂಭಾಗದ ಫೋಟೋ</string>
+        <string name="driving_license_back_photo">ಚಾಲನಾ ಪರವಾನಗಿ ಹಿಂಭಾಗದ ಫೋಟೋ</string>
+        <string name="my_earnings">ನನ್ನ ಆದಾಯ</string>
+        <string name="earnings_overview">ಆದಾಯದ ಅವಲೋಕನ</string>
+        <string name="monthly_breakdown">ಮಾಸಿಕ ವಿವರ</string>
+        <string name="eanring_history">ಆದಾಯ ಇತಿಹಾಸ</string>
+
+        <string name="timer_default">15 ಸೆಕೆಂಡ್</string>
+        <string name="customer_default">ಗ್ರಾಹಕ</string>
+        <string name="currency_symbol">₹</string>
+        <string name="bullet_separator"> • </string>
+        <string name="pickup_distance_default">0 ಕಿ.ಮೀ</string>
+        <string name="pickup_address_default">ಪಿಕಪ್ ವಿಳಾಸ</string>
+        <string name="trip_duration_default">25 ನಿಮಿಷಗಳ ಸವಾರಿ</string>
+        <string name="distance_default">5.9 ಕಿ.ಮೀ ದೂರ</string>
+        <string name="drop_address_default">ಡ್ರಾಪ್ ವಿಳಾಸ</string>
+        <string name="accept_button">ಸ್ವೀಕರಿಸಿ</string>
+
+        <string name="profile">ಪ್ರೊಫೈಲ್</string>
+        <string name="personal_information">ವೈಯಕ್ತಿಕ ಮಾಹಿತಿ</string>
+        <string name="first_name">ಮೊದಲ ಹೆಸರು</string>
+        <string name="last_name">ಕೊನೆಯ ಹೆಸರು</string>
+        <string name="mobile_number">ಮೊಬೈಲ್ ಸಂಖ್ಯೆ</string>
+
+        <string name="bank_details">ಬ್ಯಾಂಕ್ ವಿವರಗಳು</string>
+        <string name="bank_name">ಬ್ಯಾಂಕ್ ಹೆಸರು</string>
+        <string name="account_holder_name">ಖಾತೆದಾರರ ಹೆಸರು</string>
+        <string name="account_number">ಖಾತೆ ಸಂಖ್ಯೆ</string>
+        <string name="ifsc_code">IFSC ಕೋಡ್</string>
+        <string name="vehicle_information">ವಾಹನ ಮಾಹಿತಿ</string>
+        <string name="vehicle_name">ವಾಹನದ ಹೆಸರು</string>
+        <string name="vehicle_plate_number">ವಾಹನ ಪ್ಲೇಟ್ ಸಂಖ್ಯೆ</string>
+        <string name="fuel_type">ಇಂಧನ ಪ್ರಕಾರ</string>
+        <string name="document_information">ದಾಖಲೆ ಮಾಹಿತಿ</string>
+        <string name="aadhar_card">ಆಧಾರ್ ಕಾರ್ಡ್</string>
+        <string name="aadhar_number">ಆಧಾರ್ ಸಂಖ್ಯೆ</string>
+        <string name="pan_card">ಪ್ಯಾನ್ ಕಾರ್ಡ್</string>
+        <string name="pan_number">ಪ್ಯಾನ್ ಸಂಖ್ಯೆ</string>
+        <string name="driving_license">ಚಾಲನಾ ಪರವಾನಗಿ</string>
+        <string name="license_number">ಪರವಾನಗಿ ಸಂಖ್ಯೆ</string>
+        <string name="vehicle_documents">ವಾಹನದ ದಾಖಲೆಗಳು</string>
+        <string name="rc_number">RC ಸಂಖ್ಯೆ</string>
+        <string name="insurance_number">ವಿಮೆ ಸಂಖ್ಯೆ</string>
+        <string name="noc_number">NOC ಸಂಖ್ಯೆ</string>
+        <string name="update_profile">ಪ್ರೊಫೈಲ್ ನವೀಕರಿಸಿ</string>
+        <string name="my_faqs">ಪ್ರಶ್ನೆಗಳು</string>
+        <string name="home">ಮನೆ</string>
+        <string name="change_language">ಭಾಷೆ ಬದಲಿಸಿ</string>
+        <string name="live_ride">ಲೈವ್ ಸವಾರಿ</string>
+        <string name="recharge">ರೀಚಾರ್ಜ್</string>
+        <string name="recharge_history">ರೀಚಾರ್ಜ್ ಇತಿಹಾಸ</string>
+        <string name="my_ratings">ನನ್ನ ರೇಟಿಂಗ್‌ಗಳು</string>
+        <string name="help_and_support">ಸಹಾಯ ಮತ್ತು ಬೆಂಬಲ</string>
+        <string name="delete_account">ಖಾತೆ ಅಳಿಸಿ</string>
+        <string name="logout">ಲಾಗ್ ಔಟ್</string>
+
+        <string name="title_cab_owner">ಕ್ಯಾಬ್ ಮಾಲೀಕರ ಮಾಹಿತಿ</string>
+        <string name="note_confidentiality">ಟಿಪ್ಪಣಿ: ನಿಮ್ಮ ಮಾಹಿತಿ ಗೌಪ್ಯವಾಗಿರಿಸಲಾಗಿದ್ದು, ಪರಿಶೀಲನೆ ಮತ್ತು ಸಂವಹನಕ್ಕಾಗಿ ಮಾತ್ರ ಬಳಸಲಾಗುತ್ತದೆ. ನೀವು ಕೇವಲ ಮಾಲೀಕರಾಗಿದ್ದರೆ ನಿಮ್ಮ ವಿವರಗಳನ್ನು ಸೇರಿಸಿ.</string>
+        <string name="hint_owner_name">ಮಾಲೀಕರ ಪೂರ್ಣ ಹೆಸರು *</string>
+        <string name="hint_owner_address">ಮಾಲೀಕರ ಪೂರ್ಣ ವಿಳಾಸ *</string>
+        <string name="hint_owner_city">ಮಾಲೀಕರ ನಗರ ಹೆಸರು *</string>
+        <string name="hint_owner_phone">ಮಾಲೀಕರ ಫೋನ್ ಸಂಖ್ಯೆ *</string>
+        <string name="title_upload_documents">ಅಗತ್ಯ ದಾಖಲೆಗಳನ್ನು ಅಪ್‌ಲೋಡ್ ಮಾಡಿ</string>
+        <string name="required_marker">*</string>
+        <string name="label_owner_photo">ಮಾಲೀಕರ ಫೋಟೋ</string>
+        <string name="button_submit">ಸಲ್ಲಿಸು</string>
+
+        <string name="title_upload_selfie">ನಿಮ್ಮ ಸೆಲ್ಫಿ ಅಪ್‌ಲೋಡ್ ಮಾಡಿ</string>
+        <string name="note_confidentiality_selfie">ಟಿಪ್ಪಣಿ: ನಿಮ್ಮ ಮಾಹಿತಿ ಗೌಪ್ಯವಾಗಿರಿಸಲಾಗಿದ್ದು, ಪರಿಶೀಲನೆ ಮತ್ತು ಸಂವಹನಕ್ಕಾಗಿ ಮಾತ್ರ ಬಳಸಲಾಗುತ್ತದೆ.</string>
+        <string name="label_upload_selfie">ಸೆಲ್ಫಿ ಅಪ್‌ಲೋಡ್ ಮಾಡಿ</string>
+        <string name="button_update">ನವೀಕರಿಸಿ</string>
+        <string name="title_upload_pan">ಪ್ಯಾನ್ ಕಾರ್ಡ್ ವಿವರಗಳನ್ನು ಅಪ್‌ಲೋಡ್ ಮಾಡಿ</string>
+        <string name="note_pan_confidentiality">ಗಮನಿಸಿ: ನಿಮ್ಮ ಮಾಹಿತಿ ರಹಸ್ಯವಾಗಿದ್ದು, ಪರಿಶೀಲನೆ ಮತ್ತು ಸಂವಹನ ಉದ್ದೇಶಗಳಿಗೆ ಮಾತ್ರ ಬಳಸಲಾಗುತ್ತದೆ.</string>
+        <string name="hint_pan_number">ಪ್ಯಾನ್ ಸಂಖ್ಯೆ *</string>
+        <string name="label_pan_front">ಪ್ಯಾನ್ ಕಾರ್ಡ್ ಮುಂಭಾಗದ ಫೋಟೋ</string>
+        <string name="label_pan_back">ಪ್ಯಾನ್ ಕಾರ್ಡ್ ಹಿಂದಿನ ಫೋಟೋ</string>
+
+        <string name="title_upload_puc">ಪಾಲ್ಯೂಶನ್ ಸೆರ್ಟಿಫಿಕೆಟ್ [PUC] ವಿವರಗಳನ್ನು ಅಪ್‌ಲೋಡ್ ಮಾಡಿ</string>
+        <string name="note_puc_confidentiality">ಗಮನಿಸಿ: ನಿಮ್ಮ ಮಾಹಿತಿ ರಹಸ್ಯವಾಗಿದ್ದು, ಪರಿಶೀಲನೆ ಮತ್ತು ಸಂವಹನ ಉದ್ದೇಶಗಳಿಗೆ ಮಾತ್ರ ಬಳಸಲಾಗುತ್ತದೆ.</string>
+        <string name="hint_puc_number">PUC ಸಂಖ್ಯೆ *</string>
+        <string name="label_upload_puc">PUC ಪ್ರಮಾಣಪತ್ರದ ಚಿತ್ರವನ್ನು ಅಪ್‌ಲೋಡ್ ಮಾಡಿ</string>
+
+        <!-- Vehicle Information Screen -->
+        <string name="title_cab_vehicle_info">ಕ್ಯಾಬ್ ವಾಹನ ಮಾಹಿತಿ</string>
+        <string name="note_vehicle_confidentiality">ನಿಮ್ಮ ಮಾಹಿತಿ ರಹಸ್ಯವಾಗಿದ್ದು, ಪರಿಶೀಲನೆ ಮತ್ತು ಸಂವಹನ ಉದ್ದೇಶಗಳಿಗೆ ಮಾತ್ರ ಬಳಸಲಾಗುತ್ತದೆ</string>
+
+        <!-- Input Fields -->
+        <string name="hint_vehicle_number">ವಾಹನ ಸಂಖ್ಯೆ *</string>
+        <string name="hint_fuel_type">ವಾಹನ ಇಂಧನ ಪ್ರಕಾರ *</string>
+        <string name="hint_vehicle_type">ವಾಹನ *</string>
+
+        <!-- Vehicle Images Section -->
+        <string name="title_vehicle_images">ವಾಹನದ ಚಿತ್ರ</string>
+        <string name="desc_vehicle_images">ವಾಹನದ ಮುಂಭಾಗ ಮತ್ತು ಹಿಂದೆ ಇರುವ ಚಿತ್ರಗಳನ್ನು ಒದಗಿಸಿ</string>
+
+        <!-- Vehicle Plate Section -->
+        <string name="title_plate_images">ವಾಹನ ಪ್ಲೇಟ್ ಸಂಖ್ಯೆ ಚಿತ್ರ</string>
+        <string name="desc_plate_images">ವಾಹನ ಪ್ಲೇಟ್ ಮುಂಭಾಗ ಮತ್ತು ಹಿಂದೆ ಇರುವ ಚಿತ್ರಗಳನ್ನು ಒದಗಿಸಿ</string>
+
+        <!-- RC Section -->
+        <string name="title_rc">ನೋಂದಣಿ ಪ್ರಮಾಣಪತ್ರ (RC)</string>
+        <string name="desc_rc">ವಾಹನದ ಮಾಲೀಕತ್ವ ಮತ್ತು ನೋಂದಣಿ ಪ್ರೂಫ್</string>
+
+        <!-- Insurance Section -->
+        <string name="title_insurance">ವಿಮೆ ಪ್ರಮಾಣಪತ್ರ</string>
+        <string name="desc_insurance">ವಾಹನಕ್ಕಾಗಿ ಮಾನ್ಯ ವಿಮೆ</string>
+
+        <!-- NOC Section -->
+        <string name="title_noc">NOC ಪ್ರಮಾಣಪತ್ರ</string>
+        <string name="desc_noc">ವಾಹನಕ್ಕಾಗಿ ಮಾನ್ಯ NOC</string>
+
+        <!-- PUC Section -->
+        <string name="title_puc">ಪಾಲ್ಯೂಶನ್ ಅಂಡರ್ ಕಂಟ್ರೋಲ್ (PUC) ಪ್ರಮಾಣಪತ್ರ</string>
+        <string name="desc_puc">ವಾಹನವು ಪ್ರಮಾಣಿತ ವಾಯುಮಾಲಿನ್ಯ ಮಾನದಂಡಗಳನ್ನು ಪೂರೈಸಿದಿರುವುದರ ಪ್ರೂಫ್</string>
+
+        <!-- Button -->
+        <string name="button_continue">ಮುಂದೆ</string>
+
+        <string name="title_upload_vehicle_images">ವಾಹನದ ಚಿತ್ರಗಳನ್ನು ಅಪ್‌ಲೋಡ್ ಮಾಡಿ</string>
+        <string name="label_vehicle_front">ವಾಹನ ಮುಂಭಾಗದ ಫೋಟೋ</string>
+        <string name="label_vehicle_back">ವಾಹನ ಹಿಂದಿನ ಫೋಟೋ</string>
+
+        <string name="title_upload_insurance">ವಿಮೆ ವಿವರಗಳನ್ನು ಅಪ್‌ಲೋಡ್ ಮಾಡಿ</string>
+        <string name="note_insurance_confidentiality">ಗಮನಿಸಿ: ನಿಮ್ಮ ಮಾಹಿತಿ ರಹಸ್ಯವಾಗಿದ್ದು, ಪರಿಶೀಲನೆ ಮತ್ತು ಸಂವಹನ ಉದ್ದೇಶಗಳಿಗೆ ಮಾತ್ರ ಬಳಸಲಾಗುತ್ತದೆ.</string>
+        <string name="hint_insurance_number">ವಿಮೆ ಸಂಖ್ಯೆ *</string>
+        <string name="label_upload_insurance">ವಿಮೆ ಪ್ರಮಾಣಪತ್ರವನ್ನು ಅಪ್‌ಲೋಡ್ ಮಾಡಿ</string>
+
+        <string name="title_upload_noc">ನೋ ಒಬ್ಜೆಕ್ಷನ್ ಸೆರ್ಟಿಫಿಕೆಟ್ [NOC] ವಿವರಗಳನ್ನು ಅಪ್‌ಲೋಡ್ ಮಾಡಿ</string>
+        <string name="note_noc_confidentiality">ಗಮನಿಸಿ: ನಿಮ್ಮ ಮಾಹಿತಿ ರಹಸ್ಯವಾಗಿದ್ದು, ಪರಿಶೀಲನೆ ಮತ್ತು ಸಂವಹನ ಉದ್ದೇಶಗಳಿಗೆ ಮಾತ್ರ ಬಳಸಲಾಗುತ್ತದೆ.</string>
+        <string name="hint_noc_number">NOC ಸಂಖ್ಯೆ *</string>
+        <string name="label_upload_noc">NOC ಪ್ರಮಾಣಪತ್ರದ ಚಿತ್ರವನ್ನು ಅಪ್‌ಲೋಡ್ ಮಾಡಿ</string>
+
+        <string name="title_upload_owner_selfie">ಮಾಲೀಕನ ಸೆಲ್ಫಿ ಅಪ್‌ಲೋಡ್ ಮಾಡಿ</string>
+        <string name="note_owner_confidentiality">ಗಮನಿಸಿ: ನಿಮ್ಮ ಮಾಹಿತಿ ರಹಸ್ಯವಾಗಿದ್ದು, ಪರಿಶೀಲನೆ ಮತ್ತು ಸಂವಹನ ಉದ್ದೇಶಗಳಿಗೆ ಮಾತ್ರ ಬಳಸಲಾಗುತ್ತದೆ.</string>
+
+        <string name="title_upload_plate">ವಾಹನ ಪ್ಲೇಟ್ ಚಿತ್ರಗಳನ್ನು ಅಪ್‌ಲೋಡ್ ಮಾಡಿ</string>
+        <string name="note_plate_confidentiality">ಗಮನಿಸಿ: ನಿಮ್ಮ ಮಾಹಿತಿ ರಹಸ್ಯವಾಗಿದ್ದು, ಪರಿಶೀಲನೆ ಮತ್ತು ಸಂವಹನ ಉದ್ದೇಶಗಳಿಗೆ ಮಾತ್ರ ಬಳಸಲಾಗುತ್ತದೆ.</string>
+        <string name="label_plate_front">ವಾಹನ ಪ್ಲೇಟ್ ಮುಂಭಾಗದ ಫೋಟೋ</string>
+        <string name="label_plate_back">ವಾಹನ ಪ್ಲೇಟ್ ಹಿಂದಿನ ಫೋಟೋ</string>
+
+        <string name="title_upload_rc">ನೋಂದಣಿ ಪ್ರಮಾಣಪತ್ರ [RC] ವಿವರಗಳನ್ನು ಅಪ್‌ಲೋಡ್ ಮಾಡಿ</string>
+        <string name="hint_rc_number">RC ಸಂಖ್ಯೆ *</string>
+        <string name="label_upload_rc">RC ಪುಸ್ತಕದ ಚಿತ್ರವನ್ನು ಅಪ್‌ಲೋಡ್ ಮಾಡಿ</string>
+        <!-- Cab Login Screen -->
+        <string name="title_cab_login">ಕ್ಯಾಬ್ ಲಾಗಿನ್ ನೊಂದಿಗೆ ಮುಂದುವರಿಯಿರಿ</string>
+        <string name="verification_message">ನೀವು ಪರಿಶೀಲಿಸಲು 6 ಅಂಕಿಯ ಕೋಡ್ ಅನ್ನು ಪಡೆಯುತ್ತೀರಿ \nಮುಂದೆ</string>
+        <string name="label_phone">ನಿಮ್ಮ ಫೋನ್ ನಂಬರನ್ನು ನಮೂದಿಸಿ</string>
+        <string name="hint_mobile">ಮೊಬೈಲ್ ಸಂಖ್ಯೆ ನಮೂದಿಸಿ</string>
+
+        <!-- OTP Verification Screen -->
+        <string name="message_no_code">ಕೋಡ್ ಸಿಕ್ಕಿಲ್ಲವೇ?</string>
+        <string name="button_resend">OTP ಮರುಪঠಿಸಿ</string>
+        <string name="driver_info">ಡ್ರೈವರ್ ಮಾಹಿತಿ</string>
+        <string name="register_for_service">ಸೇವೆಗೆ ನೋಂದಾಯಿಸಿ *</string>
+        <string name="register_for_more_specific">ವಿಶೇಷ ಸೇವೆಗೆ ನೋಂದಾಯಿಸಿ *</string>
+        <string name="driver_profile_edit">ಡ್ರೈವರ್ ಪ್ರೊಫೈಲ್ ವಿವರಗಳು</string>
+        <string name="driver_login_continue">ಡ್ರೈವರ್ ಲಾಗಿನ್‌ನೊಂದಿಗೆ ಮುಂದುವರಿಯಿರಿ</string>
+        <string name="service_time">ಸೇವೆಯ ಸಮಯ</string>
+        <string name="didntrecievedotp">OTP ಸಿಕ್ಕಿಲ್ಲವೇ?</string>
+
+        <string name="title_goods_driver">ಸರಕು ಚಾಲಕ</string>
+        <string name="desc_goods_driver">ಸರಕು ವಾಹನಗಳನ್ನು ಚಾಲನೆ ಮಾಡಿ ಸರಕು ವಿತರಣೆ ಮಾಡುವುದು</string>
+
+        <string name="title_cab_driver">ಕ್ಯಾಬ್ ಚಾಲಕ</string>
+        <string name="desc_cab_driver">ಟ್ಯಾಕ್ಸಿ ಚಾಲನೆ ಮಾಡಿ ಪ್ರಯಾಣಿಕರನ್ನು ಸಾಗಿಸುವುದು</string>
+
+        <string name="title_jcb_provider">JCB / ಕ್ರೇನ್ ಪೂರೈಕೆದಾರ</string>
+        <string name="desc_jcb_provider">ಭಾರೀ ಯಂತ್ರೋಪಕರಣ ಮತ್ತು ನಿರ್ಮಾಣ ವಾಹನಗಳನ್ನು ಚಾಲನೆ ಮಾಡುವುದು</string>
+
+        <string name="title_only_driver">ಮಾತ್ರ ಚಾಲಕ</string>
+        <string name="desc_only_driver">ಪ್ರೊಫೆಷನಲ್ ಚಾಲಕರಾಗಿ ಕೆಲಸ ಮಾಡುವುದು</string>
+
+        <string name="title_handyman">ಹ್ಯಾಂಡಿಮ್ಯಾನ್</string>
+        <string name="desc_handyman">ಮರಮ್ಮತ್ತು ಮತ್ತು ನಿರ್ವಹಣಾ ಸೇವೆಗಳು ಒದಗಿಸುವುದು</string>
+
+        <string name="apply">ಅರ್ಜಿಸು</string>
+        <string name="select_language">ಭಾಷೆಯನ್ನು ಆಯ್ಕೆಮಾಡಿ</string>
+
+        <string name="continue_with_phone">ಫೋನ್‌ನೊಂದಿಗೆ ಮುಂದುವರಿಯಿರಿ</string>
+        <string name="required_permissions">ಆವಶ್ಯಕ ಅನುಮತಿಗಳು</string>
+        <string name="please_enable">ಆ್ಯಪ್ ಬಳಸಲು ಕೆಳಗಿನ ಅನುಮತಿಗಳನ್ನು ಸಕ್ರಿಯಗೊಳಿಸಿ</string>
+        <string name="location_access">ಸ್ಥಳಾನ್ವೇಷಣೆಯ ಪ್ರವೇಶ</string>
+        <string name="location_description">ವಾಸ್ತವಿಕ ಸಮಯ ಸ್ಥಳ ಟ್ರ್ಯಾಕಿಂಗ್ ಮತ್ತು ನ್ಯಾವಿಗೇಶನ್‌ಗೆ ಅಗತ್ಯವಿದೆ</string>
+        <string name="enable">ಸಕ್ರಿಯಗೊಳಿಸಿ</string>
+        <string name="battery_optimization">ಬ್ಯಾಟರಿ ಆಪ್ಟಿಮೈಜೇಶನ್</string>
+        <string name="battery_description">ತಡೆಬೇಧವಿಲ್ಲದ ಸೇವೆಗೆ ಬ್ಯಾಟರಿ ಆಪ್ಟಿಮೈಜೇಶನ್ ನಿಷ್ಕ್ರಿಯಗೊಳಿಸಿ</string>
+        <string name="disable">ನಿಷ್ಕ್ರಿಯಗೊಳಿಸಿ</string>
+        <string name="overlay_permission">ಆ್ಯಪ್ಗಳ ಮೇಲೆ ಪ್ರದರ್ಶಿಸಿ</string>
+        <string name="overlay_description">ಆ್ಯಪ್ ಬ್ಯಾಕ್‌ಗ್ರೌಂಡಿನಲ್ಲಿ ಇದ್ದರೂ ಮುಖ್ಯ ಎಚ್ಚರಿಕೆಗಳನ್ನು ತೋರಿಸಲು ಅಗತ್ಯವಿದೆ</string>
+        <string name="camera_access">ಕ್ಯಾಮೆರಾ ಪ್ರವೇಶ</string>
+        <string name="camera_description">ಸೆಲ್ಫಿಗಳು ಮತ್ತು ಡಾಕ್ಯುಮೆಂಟ್ ಫೋಟೋಗಳನ್ನು ತೆಗೆದುಕೊಳ್ಳಲು ಅಗತ್ಯ</string>
+        <string name="notifications">ಅಧಿಸೂಚನೆಗಳು</string>
+        <string name="post_notify">ಮುಖ್ಯ ಅಪ್‌ಡೇಟುಗಳು ಮತ್ತು ಹೊಸ ಆದೇಶಗಳ ಎಚ್ಚರಿಕೆಗಳಿಗಾಗಿ ಅಗತ್ಯ</string>
+        <string name="wallet_history_not_found">Wallet History not founc</string>
+        <string name="history">History</string>
+        <string name="my_wallet">My Wallet</string>
+        <string name="kaps_credit">Kaps Credits</string>
+        <string name="withdraw">Withdraw</string>
+        <string name="enter_amount">Enter Amount</string>
+        <string name="proceed_payment">Proceed</string>
+
+
+</resources>

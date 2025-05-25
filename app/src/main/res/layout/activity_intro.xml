@@ -49,6 +49,21 @@
         android:orientation="vertical"
         android:padding="10dp">
 
+
+        <TextView
+            android:id="@+id/languageButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_margin="16dp"
+            android:text="Language"
+            android:textAllCaps="false"
+            android:textColor="@color/colorPrimary"
+            android:textStyle="bold"
+            android:textSize="18dp"
+            android:drawableStart="@drawable/change_language"
+            android:drawablePadding="5dp"
+            />
+
         <LinearLayout
             android:id="@+id/lvl_phone"
             android:layout_width="match_parent"
@@ -68,9 +83,11 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:padding="5dp"
-                android:text="Continue with Phone"
+                android:text="@string/continue_with_phone"
                 android:textColor="@color/black"
                 android:textStyle="bold" />
+
+
         </LinearLayout>
 
         <View

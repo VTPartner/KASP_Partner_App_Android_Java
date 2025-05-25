@@ -289,6 +289,7 @@ public class JcbCraneAgentOtpVerificationActivity extends AppCompatActivity {
                     JSONObject user = result.getJSONObject(0);
                     preferenceManager.saveStringValue("jcb_crane_agent_mobile_no", countryCode + mobileNumber);
                     preferenceManager.saveStringValue("jcb_crane_agent_id", user.optString("jcb_crane_driver_id"));
+                    preferenceManager.saveStringValue("jcb_crane_driver_id",user.optString("jcb_crane_driver_id"));
                     navigateToRegistration();
                 }
             }

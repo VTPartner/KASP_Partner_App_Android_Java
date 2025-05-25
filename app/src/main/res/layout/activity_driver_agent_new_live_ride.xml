@@ -122,7 +122,7 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Service Time"
+                    android:text="@string/service_time"
                     android:textColor="@color/black"
                     android:textSize="12dp" />
 
@@ -175,7 +175,7 @@
                             android:layout_height="wrap_content"
                             android:gravity="center_vertical"
                             android:padding="2dp"
-                            android:text="Customer Name"
+                            android:text="@string/customer_name"
                             android:textColor="@color/black"
                             android:textSize="12dp"
                             android:textStyle="bold" />
@@ -234,7 +234,7 @@
                             android:layout_width="match_parent"
 
                             android:layout_height="wrap_content"
-                            android:text="Pickup Address"
+                            android:text="@string/pickup_address"
                             android:gravity="center|left"
                             android:textColor="@color/black"
                             android:textSize="12dp" />
@@ -252,7 +252,7 @@
                             android:id="@+id/txt_sender_name_and_phone_number"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="Sender "
+                            android:text="@string/sender"
                             android:textColor="@color/black"
                             android:textSize="12dp" />
 
@@ -285,7 +285,7 @@
                             android:layout_width="match_parent"
 
                             android:layout_height="wrap_content"
-                            android:text="Drop Address"
+                            android:text="@string/drop_address"
                             android:gravity="center|left"
                             android:textColor="@color/black"
                             android:textSize="12dp" />
@@ -303,7 +303,7 @@
                             android:id="@+id/txt_receiver_name_and_phone_number"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="Receiver "
+                            android:text="@string/receiver"
                             android:textColor="@color/black"
                             android:textSize="12dp" />
 
@@ -326,7 +326,7 @@
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="Distance"
+                            android:text="@string/distance"
                             android:textColor="@color/black"
                             android:textSize="11dp" />
 
@@ -352,7 +352,7 @@
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="Time"
+                            android:text="@string/time"
                             android:textColor="@color/black"
                             android:textSize="11dp" />
 

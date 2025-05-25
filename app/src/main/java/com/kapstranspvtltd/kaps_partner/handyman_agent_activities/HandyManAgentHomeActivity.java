@@ -21,6 +21,8 @@ import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.content.res.Configuration;
+import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
@@ -36,11 +38,13 @@ import android.os.Looper;
 import android.util.Log;
 import android.util.TypedValue;
 import android.view.Gravity;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.RadioGroup;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -74,6 +78,7 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.material.bottomsheet.BottomSheetDialog;
+import com.google.android.material.button.MaterialButton;
 import com.google.android.material.snackbar.Snackbar;
 import com.google.android.material.switchmaterial.SwitchMaterial;
 import com.google.common.util.concurrent.ListenableFuture;
@@ -87,6 +92,7 @@ import com.kapstranspvtltd.kaps_partner.databinding.ActivityDriverAgentHomeBindi
 import com.kapstranspvtltd.kaps_partner.databinding.ActivityHandyManAgentHomeBinding;
 import com.kapstranspvtltd.kaps_partner.driver_app_activities.DriverAgentHomeActivity;
 import com.kapstranspvtltd.kaps_partner.fcm.AccessToken;
+import com.kapstranspvtltd.kaps_partner.handyman_agent_activities.settings_pages.HandyManAgentWalletActivity;
 import com.kapstranspvtltd.kaps_partner.handyman_agent_activities.settings_pages.HandyManAllRidesActivity;
 import com.kapstranspvtltd.kaps_partner.handyman_agent_activities.settings_pages.HandyManEarningsActivity;
 import com.kapstranspvtltd.kaps_partner.handyman_agent_activities.settings_pages.HandyManEditProfileActivity;
@@ -95,6 +101,7 @@ import com.kapstranspvtltd.kaps_partner.handyman_agent_activities.settings_pages
 import com.kapstranspvtltd.kaps_partner.handyman_agent_activities.settings_pages.HandyManRatingsActivity;
 import com.kapstranspvtltd.kaps_partner.handyman_agent_activities.settings_pages.HandyManRechargeHistoryActivity;
 import com.kapstranspvtltd.kaps_partner.handyman_agent_activities.settings_pages.HandyManRechargeHomeActivity;
+import com.kapstranspvtltd.kaps_partner.jcb_crane_agent_activities.settings_pages.JcbCraneDriverWalletActivity;
 import com.kapstranspvtltd.kaps_partner.network.APIClient;
 import com.kapstranspvtltd.kaps_partner.network.MultipartRequest;
 import com.kapstranspvtltd.kaps_partner.network.VolleySingleton;
@@ -184,15 +191,17 @@ public class HandyManAgentHomeActivity extends AppCompatActivity implements OnMa
         createLocationCallback();
 
 
-        fetchCurrentPlanDetails();
+//        fetchCurrentPlanDetails();
         //setupLocationCallback();
         initializeViews();
         setupNavigationDrawer();
         setupMap();
         setupLocationServices();
+
+//        fetchDriverStatus();
+//        fetchEarnings();
+
         getFCMToken();
-        fetchDriverStatus();
-        fetchEarnings();
     }
 
     private void goToEditProfilePage() {
@@ -273,7 +282,7 @@ public class HandyManAgentHomeActivity extends AppCompatActivity implements OnMa
 
                     String token = task.getResult();
                     System.out.println("Driver device token::" + token);
-                    preferenceManager.saveStringValue("fcm_token", token);
+                    preferenceManager.saveStringValue("handyman_token", token);
                     updateDriverAuthToken(token);
                 });
     }
@@ -312,6 +321,9 @@ public class HandyManAgentHomeActivity extends AppCompatActivity implements OnMa
                         response -> {
                             String message = response.optString("message");
                             Log.d("Auth", "Token update response: " + message);
+                            fetchCurrentPlanDetails();
+                            fetchDriverStatus();
+                            fetchEarnings();
                         },
                         error -> {
                             Log.e("Auth", "Error updating token: " + error.getMessage());
@@ -573,8 +585,12 @@ public class HandyManAgentHomeActivity extends AppCompatActivity implements OnMa
             }
 
             // Regular activities
+            else if (itemId == R.id.nav_wallet) {
+                intent = new Intent(this, HandyManAgentWalletActivity.class);
+            }
             else if (itemId == R.id.nav_change_language) {
-                bottomLanguageList();
+                showLanguageBottomSheet();
+//                bottomLanguageList();
             } else if (itemId == R.id.nav_rides) {
                 intent = new Intent(this, HandyManAllRidesActivity.class);
             } else if (itemId == R.id.nav_earnings) {
@@ -614,6 +630,64 @@ public class HandyManAgentHomeActivity extends AppCompatActivity implements OnMa
 
         // Optional: Set item background color when selected
 //        binding.navView.setItemBackgroundResource(R.drawable.nav_item_background_selector);
+    }
+
+    private BottomSheetDialog languageBottomSheet;
+    private void showLanguageBottomSheet() {
+        if (languageBottomSheet == null) {
+            languageBottomSheet = new BottomSheetDialog(this);
+            View sheetView = LayoutInflater.from(this).inflate(R.layout.bottom_sheet_language, null);
+            languageBottomSheet.setContentView(sheetView);
+
+            RadioGroup languageGroup = sheetView.findViewById(R.id.languageRadioGroup);
+            MaterialButton applyButton = sheetView.findViewById(R.id.btnApply);
+
+            // Set current language as checked
+            String currentLang = preferenceManager.getStringValue("language", "en");
+            switch (currentLang) {
+                case "hi":
+                    languageGroup.check(R.id.radioHindi);
+                    break;
+                case "mr":
+                    languageGroup.check(R.id.radioMarathi);
+                    break;
+                case "kn":
+                    languageGroup.check(R.id.radioKannada);
+                    break;
+                default:
+                    languageGroup.check(R.id.radioEnglish);
+            }
+
+            applyButton.setOnClickListener(v -> {
+                int selectedId = languageGroup.getCheckedRadioButtonId();
+                String langCode;
+
+                if (selectedId == R.id.radioHindi) {
+                    langCode = "hi";
+                } else if (selectedId == R.id.radioMarathi) {
+                    langCode = "mr";
+                } else if (selectedId == R.id.radioKannada) {
+                    langCode = "kn";
+                } else {
+                    langCode = "en";
+                }
+
+                preferenceManager.saveStringValue("language", langCode);
+                setLocale(langCode);
+                languageBottomSheet.dismiss();
+                recreate();
+            });
+        }
+        languageBottomSheet.show();
+    }
+
+    private void setLocale(String langCode) {
+        Locale locale = new Locale(langCode);
+        Locale.setDefault(locale);
+        Resources resources = getResources();
+        Configuration config = resources.getConfiguration();
+        config.setLocale(locale);
+        resources.updateConfiguration(config, resources.getDisplayMetrics());
     }
 
     public void bottomLanguageList() {
@@ -998,10 +1072,13 @@ public class HandyManAgentHomeActivity extends AppCompatActivity implements OnMa
 
     private void fetchCurrentPlanDetails() {
         //showLoading(true);
-
+        String handymanAgentId = preferenceManager.getStringValue("handyman_agent_id");
+        String handymanToken = preferenceManager.getStringValue("handyman_token");
         try {
             JSONObject params = new JSONObject();
             params.put("driver_id", preferenceManager.getStringValue("handyman_agent_id"));
+            params.put("handyman_agent_id", handymanAgentId);
+            params.put("auth", handymanToken);
 
             JsonObjectRequest request = new JsonObjectRequest(
                     Request.Method.POST,
@@ -1349,6 +1426,10 @@ public class HandyManAgentHomeActivity extends AppCompatActivity implements OnMa
     }
 
     private void updateDriverStatus(boolean online) {
+        String handymanAgentId = preferenceManager.getStringValue("handyman_agent_id");
+        String handymanToken = preferenceManager.getStringValue("handyman_token");
+
+
         String url = APIClient.baseUrl + "handyman_update_online_status";
 
         JSONObject params = new JSONObject();
@@ -1358,6 +1439,8 @@ public class HandyManAgentHomeActivity extends AppCompatActivity implements OnMa
             params.put("lat", latitude);
             params.put("lng", longitude);
             params.put("recent_online_pic", preferenceManager.getStringValue("recent_online_pic"));
+            params.put("handyman_agent_id", handymanAgentId);
+            params.put("auth", handymanToken);
         } catch (JSONException e) {
             e.printStackTrace();
         }
@@ -1391,6 +1474,9 @@ public class HandyManAgentHomeActivity extends AppCompatActivity implements OnMa
     }
 
     private void addToActiveDriverTable(double latitude, double longitude) {
+        String handymanAgentId = preferenceManager.getStringValue("handyman_agent_id");
+        String handymanToken = preferenceManager.getStringValue("handyman_token");
+
         String url = APIClient.baseUrl + "add_new_active_handyman";
 
         JSONObject params = new JSONObject();
@@ -1399,6 +1485,8 @@ public class HandyManAgentHomeActivity extends AppCompatActivity implements OnMa
             params.put("status", isOnline ? 1 : 0);
             params.put("current_lat", latitude);
             params.put("current_lng", longitude);
+            params.put("handyman_agent_id", handymanAgentId);
+            params.put("auth", handymanToken);
         } catch (JSONException e) {
             e.printStackTrace();
         }
@@ -1433,11 +1521,18 @@ public class HandyManAgentHomeActivity extends AppCompatActivity implements OnMa
     }
 
     private void deleteFromActiveDriverTable() {
+
+        String handymanAgentId = preferenceManager.getStringValue("handyman_agent_id");
+        String handymanToken = preferenceManager.getStringValue("handyman_token");
+
+
         String url = APIClient.baseUrl + "delete_active_handyman";
 
         JSONObject params = new JSONObject();
         try {
             params.put("handyman_id", preferenceManager.getStringValue("handyman_agent_id"));
+            params.put("handyman_agent_id", handymanAgentId);
+            params.put("auth", handymanToken);
         } catch (JSONException e) {
             e.printStackTrace();
         }
@@ -1491,6 +1586,9 @@ public class HandyManAgentHomeActivity extends AppCompatActivity implements OnMa
     }
 
     private void fetchDriverStatus() {
+        String handymanAgentId = preferenceManager.getStringValue("handyman_agent_id");
+        String handymanToken = preferenceManager.getStringValue("handyman_token");
+
         String url = APIClient.baseUrl + "handyman_online_status";
         String driverId = preferenceManager.getStringValue("handyman_agent_id");
 
@@ -1504,6 +1602,8 @@ public class HandyManAgentHomeActivity extends AppCompatActivity implements OnMa
         JSONObject params = new JSONObject();
         try {
             params.put("handyman_id", driverId);
+            params.put("handyman_agent_id", handymanAgentId);
+            params.put("auth", handymanToken);
         } catch (JSONException e) {
             e.printStackTrace();
         }
@@ -1646,6 +1746,9 @@ public class HandyManAgentHomeActivity extends AppCompatActivity implements OnMa
 
 
     private void fetchEarnings() {
+        String handymanAgentId = preferenceManager.getStringValue("handyman_agent_id");
+        String handymanToken = preferenceManager.getStringValue("handyman_token");
+
         String url = APIClient.baseUrl + "handyman_todays_earnings";
         String driverId = preferenceManager.getStringValue("handyman_agent_id");
 
@@ -1654,6 +1757,8 @@ public class HandyManAgentHomeActivity extends AppCompatActivity implements OnMa
         JSONObject params = new JSONObject();
         try {
             params.put("driver_id", driverId);
+            params.put("handyman_agent_id", handymanAgentId);
+            params.put("auth", handymanToken);
         } catch (JSONException e) {
             e.printStackTrace();
         }

@@ -70,6 +70,8 @@ public class MyRatingsActivity extends AppCompatActivity {
     }
 
     private void fetchAllOrders() {
+        String driverId = preferenceManager.getStringValue("goods_driver_id");
+        String token = preferenceManager.getStringValue("goods_driver_token");
         isLoading = true;
         ordersList.clear();
         binding.progressBar.setVisibility(View.VISIBLE);
@@ -77,6 +79,8 @@ public class MyRatingsActivity extends AppCompatActivity {
         JSONObject jsonObject = new JSONObject();
         try {
             jsonObject.put("driver_id", getDriverId());
+            jsonObject.put("driver_unique_id", driverId);
+            jsonObject.put("auth", token);
         } catch (JSONException e) {
             e.printStackTrace();
         }

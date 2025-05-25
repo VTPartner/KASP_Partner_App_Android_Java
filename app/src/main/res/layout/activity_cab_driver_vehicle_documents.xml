@@ -31,7 +31,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="24dp"
-                android:text="Cab Vehicle Information"
+                android:text="@string/title_cab_vehicle_info"
                 android:textColor="@color/black"
                 android:textSize="24sp"
                 android:textStyle="bold" />
@@ -40,7 +40,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"
-                android:text="Your information is kept confidential and used solely for verification and communication purposes"
+                android:text="@string/note_vehicle_confidentiality"
                 android:textColor="@color/grey_800"
                 android:textSize="14sp" />
 
@@ -50,7 +50,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="24dp"
                 style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
-                android:hint="Vehicle Number *">
+                android:hint="@string/hint_vehicle_number">
 
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/vehicleNumberInput"
@@ -67,7 +67,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="16dp"
                 style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
-                android:hint="Vehicle Fuel Type *">
+                android:hint="@string/hint_fuel_type">
 
                 <AutoCompleteTextView
                     android:id="@+id/fuelTypeSpinner"
@@ -83,7 +83,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="16dp"
                 style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
-                android:hint="Vehicle *">
+                android:hint="@string/hint_vehicle_number">
 
                 <AutoCompleteTextView
                     android:id="@+id/vehicleSpinner"
@@ -98,7 +98,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="24dp"
-                android:text="Upload the required documents *"
+                android:text="@string/upload_required_documents"
                 android:textColor="@color/background_color_dark"
                 android:textSize="16sp"
                 android:textStyle="bold" />
@@ -135,7 +135,7 @@
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="Vehicle Image"
+                            android:text="@string/title_vehicle_images"
                             android:textColor="@color/black"
                             android:textSize="14sp"
                             android:textStyle="bold" />
@@ -143,7 +143,7 @@
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="Provide Vehicle front and back images"
+                            android:text="@string/desc_vehicle_images"
                             android:textColor="@color/grey_500"
                             android:textSize="12sp"
                             android:maxLines="1"
@@ -201,7 +201,7 @@
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="Vehicle Plate No Image"
+                            android:text="@string/title_plate_images"
                             android:textColor="@color/black"
                             android:textSize="14sp"
                             android:textStyle="bold" />
@@ -209,7 +209,7 @@
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="Provide Vehicle Plate front and back images"
+                            android:text="@string/desc_plate_images"
                             android:textColor="@color/grey_500"
                             android:textSize="12sp"
                             android:maxLines="1"
@@ -267,7 +267,7 @@
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="Registration Certificate (RC)"
+                            android:text="@string/title_rc"
                             android:textColor="@color/black"
                             android:textSize="14sp"
                             android:textStyle="bold" />
@@ -275,7 +275,7 @@
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="Proof of vehicle ownership and registration"
+                            android:text="@string/desc_rc"
                             android:textColor="@color/grey_500"
                             android:textSize="12sp"
                             android:maxLines="1"
@@ -333,7 +333,7 @@
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="Insurance Certificate"
+                            android:text="@string/title_insurance"
                             android:textColor="@color/black"
                             android:textSize="14sp"
                             android:textStyle="bold" />
@@ -341,7 +341,7 @@
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="Valid insurance for the vehicle"
+                            android:text="@string/desc_insurance"
                             android:textColor="@color/grey_500"
                             android:textSize="12sp"
                             android:maxLines="1"
@@ -399,7 +399,7 @@
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="NOC Certificate"
+                            android:text="@string/title_noc"
                             android:textColor="@color/black"
                             android:textSize="14sp"
                             android:textStyle="bold" />
@@ -407,7 +407,7 @@
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="Valid noc for the vehicle"
+                            android:text="@string/desc_noc"
                             android:textColor="@color/grey_500"
                             android:textSize="12sp"
                             android:maxLines="1"
@@ -465,7 +465,7 @@
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="Pollution Under Control (PUC) Certificate"
+                            android:text="@string/title_puc"
                             android:textColor="@color/black"
                             android:textSize="14sp"
                             android:textStyle="bold" />
@@ -473,7 +473,7 @@
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="Proof that the vehicle meets emission standards"
+                            android:text="@string/desc_puc"
                             android:textColor="@color/grey_500"
                             android:textSize="12sp"
                             android:maxLines="1"
@@ -517,7 +517,7 @@
         android:layout_gravity="bottom"
         android:layout_margin="16dp"
         android:padding="16dp"
-        android:text="Continue"
+        android:text="@string/button_continue"
         android:textAllCaps="false"
         android:textSize="16sp"
         app:cornerRadius="16dp"

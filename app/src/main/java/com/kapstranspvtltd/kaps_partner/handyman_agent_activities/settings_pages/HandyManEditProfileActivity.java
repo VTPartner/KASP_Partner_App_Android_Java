@@ -57,9 +57,14 @@ public class HandyManEditProfileActivity extends AppCompatActivity {
     private void loadHandymanDetails() {
         progressDialog.show();
 
+        String handymanAgentId = preferenceManager.getStringValue("handyman_agent_id");
+        String handymanToken = preferenceManager.getStringValue("handyman_token");
+
         JSONObject jsonBody = new JSONObject();
         try {
             jsonBody.put("handyman_id", handymanId);
+            jsonBody.put("handyman_agent_id", handymanAgentId);
+            jsonBody.put("auth", handymanToken);
         } catch (JSONException e) {
             e.printStackTrace();
         }
@@ -208,6 +213,9 @@ public class HandyManEditProfileActivity extends AppCompatActivity {
     private void updateProfile() {
         progressDialog.show();
 
+        String handymanAgentId = preferenceManager.getStringValue("handyman_agent_id");
+        String handymanToken = preferenceManager.getStringValue("handyman_token");
+
         JSONObject jsonBody = new JSONObject();
         try {
             jsonBody.put("handyman_id", handymanId);
@@ -216,6 +224,8 @@ public class HandyManEditProfileActivity extends AppCompatActivity {
             jsonBody.put("ifsc_code", binding.editTextIfscCode.getText().toString());
             jsonBody.put("account_number", binding.editTextAccountNumber.getText().toString());
             jsonBody.put("account_name", binding.editTextAccountName.getText().toString());
+            jsonBody.put("handyman_agent_id", handymanAgentId);
+            jsonBody.put("auth", handymanToken);
         } catch (JSONException e) {
             e.printStackTrace();
         }

@@ -21,6 +21,7 @@ import com.kapstranspvtltd.kaps_partner.R;
 import com.kapstranspvtltd.kaps_partner.adapters.FAQAdapter;
 import com.kapstranspvtltd.kaps_partner.models.FAQ;
 import com.kapstranspvtltd.kaps_partner.network.APIClient;
+import com.kapstranspvtltd.kaps_partner.utils.PreferenceManager;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -37,10 +38,14 @@ public class CabDriverFAQSActivity extends AppCompatActivity {
     private FAQAdapter faqAdapter;
     private long categoryId;
 
+    PreferenceManager preferenceManager;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_cab_driver_faqsactivity);
+
+        preferenceManager = new PreferenceManager(this);
         // Setup toolbar
 //        Toolbar toolbar = findViewById(R.id.toolbar);
 //        setSupportActionBar(toolbar);
@@ -62,9 +67,14 @@ public class CabDriverFAQSActivity extends AppCompatActivity {
     }
 
     private void loadFAQs() {
+        String driverId = preferenceManager.getStringValue("cab_driver_id");
+        String token = preferenceManager.getStringValue("cab_driver_token");
+
         JSONObject jsonBody = new JSONObject();
         try {
             jsonBody.put("category_id", 2);
+            jsonBody.put("driver_unique_id", driverId);
+            jsonBody.put("auth", token);
         } catch (JSONException e) {
             e.printStackTrace();
         }

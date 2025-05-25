@@ -1,0 +1,245 @@
+<resources>
+    <string name="app_name">KAPS पार्टनर</string>
+    <string name="continues">जारी रखें</string>
+    <!-- TODO: इस प्लेसहोल्डर टेक्स्ट को हटाएं या बदलें -->
+    <string name="API_KEY">***********************</string>
+    <string name="application_json">एप्लिकेशन/जेसन</string>
+
+    <string name="google_maps_key">AIzaSyBt3USGB6g4HKe4DOfXCngbYmbLgb8WmO0</string>
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">हैलो ब्लैंक फ्रैगमेंट</string>
+    <string name="default_notification_channel_id">kaps_डिफॉल्ट_चैनल</string>
+    <string name="navigation_drawer_open">खोलें</string>
+    <string name="navigation_drawer_close">बंद करें</string>
+    <string name="how_to_continue">जारी रखने का तरीका चुनें</string>
+    <string name="choose_role">अपनी भूमिका चुनें</string>
+    <string name="work_address">कार्य स्थल का पता</string>
+    <string name="work_distance">कार्य दूरी</string>
+    <string name="service_type">सेवा प्रकार</string>
+    <string name="incoming_booking">आने वाली बुकिंग्स</string>
+    <string name="distance">दूरी</string>
+    <string name="time">समय</string>
+    <string name="customer_name">ग्राहक का नाम</string>
+    <string name="pickup_address">पिकअप पता</string>
+    <string name="multiple_drops">एक से अधिक डिलीवरी स्थान</string>
+    <string name="drop_address">ड्रॉप पता</string>
+    <string name="receiver">प्राप्तकर्ता</string>
+    <string name="sender">प्रेषक</string>
+    <string name="available_plans">उपलब्ध प्लान</string>
+    <string name="recharge_plan">रिचार्ज प्लान</string>
+    <string name="current_plan">वर्तमान प्लान</string>
+    <string name="pickup_distance">पिकअप दूरी</string>
+    <string name="upload_aadhar_card_text_document">आधार कार्ड दस्तावेज़ अपलोड करें</string>
+    <string name="aadhar_card_document_note">नोट: आपकी जानकारी गोपनीय रखी जाती है और केवल सत्यापन और संचार उद्देश्यों के लिए उपयोग की जाती है।</string>
+    <string name="aadhar_no">आधार नंबर *</string>
+    <string name="aadhar_card_front_photo">आधार कार्ड का अगला भाग</string>
+    <string name="aadhar_card_back_photo">आधार कार्ड का पिछला भाग</string>
+    <string name="my_rides">मेरी सवारी</string>
+    <string name="cab_driver_info">कैब ड्राइवर की जानकारी</string>
+    <string name="driver_info_note">नोट: आपकी जानकारी गोपनीय रखी जाती है और केवल सत्यापन और संचार उद्देश्यों के लिए उपयोग की जाती है।</string>
+    <string name="full_name">पूरा नाम *</string>
+    <string name="gender">लिंग *</string>
+    <string name="full_address">पूरा पता *</string>
+    <string name="register_for_city">शहर के लिए पंजीकरण करें *</string>
+    <string name="upload_required_documents">आवश्यक दस्तावेज़ अपलोड करें *</string>
+    <string name="driving_license_photo">ड्राइविंग लाइसेंस की फोटो</string>
+    <string name="aadhar_card_owner">आधार कार्ड [मालिक]</string>
+    <string name="pan_card_owner">पैन कार्ड [मालिक]</string>
+    <string name="selfie">सेल्फ़ी</string>
+    <string name="upload_driving_license_details">ड्राइविंग लाइसेंस विवरण अपलोड करें</string>
+    <string name="upload_driving_license_details_note">नोट: आपकी जानकारी गोपनीय रखी जाती है और केवल सत्यापन और संचार उद्देश्यों के लिए उपयोग की जाती है।</string>
+    <string name="driving_license_no">ड्राइविंग लाइसेंस नंबर *</string>
+    <string name="driving_license_front_photo">ड्राइविंग लाइसेंस का अगला भाग</string>
+    <string name="driving_license_back_photo">ड्राइविंग लाइसेंस का पिछला भाग</string>
+    <string name="my_earnings">मेरी कमाई</string>
+    <string name="earnings_overview">कमाई का सारांश</string>
+    <string name="monthly_breakdown">मासिक विवरण</string>
+    <string name="eanring_history">कमाई का इतिहास</string>
+    <string name="timer_default">15 सेकंड</string>
+    <string name="customer_default">ग्राहक</string>
+    <string name="currency_symbol">₹</string>
+    <string name="bullet_separator"> • </string>
+    <string name="pickup_distance_default">0 कि.मी.</string>
+    <string name="pickup_address_default">पिकअप पता</string>
+    <string name="trip_duration_default">25 मिनट की यात्रा</string>
+    <string name="distance_default">5.9 कि.मी. दूरी</string>
+    <string name="drop_address_default">ड्रॉप पता</string>
+    <string name="accept_button">स्वीकार करें</string>
+    <string name="profile">प्रोफ़ाइल</string>
+    <string name="personal_information">व्यक्तिगत जानकारी</string>
+    <string name="first_name">पहला नाम</string>
+    <string name="last_name">अंतिम नाम</string>
+    <string name="mobile_number">मोबाइल नंबर</string>
+    <string name="bank_details">बैंक विवरण</string>
+    <string name="bank_name">बैंक का नाम</string>
+    <string name="account_holder_name">खातेधारक का नाम</string>
+    <string name="account_number">खाता नंबर</string>
+    <string name="ifsc_code">IFSC कोड</string>
+    <string name="vehicle_information">वाहन की जानकारी</string>
+    <string name="vehicle_name">वाहन का नाम</string>
+    <string name="vehicle_plate_number">वाहन की नंबर प्लेट</string>
+    <string name="fuel_type">ईंधन का प्रकार</string>
+    <string name="document_information">दस्तावेज़ जानकारी</string>
+    <string name="aadhar_card">आधार कार्ड</string>
+    <string name="aadhar_number">आधार नंबर</string>
+    <string name="pan_card">पैन कार्ड</string>
+    <string name="pan_number">पैन नंबर</string>
+    <string name="driving_license">ड्राइविंग लाइसेंस</string>
+    <string name="license_number">लाइसेंस नंबर</string>
+    <string name="vehicle_documents">वाहन दस्तावेज़</string>
+    <string name="rc_number">आरसी नंबर</string>
+    <string name="insurance_number">बीमा नंबर</string>
+    <string name="noc_number">एनओसी नंबर</string>
+    <string name="update_profile">प्रोफ़ाइल अपडेट करें</string>
+    <string name="my_faqs">सामान्य प्रश्न</string>
+    <string name="home">होम</string>
+    <string name="change_language">भाषा बदलें</string>
+    <string name="live_ride">लाइव सवारी</string>
+    <string name="recharge">रिचार्ज</string>
+    <string name="recharge_history">रिचार्ज इतिहास</string>
+    <string name="my_ratings">मेरे रेटिंग</string>
+    <string name="help_and_support">मदद और समर्थन</string>
+    <string name="delete_account">खाता हटाएं</string>
+    <string name="logout">लॉग आउट</string>
+    <string name="title_cab_owner">कैब मालिक की जानकारी</string>
+    <string name="note_confidentiality">नोट: आपकी जानकारी गोपनीय रखी जाती है और केवल सत्यापन तथा संचार के लिए उपयोग की जाती है।\nयदि आप केवल मालिक हैं तो अपनी जानकारी भरें।</string>
+    <string name="hint_owner_name">मालिक का पूरा नाम *</string>
+    <string name="hint_owner_address">मालिक का पूरा पता *</string>
+    <string name="hint_owner_city">मालिक के शहर का नाम *</string>
+    <string name="hint_owner_phone">मालिक का फोन नंबर *</string>
+    <string name="title_upload_documents">आवश्यक दस्तावेज़ अपलोड करें</string>
+    <string name="required_marker">*</string>
+    <string name="label_owner_photo">मालिक की फोटो</string>
+    <string name="button_submit">सबमिट करें</string>
+    <string name="title_upload_selfie">अपनी सेल्फी अपलोड करें</string>
+    <string name="note_confidentiality_selfie">नोट: आपकी जानकारी गोपनीय रखी जाती है और केवल सत्यापन तथा संचार के लिए उपयोग की जाती है।</string>
+    <string name="label_upload_selfie">सेल्फी अपलोड करें</string>
+    <string name="button_update">अपडेट करें</string>
+
+    <string name="title_upload_pan">पैन कार्ड विवरण अपलोड करें</string>
+    <string name="note_pan_confidentiality">नोट: आपकी जानकारी गोपनीय रखी जाती है और केवल सत्यापन तथा संचार के लिए उपयोग की जाती है।</string>
+    <string name="hint_pan_number">पैन नंबर *</string>
+    <string name="label_pan_front">पैन कार्ड सामने की फोटो</string>
+    <string name="label_pan_back">पैन कार्ड पीछे की फोटो</string>
+
+    <string name="title_upload_puc">प्रदूषण प्रमाणपत्र [PUC] विवरण अपलोड करें</string>
+    <string name="note_puc_confidentiality">नोट: आपकी जानकारी गोपनीय रखी जाती है और केवल सत्यापन तथा संचार के लिए उपयोग की जाती है।</string>
+    <string name="hint_puc_number">PUC नंबर *</string>
+    <string name="label_upload_puc">PUC प्रमाणपत्र छवि अपलोड करें</string>
+    <!-- Vehicle Information Screen -->
+    <string name="title_cab_vehicle_info">कैब वाहन जानकारी</string>
+    <string name="note_vehicle_confidentiality">आपकी जानकारी गोपनीय रखी जाती है और केवल सत्यापन तथा संचार के लिए उपयोग की जाती है</string>
+
+    <!-- Input Fields -->
+    <string name="hint_vehicle_number">वाहन नंबर *</string>
+    <string name="hint_fuel_type">वाहन ईंधन प्रकार *</string>
+    <string name="hint_vehicle_type">वाहन *</string>
+
+    <!-- Vehicle Images Section -->
+    <string name="title_vehicle_images">वाहन की छवि</string>
+    <string name="desc_vehicle_images">वाहन की आगे और पीछे की तस्वीरें प्रदान करें</string>
+
+    <!-- Vehicle Plate Section -->
+    <string name="title_plate_images">वाहन प्लेट नंबर की छवि</string>
+    <string name="desc_plate_images">वाहन प्लेट की आगे और पीछे की तस्वीरें प्रदान करें</string>
+
+    <!-- RC Section -->
+    <string name="title_rc">पंजीकरण प्रमाणपत्र (RC)</string>
+    <string name="desc_rc">वाहन के स्वामित्व और पंजीकरण का प्रमाण</string>
+
+    <!-- Insurance Section -->
+    <string name="title_insurance">बीमा प्रमाणपत्र</string>
+    <string name="desc_insurance">वाहन के लिए वैध बीमा</string>
+    <!-- NOC Section -->
+    <string name="title_noc">NOC प्रमाणपत्र</string>
+    <string name="desc_noc">वाहन के लिए वैध NOC</string>
+
+    <!-- PUC Section -->
+    <string name="title_puc">प्रदूषण नियंत्रण प्रमाणपत्र (PUC)</string>
+    <string name="desc_puc">वाहन उत्सर्जन मानकों को पूरा करता है इसका प्रमाण</string>
+
+    <!-- Button -->
+    <string name="button_continue">जारी रखें</string>
+
+    <string name="title_upload_vehicle_images">वाहन की छवियां अपलोड करें</string>
+    <string name="label_vehicle_front">वाहन का सामने का फोटो</string>
+    <string name="label_vehicle_back">वाहन का पीछे का फोटो</string>
+
+    <string name="title_upload_insurance">बीमा विवरण अपलोड करें</string>
+    <string name="note_insurance_confidentiality">नोट: आपकी जानकारी गोपनीय रखी जाती है और केवल सत्यापन तथा संचार के लिए उपयोग की जाती है।</string>
+    <string name="hint_insurance_number">बीमा नंबर *</string>
+    <string name="label_upload_insurance">बीमा प्रमाणपत्र अपलोड करें</string>
+    <string name="title_upload_noc">NOC प्रमाणपत्र [NOC] विवरण अपलोड करें</string>
+    <string name="note_noc_confidentiality">नोट: आपकी जानकारी गोपनीय रखी जाती है और केवल सत्यापन तथा संचार के लिए उपयोग की जाती है।</string>
+    <string name="hint_noc_number">NOC नंबर *</string>
+    <string name="label_upload_noc">NOC प्रमाणपत्र की छवि अपलोड करें</string>
+
+    <string name="title_upload_owner_selfie">मालिक की सेल्फी अपलोड करें</string>
+    <string name="note_owner_confidentiality">नोट: आपकी जानकारी गोपनीय रखी जाती है और केवल सत्यापन तथा संचार के लिए उपयोग की जाती है।</string>
+
+    <string name="title_upload_plate">वाहन के प्लेट की छवियां अपलोड करें</string>
+    <string name="note_plate_confidentiality">नोट: आपकी जानकारी गोपनीय रखी जाती है और केवल सत्यापन तथा संचार के लिए उपयोग की जाती है।</string>
+    <string name="label_plate_front">वाहन प्लेट का सामने का फोटो</string>
+    <string name="label_plate_back">वाहन प्लेट का पीछे का फोटो</string>
+    <string name="title_upload_rc">पंजीकरण प्रमाणपत्र [RC] विवरण अपलोड करें</string>
+    <string name="hint_rc_number">RC नंबर *</string>
+    <string name="label_upload_rc">RC बुक की छवि अपलोड करें</string>
+
+    <!-- Cab Login Screen -->
+    <string name="title_cab_login">कैब लॉगिन के साथ जारी रखें</string>
+    <string name="verification_message">आपको अगले चरण के लिए 6 अंकों का कोड प्राप्त होगा</string>
+    <string name="label_phone">अपना फोन नंबर दर्ज करें</string>
+    <string name="hint_mobile">मोबाइल नंबर दर्ज करें</string>
+    <!-- OTP Verification Screen -->
+    <string name="message_no_code">कोड प्राप्त नहीं हुआ?</string>
+    <string name="button_resend">OTP पुनः भेजें</string>
+    <string name="driver_info">ड्राइवर जानकारी</string>
+    <string name="register_for_service">सेवा के लिए रजिस्टर करें *</string>
+    <string name="register_for_more_specific">और अधिक विशिष्ट के लिए रजिस्टर करें *</string>
+    <string name="driver_profile_edit">ड्राइवर प्रोफाइल विवरण</string>
+    <string name="driver_login_continue">ड्राइवर लॉगिन के साथ जारी रखें</string>
+    <string name="service_time">सेवा का समय</string>
+    <string name="didntrecievedotp">कोड प्राप्त नहीं हुआ?</string>
+
+    <string name="title_goods_driver">गुड्स ड्राइवर</string>
+    <string name="desc_goods_driver">सामान वाहन चलाएं और माल पहुंचाएं</string>
+
+    <string name="title_cab_driver">कैब ड्राइवर</string>
+    <string name="desc_cab_driver">टैक्सी चलाएं और यात्रियों को ले जाएं</string>
+
+    <string name="title_jcb_provider">JCB / क्रेन प्रदाता</string>
+    <string name="desc_jcb_provider">भारी मशीनरी और निर्माण वाहन चलाएं</string>
+
+    <string name="title_only_driver">केवल ड्राइवर</string>
+    <string name="desc_only_driver">एक पेशेवर ड्राइवर के रूप में काम करें</string>
+
+    <string name="title_handyman">हैंडिमैन</string>
+    <string name="desc_handyman">मरम्मत और रखरखाव सेवाएं प्रदान करें</string>
+
+    <string name="apply">आवेदन करें</string>
+    <string name="select_language">भाषा चुनें</string>
+    <string name="continue_with_phone">फोन से जारी रखें</string>
+    <string name="required_permissions">आवश्यक अनुमति</string>
+    <string name="please_enable">ऐप का उपयोग करने के लिए कृपया निम्नलिखित अनुमतियाँ सक्षम करें</string>
+    <string name="location_access">स्थान एक्सेस</string>
+    <string name="location_description">रीयल-टाइम स्थान ट्रैकिंग और नेविगेशन के लिए आवश्यक</string>
+    <string name="enable">सक्षम करें</string>
+    <string name="battery_optimization">बैटरी अनुकूलन</string>
+    <string name="battery_description">अविरत सेवा सुनिश्चित करने के लिए बैटरी अनुकूलन अक्षम करें</string>
+    <string name="disable">अक्षम करें</string>
+    <string name="overlay_permission">ऐप्स के ऊपर डिस्प्ले</string>
+    <string name="overlay_description">ऐप बैकग्राउंड में होने पर भी महत्वपूर्ण अलर्ट दिखाने के लिए आवश्यक</string>
+    <string name="camera_access">कैमरा एक्सेस</string>
+    <string name="camera_description">सेल्फी और दस्तावेज़ की तस्वीरें लेने के लिए आवश्यक</string>
+    <string name="notifications">सूचनाएं</string>
+    <string name="post_notify">महत्वपूर्ण अपडेट और नए ऑर्डर अलर्ट प्राप्त करने के लिए आवश्यक</string>
+    <string name="wallet_history_not_found">Wallet History not founc</string>
+    <string name="history">History</string>
+    <string name="my_wallet">My Wallet</string>
+    <string name="kaps_credit">Kaps Credits</string>
+    <string name="withdraw">Withdraw</string>
+    <string name="enter_amount">Enter Amount</string>
+    <string name="proceed_payment">Proceed</string>
+
+
+</resources>

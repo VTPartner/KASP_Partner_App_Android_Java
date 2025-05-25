@@ -4,292 +4,279 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@android:color/white">
+    android:background="@color/white">
 
     <LinearLayout
-        android:id="@+id/bottom_sheet"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:orientation="vertical"
-        app:behavior_hideable="false"
-        app:behavior_peekHeight="0dp">
+        android:orientation="vertical">
 
-        <!-- Handle Bar -->
-        <View
-            android:layout_width="60dp"
-            android:layout_height="5dp"
-            android:layout_gravity="center_horizontal"
-            android:layout_marginTop="16dp"
-            android:background="@color/grey"/>
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Ride Request Received"
-            android:textSize="18sp"
-            android:textStyle="bold"
-            android:textColor="@color/colorPrimary"
-            android:layout_gravity="center"
-            android:layout_marginTop="16dp"/>
-
-        <!-- Booking Type Text -->
-        <TextView
-            android:id="@+id/bookingTypeText"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Single Drop Booking"
-            android:textSize="14sp"
-            android:textStyle="bold"
-            android:textColor="@color/colorgreen"
-            android:layout_gravity="center"
-            android:layout_marginTop="4dp"/>
-
-        <TextView
-            android:id="@+id/timerText"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="15 sec left"
-            android:textSize="16sp"
-            android:textStyle="bold"
-            android:layout_gravity="center"
-            android:layout_marginTop="8dp"/>
-
-        <ScrollView
+        <!-- Header -->
+        <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="0dp"
-            android:layout_weight="1"
-            android:fillViewport="true">
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="12dp"
+            android:background="@color/colorPrimary">
 
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:id="@+id/expandedContent"
-                android:padding="16dp">
+                android:orientation="horizontal">
 
-                <!-- Profile Image -->
-                <de.hdodenhof.circleimageview.CircleImageView
-                    android:id="@+id/profileImage"
-                    android:layout_width="100dp"
-                    android:layout_height="100dp"
-                    android:layout_gravity="center"
-                    android:src="@drawable/demo_user"
-                    app:civ_border_width="2dp"
-                    app:civ_border_color="@color/white"/>
+                <ImageView
+                    android:layout_width="32dp"
+                    android:layout_height="32dp"
+                    android:src="@drawable/logo"
+                    />
 
                 <TextView
-                    android:id="@+id/customerName"
-                    android:layout_width="wrap_content"
+                    android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:layout_gravity="center"
-                    android:textStyle="bold"
-                    android:textSize="17sp"
-                    android:layout_marginTop="8dp"/>
+                    android:layout_weight="1"
+                    android:text="@string/incoming_booking"
+                    android:textColor="@color/white"
+                    android:textSize="18sp"
+                    android:layout_marginStart="12dp"
+                    android:textStyle="bold"/>
 
-                <!-- Ride Fare and Distance -->
+                <ImageView
+                    android:id="@+id/rejectButton"
+                    android:clickable="true"
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:src="@drawable/ic_close"
+                    android:tint="@color/white" />
+            </LinearLayout>
+        </LinearLayout>
+
+        <!-- Booking Details Card -->
+        <androidx.cardview.widget.CardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_margin="16dp"
+            app:cardCornerRadius="8dp"
+            app:cardElevation="4dp">
+
+            <ScrollView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="16dp">
+
+                <TextView
+                    android:id="@+id/timerText"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="15 Sec"
+                    android:textAlignment="center"
+                    android:textStyle="bold"
+                    android:textColor="@color/colorPrimary"
+                    android:textSize="18sp"/>
+
+                <!-- Payment Type -->
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="horizontal"
-                    android:layout_marginTop="16dp">
+                    android:gravity="center_vertical">
 
-                    <LinearLayout
+
+
+                    <TextView
+                        android:id="@+id/customerName"
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
-                        android:orientation="vertical"
-                        android:gravity="center">
+                        android:text="Customer"
+                        android:textStyle="bold"
+                        android:textSize="16sp"/>
 
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="Ride fare"
-                            android:textColor="@color/grey"/>
+                    <TextView
+                        android:id="@+id/rideFare"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="₹"
+                        android:textStyle="bold"
+                        android:textSize="20sp"/>
 
-                        <TextView
-                            android:id="@+id/rideFare"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:textStyle="bold"
-                            android:textSize="15sp"/>
-                    </LinearLayout>
+                    <TextView
+                        android:id="@+id/hikePriceTxt"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text=""
+android:visibility="gone"
+                        android:textColor="@color/green"
+                        android:layout_marginStart="10dp"
+                        android:textStyle="bold"
+                        android:textSize="20sp"/>
+                </LinearLayout>
+
+                <!-- Trip Details -->
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:layout_marginTop="4dp">
+
+                    <TextView
+
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/pickup_distance"
+                        android:textColor="@color/grey"/>
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text=" • "
+                        android:textColor="@color/grey"/>
+                    <TextView
+                        android:id="@+id/pickupLocationDistance"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="2.6 km"
+                        android:textColor="@color/grey"/>
+
+
+
+
+                </LinearLayout>
+
+                <!-- Booking Type Tag -->
+                <TextView
+                    android:id="@+id/bookingTypeText"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Single"
+                    android:textColor="@color/colorPrimary"
+                    android:background="@drawable/tag_background"
+                    android:paddingHorizontal="12dp"
+                    android:paddingVertical="4dp"
+                    android:layout_marginTop="8dp"
+                    android:layout_marginBottom="10dp"/>
+
+                <!-- Location Details -->
+                <!-- Pickup Location -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:layout_marginBottom="16dp">
+
+                    <ImageView
+                        android:layout_width="24dp"
+                        android:layout_height="24dp"
+                        android:src="@drawable/ic_current_long"
+                        />
 
                     <LinearLayout
-                        android:layout_width="0dp"
+                        android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_weight="1"
                         android:orientation="vertical"
-                        android:gravity="center">
+                        android:layout_marginStart="12dp">
 
                         <TextView
+
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="@string/pickup_address"
+                            android:textColor="@color/black"
+                            android:textStyle="bold"/>
+
+                        <TextView
+                            android:id="@+id/pickupAddress"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="pickup address"
+                            android:textColor="@color/grey"
+                            android:maxLines="2"
+                            android:ellipsize="end"/>
+
+                        <TextView
+                            android:id="@+id/tripTime"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="Location distance"
-                            android:textColor="@color/grey"/>
+                            android:text="25 mins trip"
+                            android:drawableStart="@drawable/ic_clock"
+                            android:drawableTint="@color/colorPrimary"
+                            android:drawablePadding="4dp"
+                            android:layout_marginTop="4dp"/>
 
                         <TextView
                             android:id="@+id/distance"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:textStyle="bold"
-                            android:textSize="15sp"/>
+                            android:text="5.9 km Distance"
+                            android:drawableStart="@drawable/ic_multiple_pin"
+                            android:textAlignment="center"
+                            android:drawablePadding="4dp"
+                            android:layout_marginTop="4dp"/>
                     </LinearLayout>
                 </LinearLayout>
 
-                <View
-                    android:layout_width="match_parent"
-                    android:layout_height="1dp"
-                    android:background="@color/grey"
-                    android:layout_marginTop="16dp"/>
-
+                <!-- Drop Location -->
                 <LinearLayout
+                    android:id="@+id/dropSection"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:orientation="vertical"
-                    android:layout_margin="8dp"
-                    android:gravity="center">
+                    android:orientation="horizontal">
 
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Pickup Location distance"
-                        android:textColor="@color/grey"/>
-
-                    <TextView
-                        android:id="@+id/pickupLocationDistance"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:textStyle="bold"
-                        android:textSize="15sp"/>
-                </LinearLayout>
-
-                <!-- Trip Route Section -->
-                <View
-                    android:layout_width="match_parent"
-                    android:layout_height="1dp"
-                    android:background="@color/grey"
-                    android:layout_marginTop="16dp"/>
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="vertical"
-                    android:layout_marginTop="16dp">
+                    <ImageView
+                        android:layout_width="24dp"
+                        android:layout_height="24dp"
+                        android:src="@drawable/ic_destination_long"
+                        />
 
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginLeft="8dp"
-                        android:gravity="center">
+                        android:orientation="vertical"
+                        android:layout_marginStart="12dp">
 
-                        <ImageView
-                            android:layout_width="18dp"
-                            android:layout_height="18dp"
-                            android:src="@drawable/ic_current_long"
-                            app:tint="@color/colorgreen" />
+                        <TextView
 
-                        <LinearLayout
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:orientation="vertical"
-                            android:padding="5dp">
+                            android:text="@string/drop_address"
+                            android:textColor="@color/black"
+                            android:textStyle="bold"/>
 
-                            <TextView
-                                android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
-                                android:text="Pickup Address"
-                                android:gravity="center|left"
-                                android:textColor="@color/black"
-                                android:textSize="12dp" />
-
-                            <TextView
-                                android:id="@+id/pickupAddress"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text=""
-                                android:layout_marginTop="5dp"
-                                android:textColor="@color/black"
-                                android:textSize="14dp" />
-                        </LinearLayout>
-                    </LinearLayout>
-
-                    <!-- Single Drop Section -->
-                    <LinearLayout
-                        android:id="@+id/dropSection"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginLeft="8dp"
-                        android:gravity="center">
-
-                        <ImageView
-                            android:layout_width="18dp"
-                            android:layout_height="18dp"
-                            android:src="@drawable/ic_current_long"
-                            app:tint="@color/colorerror" />
-
-                        <LinearLayout
+                        <TextView
+                            android:id="@+id/dropAddress"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:orientation="vertical"
-                            android:padding="5dp">
-
-                            <TextView
-                                android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
-                                android:text="Drop Address"
-                                android:gravity="center|left"
-                                android:textColor="@color/black"
-                                android:textSize="12dp" />
-
-                            <TextView
-                                android:id="@+id/dropAddress"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_marginTop="5dp"
-                                android:text=""
-                                android:textColor="@color/black"
-                                android:textSize="14dp" />
-                        </LinearLayout>
+                            android:text="Drop Address"
+                            android:textColor="@color/grey"
+                            android:maxLines="2"
+                            android:ellipsize="end"/>
                     </LinearLayout>
-
-                    <!-- Multiple Drops RecyclerView -->
-                    <androidx.recyclerview.widget.RecyclerView
-                        android:id="@+id/dropRecyclerView"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="8dp"
-                        android:visibility="gone"/>
                 </LinearLayout>
+
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/dropRecyclerView"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:visibility="gone"/>
+                <!-- Accept Button -->
+                <Button
+                    android:id="@+id/acceptButton"
+                    android:layout_width="match_parent"
+                    android:layout_height="56dp"
+                    android:text="Accept"
+                    android:textColor="@color/white"
+                    android:textSize="16sp"
+                    android:layout_marginTop="16dp"
+                    app:cornerRadius="28dp"
+                    android:background="@drawable/button"
+                     />
             </LinearLayout>
-        </ScrollView>
-
-        <!-- Bottom Buttons -->
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal">
-
-            <Button
-                android:id="@+id/acceptButton"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="Accept"
-                android:textColor="@color/white"
-                android:backgroundTint="@color/green"
-                android:layout_margin="8dp"/>
-
-            <Button
-                android:id="@+id/rejectButton"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="Reject"
-                android:textColor="@color/white"
-                android:backgroundTint="@color/colorerror"
-                android:layout_margin="8dp"/>
-        </LinearLayout>
+            </ScrollView>
+        </androidx.cardview.widget.CardView>
     </LinearLayout>
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

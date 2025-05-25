@@ -72,10 +72,14 @@ public class HandyManRechargeHistoryActivity extends AppCompatActivity {
 
     private void fetchRechargeHistory() {
         showLoading(true);
+        String handymanAgentId = preferenceManager.getStringValue("handyman_agent_id");
+        String handymanToken = preferenceManager.getStringValue("handyman_token");
 
         try {
             JSONObject params = new JSONObject();
             params.put("driver_id", preferenceManager.getStringValue("handyman_agent_id"));
+            params.put("handyman_agent_id", handymanAgentId);
+            params.put("auth", handymanToken);
 
             JsonObjectRequest request = new JsonObjectRequest(
                     Request.Method.POST,

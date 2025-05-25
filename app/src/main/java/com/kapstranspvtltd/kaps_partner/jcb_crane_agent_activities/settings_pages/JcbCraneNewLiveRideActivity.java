@@ -179,6 +179,7 @@ public class JcbCraneNewLiveRideActivity extends AppCompatActivity implements On
         showLoading("Fetching booking details...");
 
         String driverId = preferenceManager.getStringValue("jcb_crane_agent_id");
+        String token = preferenceManager.getStringValue("jcb_crane_token");
 
         if (driverId == null || driverId.isEmpty()) {
             showError("No Live Ride Found");
@@ -191,6 +192,8 @@ public class JcbCraneNewLiveRideActivity extends AppCompatActivity implements On
         JSONObject params = new JSONObject();
         try {
             params.put("jcb_crane_driver_id", driverId);
+            params.put("driver_unique_id", driverId);
+            params.put("auth", token);
         } catch (JSONException e) {
             e.printStackTrace();
         }
@@ -253,11 +256,15 @@ public class JcbCraneNewLiveRideActivity extends AppCompatActivity implements On
 
     private void fetchBookingDetails() {
         showLoading("Fetching ride details...");
+        String driverId = preferenceManager.getStringValue("jcb_crane_agent_id");
+        String token = preferenceManager.getStringValue("jcb_crane_token");
         String url = APIClient.baseUrl + "jcb_crane_driver_booking_details_live_track";
 
         JSONObject params = new JSONObject();
         try {
             params.put("booking_id", assignedBookingId);
+            params.put("driver_unique_id", driverId);
+            params.put("auth", token);
         } catch (JSONException e) {
             e.printStackTrace();
         }
@@ -494,6 +501,8 @@ public class JcbCraneNewLiveRideActivity extends AppCompatActivity implements On
     }
 
     private void updateRideStatus(String status) {
+        String driverId = preferenceManager.getStringValue("jcb_crane_agent_id");
+        String token = preferenceManager.getStringValue("jcb_crane_token");
         showLoading("Updating status...");
         String url = APIClient.baseUrl + "update_booking_status_jcb_crane_driver";
         String accessToken = AccessToken.getAccessToken();
@@ -509,6 +518,8 @@ public class JcbCraneNewLiveRideActivity extends AppCompatActivity implements On
             params.put("total_payment", totalPayable+"");
             params.put("penalty_amount", penaltyAmount+"");
             params.put("customer_id", customerID);
+            params.put("driver_unique_id", driverId);
+            params.put("auth", token);
         } catch (JSONException e) {
             e.printStackTrace();
         }
@@ -540,6 +551,7 @@ public class JcbCraneNewLiveRideActivity extends AppCompatActivity implements On
 
     private void processPayment(String amount, String paymentMethod) {
         String driverId = preferenceManager.getStringValue("jcb_crane_agent_id");
+        String token = preferenceManager.getStringValue("jcb_crane_token");
 
         new Thread(() -> {
             try {
@@ -563,6 +575,8 @@ public class JcbCraneNewLiveRideActivity extends AppCompatActivity implements On
                     params.put("customer_id", customerID);
                     params.put("total_amount", Math.round(Double.parseDouble(amount)));
                     params.put("penalty_amount",penaltyAmount);
+                    params.put("driver_unique_id", driverId);
+                    params.put("auth", token);
 
                 } catch (JSONException e) {
                     e.printStackTrace();

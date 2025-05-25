@@ -78,9 +78,14 @@ public class DriverAgentAllRidesActivity extends AppCompatActivity {
         binding.progressBar.setVisibility(View.VISIBLE);
         ordersList.clear();
 
+        String driverId = preferenceManager.getStringValue("other_driver_id");
+        String token = preferenceManager.getStringValue("other_driver_token");
+
         JSONObject jsonObject = new JSONObject();
         try {
             jsonObject.put("driver_id", getDriverId());
+            jsonObject.put("driver_unique_id", driverId);
+            jsonObject.put("auth", token);
         } catch (JSONException e) {
             e.printStackTrace();
         }

@@ -81,9 +81,14 @@ public class CabDriverRechargeHomeActivity extends AppCompatActivity implements 
     private void fetchCurrentPlanDetails() {
         showLoading(true);
 
+        String driverId = preferenceManager.getStringValue("cab_driver_id");
+        String token = preferenceManager.getStringValue("cab_driver_token");
+
         try {
             JSONObject params = new JSONObject();
             params.put("driver_id", preferenceManager.getStringValue("cab_driver_id"));
+            params.put("driver_unique_id", driverId);
+            params.put("auth", token);
 
             JsonObjectRequest request = new JsonObjectRequest(
                     Request.Method.POST,
@@ -282,11 +287,15 @@ public class CabDriverRechargeHomeActivity extends AppCompatActivity implements 
     private void fetchRechargePlans() {
         binding.progressBar.setVisibility(View.VISIBLE);
         int vehicleId = preferenceManager.getIntValue("vehicle_id",1);
+        String driverId = preferenceManager.getStringValue("cab_driver_id");
+        String token = preferenceManager.getStringValue("cab_driver_token");
 
         JSONObject params = new JSONObject();
         try {
             params.put("category_id", 2); // Set your category ID
             params.put("vehicle_id", vehicleId);
+            params.put("driver_unique_id", driverId);
+            params.put("auth", token);
         } catch (JSONException e) {
             e.printStackTrace();
         }
@@ -352,6 +361,9 @@ public class CabDriverRechargeHomeActivity extends AppCompatActivity implements 
             // Calculate expiry time with proper format
             String expiryTime = calculateExpiryDate(Integer.parseInt(selectedPlan.getExpiryDays()));
 
+            String driverId = preferenceManager.getStringValue("cab_driver_id");
+            String token = preferenceManager.getStringValue("cab_driver_token");
+
             JSONObject params = new JSONObject();
             try {
                 params.put("razorpay_payment_id", razorpayPaymentID);
@@ -359,6 +371,8 @@ public class CabDriverRechargeHomeActivity extends AppCompatActivity implements 
                 params.put("driver_id", preferenceManager.getStringValue("cab_driver_id"));
                 params.put("amount", String.format(Locale.US, "%.2f", selectedPlan.getPrice()));
                 params.put("expiry_time", expiryTime);
+                params.put("driver_unique_id", driverId);
+                params.put("auth", token);
             } catch (JSONException e) {
                 Log.e("Payment", "Error creating params: " + e.getMessage());
                 showError("Error processing payment parameters");

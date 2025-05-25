@@ -1,9 +1,255 @@
-<?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <string name="app_name">KAPS Partner</string>
+    <string name="continues">Continue</string>
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="API_KEY">***********************</string>
+    <string name="application_json">application/json</string>
     <string name="google_maps_key">AIzaSyBt3USGB6g4HKe4DOfXCngbYmbLgb8WmO0</string>
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
     <string name="default_notification_channel_id">kaps_default_channel</string>
     <string name="navigation_drawer_open">open</string>
     <string name="navigation_drawer_close">close</string>
     <string name="how_to_continue">Select how you would like to continue</string>
     <string name="choose_role">Choose Your Role</string>
+    <string name="work_address">Work Address</string>
+    <string name="work_distance">Work Distance</string>
+    <string name="service_type">Service Type</string>
+    <string name="incoming_booking">Incoming Bookings</string>
+    <string name="distance">Distance</string>
+    <string name="time">Time</string>
+    <string name="customer_name">Customer Name</string>
+    <string name="pickup_address">Pickup Address</string>
+    <string name="multiple_drops">Multiple Drops</string>
+    <string name="drop_address">Drop Address</string>
+    <string name="receiver">"Receiver "</string>
+    <string name="sender">"Sender "</string>
+    <string name="available_plans">Available Plans</string>
+    <string name="recharge_plan">Recharge Plans</string>
+    <string name="current_plan">Current Plan</string>
+    <string name="pickup_distance">Pickup Distance</string>
+    <string name="upload_aadhar_card_text_document">Upload Aadhar Card Document</string>
+    <string name="aadhar_card_document_note">Note: Your information is kept confidential and used solely for verification and communication purposes.</string>
+    <string name="aadhar_no">Aadhar No *</string>
+    <string name="aadhar_card_front_photo">Aadhar Card Front Photo</string>
+    <string name="aadhar_card_back_photo">Aadhar Card Back Photo</string>
+    <string name="my_rides">My Rides</string>
+    <string name="cab_driver_info">Cab Driver Information</string>
+    <string name="driver_info_note">Note: Your information is kept confidential and used solely for verification and communication purposes.</string>
+    <string name="full_name">Full Name *</string>
+    <string name="gender">Gender *</string>
+    <string name="full_address">Full Address *</string>
+    <string name="register_for_city">Register for City *</string>
+    <string name="upload_required_documents">Upload the required documents *</string>
+    <string name="driving_license_photo">Driving License Photo</string>
+    <string name="aadhar_card_owner">Aadhar Card [ Owner ]</string>
+    <string name="pan_card_owner">PAN Card [ Owner ]</string>
+    <string name="selfie">Selfie</string>
+    <string name="upload_driving_license_details">Upload Driving License Details</string>
+    <string name="upload_driving_license_details_note">Note: Your information is kept confidential and used solely for verification and communication purposes.</string>
+    <string name="driving_license_no">Driving License No *</string>
+    <string name="driving_license_front_photo">Driving License Front Photo</string>
+    <string name="driving_license_back_photo">Driving License Back Photo</string>
+    <string name="my_earnings">My Earnings</string>
+    <string name="earnings_overview">Earnings Overview</string>
+    <string name="monthly_breakdown">Monthly Breakdown</string>
+    <string name="eanring_history">Earning History</string>
+
+    <string name="timer_default">15 Sec</string>
+    <string name="customer_default">Customer</string>
+    <string name="currency_symbol">₹</string>
+    <string name="bullet_separator"> • </string>
+    <string name="pickup_distance_default">0 km</string>
+    <string name="pickup_address_default">pickup address</string>
+    <string name="trip_duration_default">25 mins trip</string>
+    <string name="distance_default">5.9 km Distance</string>
+    <string name="drop_address_default">Drop Address</string>
+    <string name="accept_button">Accept</string>
+
+    <string name="profile">Profile</string>
+    <string name="personal_information">Personal Information</string>
+    <string name="first_name">First Name</string>
+    <string name="last_name">Last Name</string>
+    <string name="mobile_number">Mobile Number</string>
+
+    <string name="bank_details">Bank Details</string>
+    <string name="bank_name">Bank Name</string>
+    <string name="account_holder_name">Account Holder Name</string>
+    <string name="account_number">Account Number</string>
+    <string name="ifsc_code">IFSC Code</string>
+    <string name="vehicle_information">Vehicle Information</string>
+    <string name="vehicle_name">Vehicle Name</string>
+    <string name="vehicle_plate_number">Vehicle Plate Number</string>
+    <string name="fuel_type">Fuel Type</string>
+    <string name="document_information">Document Information</string>
+    <string name="aadhar_card">Aadhar Card</string>
+    <string name="aadhar_number">Aadhar Number</string>
+    <string name="pan_card">PAN Card</string>
+    <string name="pan_number">PAN Number</string>
+    <string name="driving_license">Driving License</string>
+    <string name="license_number">License Number</string>
+    <string name="vehicle_documents">Vehicle Documents</string>
+    <string name="rc_number">RC Number</string>
+    <string name="insurance_number">Insurance Number</string>
+    <string name="noc_number">NOC Number</string>
+    <string name="update_profile">Update Profile</string>
+    <string name="my_faqs">FAQ\'s</string>
+    <string name="home">Home</string>
+    <string name="change_language">Change Language</string>
+    <string name="live_ride">Live Ride</string>
+    <string name="recharge">Recharge</string>
+    <string name="recharge_history">Recharge History</string>
+    <string name="my_ratings">My Ratings</string>
+    <string name="help_and_support">Help and Support</string>
+    <string name="delete_account">Delete Account</string>
+    <string name="logout">Logout</string>
+
+    <string name="title_cab_owner">Cab Owner Information</string>
+    <string name="note_confidentiality">Note: Your information is kept confidential and used solely for verification and communication purposes.\nIf you are only the owner add your details.</string>
+    <string name="hint_owner_name">Owner Full Name *</string>
+    <string name="hint_owner_address">Owner Full Address *</string>
+    <string name="hint_owner_city">Owner City Name *</string>
+    <string name="hint_owner_phone">Owner Phone Number *</string>
+    <string name="title_upload_documents">Upload the required documents</string>
+    <string name="required_marker">*</string>
+    <string name="label_owner_photo">Owner Photo</string>
+    <string name="button_submit">Submit</string>
+
+    <string name="title_upload_selfie">Upload Your Selfie</string>
+    <string name="note_confidentiality_selfie">Note: Your information is kept confidential and used solely for verification and communication purposes.</string>
+    <string name="label_upload_selfie">Upload Selfie</string>
+    <string name="button_update">Update</string>
+
+    <string name="title_upload_pan">Upload PAN Card Details</string>
+    <string name="note_pan_confidentiality">Note: Your information is kept confidential and used solely for verification and communication purposes.</string>
+    <string name="hint_pan_number">PAN No *</string>
+    <string name="label_pan_front">PAN Card Front Photo</string>
+    <string name="label_pan_back">PAN Card Back Photo</string>
+
+    <string name="title_upload_puc">Upload Pollution Certificate [ PUC ] Details</string>
+    <string name="note_puc_confidentiality">Note: Your information is kept confidential and used solely for verification and communication purposes.</string>
+    <string name="hint_puc_number">PUC No *</string>
+    <string name="label_upload_puc">Upload PUC Certificate Image</string>
+
+    <!-- Vehicle Information Screen -->
+    <string name="title_cab_vehicle_info">Cab Vehicle Information</string>
+    <string name="note_vehicle_confidentiality">Your information is kept confidential and used solely for verification and communication purposes</string>
+
+    <!-- Input Fields -->
+    <string name="hint_vehicle_number">Vehicle Number *</string>
+    <string name="hint_fuel_type">Vehicle Fuel Type *</string>
+    <string name="hint_vehicle_type">Vehicle *</string>
+
+
+
+    <!-- Vehicle Images Section -->
+    <string name="title_vehicle_images">Vehicle Image</string>
+    <string name="desc_vehicle_images">Provide Vehicle front and back images</string>
+
+    <!-- Vehicle Plate Section -->
+    <string name="title_plate_images">Vehicle Plate No Image</string>
+    <string name="desc_plate_images">Provide Vehicle Plate front and back images</string>
+
+    <!-- RC Section -->
+    <string name="title_rc">Registration Certificate (RC)</string>
+    <string name="desc_rc">Proof of vehicle ownership and registration</string>
+
+    <!-- Insurance Section -->
+    <string name="title_insurance">Insurance Certificate</string>
+    <string name="desc_insurance">Valid insurance for the vehicle</string>
+
+    <!-- NOC Section -->
+    <string name="title_noc">NOC Certificate</string>
+    <string name="desc_noc">Valid noc for the vehicle</string>
+
+    <!-- PUC Section -->
+    <string name="title_puc">Pollution Under Control (PUC) Certificate</string>
+    <string name="desc_puc">Proof that the vehicle meets emission standards</string>
+
+    <!-- Button -->
+    <string name="button_continue">Continue</string>
+
+    <string name="title_upload_vehicle_images">Upload Vehicle Images</string>
+    <string name="label_vehicle_front">Vehicle Front Photo</string>
+    <string name="label_vehicle_back">Vehicle Back Photo</string>
+
+    <string name="title_upload_insurance">Upload Insurance Details</string>
+    <string name="note_insurance_confidentiality">Note: Your information is kept confidential and used solely for verification and communication purposes.</string>
+    <string name="hint_insurance_number">Insurance No *</string>
+    <string name="label_upload_insurance">Upload Insurance Certificate</string>
+
+    <string name="title_upload_noc">Upload No Objection Certificate [ NOC ] Details</string>
+    <string name="note_noc_confidentiality">Note: Your information is kept confidential and used solely for verification and communication purposes.</string>
+    <string name="hint_noc_number">NOC No *</string>
+    <string name="label_upload_noc">Upload NOC Certificate Image</string>
+
+    <string name="title_upload_owner_selfie">Upload Owner Selfie</string>
+    <string name="note_owner_confidentiality">Note: Your information is kept confidential and used solely for verification and communication purposes.</string>
+
+    <string name="title_upload_plate">Upload Vehicle Plate Images</string>
+    <string name="note_plate_confidentiality">Note: Your information is kept confidential and used solely for verification and communication purposes.</string>
+    <string name="label_plate_front">Vehicle Plate Front Photo</string>
+    <string name="label_plate_back">Vehicle Plate Back Photo</string>
+
+    <string name="title_upload_rc">Upload Registration Certificate [ RC ] Details</string>
+    <string name="hint_rc_number">RC No *</string>
+    <string name="label_upload_rc">Upload RC Book Image</string>
+
+    <!-- Cab Login Screen -->
+    <string name="title_cab_login">Continue with Cab Login</string>
+    <string name="verification_message">You\'ll receive a 6 digit code \nto verify next</string>
+    <string name="label_phone">Enter your phone number</string>
+    <string name="hint_mobile">Enter Mobile Number</string>
+
+    <!-- OTP Verification Screen -->
+    <string name="message_no_code">Did not receive the code?</string>
+    <string name="button_resend">Resend OTP</string>
+    <string name="driver_info">Driver Information</string>
+    <string name="register_for_service">Register for Service *</string>
+    <string name="register_for_more_specific">Register for More Specific *</string>
+    <string name="driver_profile_edit">Driver Profile Details</string>
+    <string name="driver_login_continue">Continue with Driver Login</string>
+    <string name="service_time">Service Time</string>
+    <string name="didntrecievedotp">Did not receive the code?</string>
+
+    <string name="title_goods_driver">Goods Driver</string>
+    <string name="desc_goods_driver">Drive goods vehicles and deliver cargo</string>
+
+    <string name="title_cab_driver">Cab Driver</string>
+    <string name="desc_cab_driver">Drive taxis and transport passengers</string>
+
+    <string name="title_jcb_provider">JCB / Crane Provider</string>
+    <string name="desc_jcb_provider">Operate heavy machinery and construction vehicles</string>
+
+    <string name="title_only_driver">Only Driver</string>
+    <string name="desc_only_driver">Work as a professional driver</string>
+
+    <string name="title_handyman">Handyman</string>
+    <string name="desc_handyman">Provide repair and maintenance services</string>
+    <string name="apply">Apply</string>
+    <string name="select_language">Select Language</string>
+
+    <string name="continue_with_phone">Continue with phone</string>
+    <string name="required_permissions">Required Permissions</string>
+    <string name="please_enable">Please enable the following permissions to use the app</string>
+    <string name="location_access">Location Access</string>
+    <string name="location_description">Required for real-time location tracking and navigation</string>
+    <string name="enable">Enable</string>
+    <string name="battery_optimization">Battery Optimization</string>
+    <string name="battery_description">Disable battery optimization to ensure uninterrupted service</string>
+    <string name="disable">Disable</string>
+    <string name="overlay_permission">Display Over Apps</string>
+    <string name="overlay_description">Required to show important alerts even when app is in background</string>
+    <string name="camera_access">Camera Access</string>
+    <string name="camera_description">Required for taking selfies and document photos</string>
+    <string name="notifications">Notifications</string>
+    <string name="post_notify">Required for receiving important updates and new order alerts</string>
+    <string name="wallet_history_not_found">Wallet History not founc</string>
+    <string name="history">History</string>
+    <string name="my_wallet">My Wallet</string>
+    <string name="kaps_credit">Kaps Credits</string>
+    <string name="withdraw">Withdraw</string>
+    <string name="enter_amount">Enter Amount</string>
+    <string name="proceed_payment">Proceed</string>
+
 </resources>

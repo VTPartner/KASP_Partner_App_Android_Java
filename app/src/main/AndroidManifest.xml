@@ -37,31 +37,47 @@
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
         android:fullBackupContent="@xml/backup_rules"
+        android:hardwareAccelerated="true"
         android:icon="@drawable/logo"
         android:label="@string/app_name"
+        android:largeHeap="true"
         android:roundIcon="@drawable/logo"
         android:screenOrientation="portrait"
         android:supportsRtl="true"
         android:theme="@style/Theme.PartnerApp.NoActionBar"
         android:usesCleartextTraffic="true"
-        android:largeHeap="true"
-        android:hardwareAccelerated="true"
         tools:targetApi="31">
+        <activity
+            android:name=".cab_driver_activities.settings_pages.CabAgentWalletActivity"
+            android:exported="false" />
+        <activity
+            android:name=".driver_app_activities.settings_pages.DriverAgentWalletActivity"
+            android:exported="false" />
+        <activity
+            android:name=".goods_driver_activities.GoodsAgentWalletActivity"
+            android:exported="false" />
+        <activity
+            android:name=".handyman_agent_activities.settings_pages.HandyManAgentWalletActivity"
+            android:exported="false" />
+        <activity
+            android:name=".jcb_crane_agent_activities.settings_pages.JcbCraneDriverWalletActivity"
+            android:exported="false" />
+
         <service
             android:name=".handyman_agent_activities.HandyManNewBookingAcceptService"
             android:enabled="true"
             android:exported="true"
-            android:foregroundServiceType="specialUse"></service>
+            android:foregroundServiceType="specialUse" />
         <service
             android:name=".jcb_crane_agent_activities.JcbCraneDriverNewBookingAcceptService"
             android:enabled="true"
             android:exported="true"
-            android:foregroundServiceType="specialUse"/>
+            android:foregroundServiceType="specialUse" />
         <service
             android:name=".driver_app_activities.DriverAgentNewBookingAcceptService"
             android:enabled="true"
             android:exported="true"
-            android:foregroundServiceType="specialUse"/>
+            android:foregroundServiceType="specialUse" />
         <service
             android:name=".cab_driver_activities.CabNewBookingAcceptService"
             android:enabled="true"
@@ -77,7 +93,7 @@
             android:name=".GoodsNewBookingFloatingWindowService"
             android:enabled="true"
             android:exported="true"
-            android:foregroundServiceType="specialUse"/>
+            android:foregroundServiceType="specialUse" />
 
         <receiver
             android:name=".BootReceiver"
@@ -292,7 +308,6 @@
         <activity
             android:name=".goods_driver_activities.GoodsDriverProfileDetailsActivity"
             android:exported="false" />
-
         <activity
             android:name=".cab_driver_activities.bookings.CabBookingAcceptActivity"
             android:exported="false" />

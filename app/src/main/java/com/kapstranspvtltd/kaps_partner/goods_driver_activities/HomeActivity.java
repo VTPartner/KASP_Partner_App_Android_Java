@@ -12,6 +12,8 @@ import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.content.res.Configuration;
+import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
@@ -28,12 +30,14 @@ import android.provider.Settings;
 import android.util.Log;
 import android.util.TypedValue;
 import android.view.Gravity;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.RadioGroup;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -77,6 +81,7 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.material.bottomsheet.BottomSheetDialog;
+import com.google.android.material.button.MaterialButton;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.snackbar.Snackbar;
 import com.google.android.material.switchmaterial.SwitchMaterial;
@@ -85,6 +90,7 @@ import com.google.firebase.messaging.FirebaseMessaging;
 import com.kapstranspvtltd.kaps_partner.BackgroundService;
 import com.kapstranspvtltd.kaps_partner.common_activities.DriverTypeActivity;
 import com.kapstranspvtltd.kaps_partner.common_activities.LoginActivity;
+import com.kapstranspvtltd.kaps_partner.driver_app_activities.settings_pages.DriverAgentWalletActivity;
 import com.kapstranspvtltd.kaps_partner.fcm.AccessToken;
 import com.kapstranspvtltd.kaps_partner.network.APIClient;
 import com.kapstranspvtltd.kaps_partner.network.MultipartRequest;
@@ -157,6 +163,18 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
     boolean noPlanYet = false;
 
 
+    public void restartApp(Context context) {
+        Intent intent = context.getPackageManager()
+                .getLaunchIntentForPackage(context.getPackageName());
+
+        if (intent != null) {
+            intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP |
+                    Intent.FLAG_ACTIVITY_NEW_TASK |
+                    Intent.FLAG_ACTIVITY_CLEAR_TASK);
+            context.startActivity(intent);
+            Runtime.getRuntime().exit(0); // Forcefully kill current process
+        }
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -181,15 +199,17 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
         checkBatteryOptimization();
         checkAndRequestPermissions();
 
-        fetchCurrentPlanDetails();
+
         //setupLocationCallback();
         initializeViews();
         setupNavigationDrawer();
         setupMap();
         setupLocationServices();
+
         getFCMToken();
-        fetchDriverStatus();
-        fetchEarnings();
+
+
+
     }
 
     private void showLocationTypeDialog() {
@@ -244,12 +264,17 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
     }
 
     private void updateDriverLocationPreference(int preference) {
+        String driverId = preferenceManager.getStringValue("goods_driver_id");
+        String token = preferenceManager.getStringValue("goods_driver_token");
+
         String url = APIClient.baseUrl + "update_goods_driver_location_preference";
 
         JSONObject params = new JSONObject();
         try {
             params.put("goods_driver_id", preferenceManager.getStringValue("goods_driver_id"));
             params.put("location_preference", preference);
+            params.put("driver_unique_id", driverId);
+            params.put("auth", token);
         } catch (JSONException e) {
             e.printStackTrace();
         }
@@ -341,12 +366,17 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
     }
 
     private void updateDriverBodyType(String bodyType) {
+        String driverId = preferenceManager.getStringValue("goods_driver_id");
+        String token = preferenceManager.getStringValue("goods_driver_token");
+
         String url = APIClient.baseUrl + "update_goods_driver_body_type";
 
         JSONObject params = new JSONObject();
         try {
             params.put("goods_driver_id", preferenceManager.getStringValue("goods_driver_id"));
             params.put("body_type", bodyType);
+            params.put("driver_unique_id", driverId);
+            params.put("auth", token);
         } catch (JSONException e) {
             e.printStackTrace();
         }
@@ -494,7 +524,7 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
 
                     String token = task.getResult();
                     System.out.println("Driver device token::" + token);
-                    preferenceManager.saveStringValue("fcm_token", token);
+                    preferenceManager.saveStringValue("goods_driver_token", token);
                     updateDriverAuthToken(token);
                 });
     }
@@ -533,6 +563,9 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
                         response -> {
                             String message = response.optString("message");
                             Log.d("Auth", "Token update response: " + message);
+                            fetchCurrentPlanDetails();
+                            fetchDriverStatus();
+                            fetchEarnings();
                         },
                         error -> {
                             Log.e("Auth", "Error updating token: " + error.getMessage());
@@ -914,6 +947,9 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
                 return true;
             }
 
+            else if (itemId == R.id.nav_wallet) {
+                intent = new Intent(this, GoodsAgentWalletActivity.class);
+            }
             // Check GPS for Live Ride
             else if (itemId == R.id.nav_live_ride) {
                 if (isGPSEnabled()) {
@@ -926,7 +962,8 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
 
             // Regular activities
             else if (itemId == R.id.nav_change_language) {
-                bottomLanguageList();
+                showLanguageBottomSheet();
+//                bottomLanguageList();
             } else if (itemId == R.id.nav_rides) {
                 intent = new Intent(this, MyRidesActivity.class);
             } else if (itemId == R.id.nav_earnings) {
@@ -966,6 +1003,64 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         // Optional: Set item background color when selected
 //        binding.navView.setItemBackgroundResource(R.drawable.nav_item_background_selector);
+    }
+
+    private BottomSheetDialog languageBottomSheet;
+    private void showLanguageBottomSheet() {
+        if (languageBottomSheet == null) {
+            languageBottomSheet = new BottomSheetDialog(this);
+            View sheetView = LayoutInflater.from(this).inflate(R.layout.bottom_sheet_language, null);
+            languageBottomSheet.setContentView(sheetView);
+
+            RadioGroup languageGroup = sheetView.findViewById(R.id.languageRadioGroup);
+            MaterialButton applyButton = sheetView.findViewById(R.id.btnApply);
+
+            // Set current language as checked
+            String currentLang = preferenceManager.getStringValue("language", "en");
+            switch (currentLang) {
+                case "hi":
+                    languageGroup.check(R.id.radioHindi);
+                    break;
+                case "mr":
+                    languageGroup.check(R.id.radioMarathi);
+                    break;
+                case "kn":
+                    languageGroup.check(R.id.radioKannada);
+                    break;
+                default:
+                    languageGroup.check(R.id.radioEnglish);
+            }
+
+            applyButton.setOnClickListener(v -> {
+                int selectedId = languageGroup.getCheckedRadioButtonId();
+                String langCode;
+
+                if (selectedId == R.id.radioHindi) {
+                    langCode = "hi";
+                } else if (selectedId == R.id.radioMarathi) {
+                    langCode = "mr";
+                } else if (selectedId == R.id.radioKannada) {
+                    langCode = "kn";
+                } else {
+                    langCode = "en";
+                }
+
+                preferenceManager.saveStringValue("language", langCode);
+                setLocale(langCode);
+                languageBottomSheet.dismiss();
+                recreate();
+            });
+        }
+        languageBottomSheet.show();
+    }
+
+    private void setLocale(String langCode) {
+        Locale locale = new Locale(langCode);
+        Locale.setDefault(locale);
+        Resources resources = getResources();
+        Configuration config = resources.getConfiguration();
+        config.setLocale(locale);
+        resources.updateConfiguration(config, resources.getDisplayMetrics());
     }
 
     public void bottomLanguageList() {
@@ -1350,10 +1445,14 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     private void fetchCurrentPlanDetails() {
         //showLoading(true);
+        String driverId = preferenceManager.getStringValue("goods_driver_id");
+        String token = preferenceManager.getStringValue("goods_driver_token");
 
         try {
             JSONObject params = new JSONObject();
             params.put("driver_id", preferenceManager.getStringValue("goods_driver_id"));
+            params.put("driver_unique_id", driverId);
+            params.put("auth", token);
 
             JsonObjectRequest request = new JsonObjectRequest(
                     Request.Method.POST,
@@ -1697,6 +1796,9 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
     }
 
     private void updateDriverStatus(boolean online) {
+        String driverId = preferenceManager.getStringValue("goods_driver_id");
+        String token = preferenceManager.getStringValue("goods_driver_token");
+
         String url = APIClient.baseUrl + "goods_driver_update_online_status";
 
         JSONObject params = new JSONObject();
@@ -1706,6 +1808,8 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
             params.put("lat", latitude);
             params.put("lng", longitude);
             params.put("recent_online_pic", preferenceManager.getStringValue("recent_online_pic"));
+            params.put("driver_unique_id", driverId);
+            params.put("auth", token);
         } catch (JSONException e) {
             e.printStackTrace();
         }
@@ -1740,6 +1844,9 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
     }
 
     private void addToActiveDriverTable(double latitude, double longitude) {
+        String driverId = preferenceManager.getStringValue("goods_driver_id");
+        String token = preferenceManager.getStringValue("goods_driver_token");
+
         String url = APIClient.baseUrl + "add_new_active_goods_driver";
 
         JSONObject params = new JSONObject();
@@ -1748,6 +1855,8 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
             params.put("status", isOnline ? 1 : 0);
             params.put("current_lat", latitude);
             params.put("current_lng", longitude);
+            params.put("driver_unique_id", driverId);
+            params.put("auth", token);
         } catch (JSONException e) {
             e.printStackTrace();
         }
@@ -1782,11 +1891,16 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
     }
 
     private void deleteFromActiveDriverTable() {
+        String driverId = preferenceManager.getStringValue("goods_driver_id");
+        String token = preferenceManager.getStringValue("goods_driver_token");
+
         String url = APIClient.baseUrl + "delete_active_goods_driver";
 
         JSONObject params = new JSONObject();
         try {
             params.put("goods_driver_id", preferenceManager.getStringValue("goods_driver_id"));
+            params.put("driver_unique_id", driverId);
+            params.put("auth", token);
         } catch (JSONException e) {
             e.printStackTrace();
         }
@@ -1840,8 +1954,10 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
     }
 
     private void fetchDriverStatus() {
-        String url = APIClient.baseUrl + "goods_driver_online_status";
         String driverId = preferenceManager.getStringValue("goods_driver_id");
+        String token = preferenceManager.getStringValue("goods_driver_token");
+        String url = APIClient.baseUrl + "goods_driver_online_status";
+
 
         if (driverId.isEmpty()) {
             // Navigate to login
@@ -1853,6 +1969,8 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
         JSONObject params = new JSONObject();
         try {
             params.put("goods_driver_id", driverId);
+            params.put("driver_unique_id", driverId);
+            params.put("auth", token);
         } catch (JSONException e) {
             e.printStackTrace();
         }
@@ -1970,12 +2088,15 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
     private void fetchEarnings() {
         String url = APIClient.baseUrl + "goods_driver_todays_earnings";
         String driverId = preferenceManager.getStringValue("goods_driver_id");
+        String token = preferenceManager.getStringValue("goods_driver_token");
 
         if (driverId.isEmpty()) return;
 
         JSONObject params = new JSONObject();
         try {
             params.put("driver_id", driverId);
+            params.put("driver_unique_id", driverId);
+            params.put("auth", token);
         } catch (JSONException e) {
             e.printStackTrace();
         }

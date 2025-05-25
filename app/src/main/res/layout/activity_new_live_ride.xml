@@ -75,11 +75,13 @@
                 android:orientation="vertical"
                 android:padding="12dp">
 
+
                 <!-- Booking ID and Actions Row -->
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="horizontal">
+
 
                     <TextView
                         android:id="@+id/txt_booking_id"
@@ -109,6 +111,47 @@
                         app:tint="@color/colorPrimary" />
                 </LinearLayout>
 
+<!--                Timer shown after otp is verified-->
+
+                <LinearLayout
+                    android:id="@+id/timerContainer"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="8dp"
+                    android:visibility="gone"
+                    >
+
+                   <LinearLayout
+                       android:layout_width="wrap_content"
+                       android:layout_height="wrap_content"
+                       android:orientation="horizontal">
+                       <TextView
+                           android:layout_width="wrap_content"
+                           android:layout_height="wrap_content"
+                           android:text="Waiting Time Remaining: "
+                           android:textColor="@color/grey"
+                           android:textSize="14sp"/>
+
+                       <TextView
+                           android:id="@+id/txt_unloading_time"
+                           android:layout_width="wrap_content"
+                           android:layout_height="wrap_content"
+                           android:textColor="@color/colorPrimary"
+                           android:textSize="14sp"
+                           android:textStyle="bold"/>
+                   </LinearLayout>
+
+                    <TextView
+                        android:id="@+id/txt_penalty_info"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:visibility="gone"
+                        android:textColor="@color/colorerror"
+                        android:textSize="14sp"
+                        />
+                </LinearLayout>
+
                 <!-- Distance and Time Section -->
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -128,7 +171,7 @@
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="Distance"
+                            android:text="@string/distance"
                             android:textColor="@color/black"
                             android:textSize="11dp" />
 
@@ -154,7 +197,7 @@
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="Time"
+                            android:text="@string/time"
                             android:textColor="@color/black"
                             android:textSize="11dp" />
 
@@ -222,7 +265,7 @@
                                 android:layout_height="wrap_content"
                                 android:gravity="center_vertical"
                                 android:padding="2dp"
-                                android:text="Customer Name"
+                                android:text="@string/customer_name"
                                 android:textColor="@color/black"
                                 android:textSize="12dp"
                                 android:textStyle="bold" />
@@ -279,7 +322,7 @@
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
                                 android:gravity="center|left"
-                                android:text="Pickup Address"
+                                android:text="@string/pickup_address"
                                 android:textColor="@color/black"
                                 android:textSize="12dp" />
 
@@ -295,7 +338,7 @@
                                 android:id="@+id/txt_sender_name_and_phone_number"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:text="Sender "
+                                android:text="@string/sender"
                                 android:textColor="@color/black"
                                 android:textSize="12dp" />
                         </LinearLayout>
@@ -323,7 +366,7 @@
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:layout_marginLeft="8dp"
-                            android:text="Multiple Drops"
+                            android:text="@string/multiple_drops"
                             android:textColor="@color/colorPrimary"
                             android:textSize="14dp"
                             android:textStyle="bold" />
@@ -366,7 +409,7 @@
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
                                 android:gravity="center|left"
-                                android:text="Drop Address"
+                                android:text="@string/drop_address"
                                 android:textColor="@color/black"
                                 android:textSize="12dp" />
 
@@ -382,7 +425,7 @@
                                 android:id="@+id/txt_receiver_name_and_phone_number"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:text="Receiver "
+                                android:text="@string/receiver"
                                 android:textColor="@color/black"
                                 android:textSize="12dp" />
                         </LinearLayout>

@@ -81,9 +81,14 @@ public class DriverAgentRechargeHomeActivity extends AppCompatActivity implement
     private void fetchCurrentPlanDetails() {
         showLoading(true);
 
+        String driverId = preferenceManager.getStringValue("other_driver_id");
+        String token = preferenceManager.getStringValue("other_driver_token");
+
         try {
             JSONObject params = new JSONObject();
             params.put("driver_id", preferenceManager.getStringValue("other_driver_id"));
+            params.put("driver_unique_id", driverId);
+            params.put("auth", token);
 
             JsonObjectRequest request = new JsonObjectRequest(
                     Request.Method.POST,
@@ -351,6 +356,9 @@ public class DriverAgentRechargeHomeActivity extends AppCompatActivity implement
             // Calculate expiry time with proper format
             String expiryTime = calculateExpiryDate(Integer.parseInt(selectedPlan.getExpiryDays()));
 
+            String driverId = preferenceManager.getStringValue("other_driver_id");
+            String token = preferenceManager.getStringValue("other_driver_token");
+
             JSONObject params = new JSONObject();
             try {
                 params.put("razorpay_payment_id", razorpayPaymentID);
@@ -358,6 +366,8 @@ public class DriverAgentRechargeHomeActivity extends AppCompatActivity implement
                 params.put("driver_id", preferenceManager.getStringValue("other_driver_id"));
                 params.put("amount", String.format(Locale.US, "%.2f", selectedPlan.getPrice()));
                 params.put("expiry_time", expiryTime);
+                params.put("driver_unique_id", driverId);
+                params.put("auth", token);
             } catch (JSONException e) {
                 Log.e("Payment", "Error creating params: " + e.getMessage());
                 showError("Error processing payment parameters");

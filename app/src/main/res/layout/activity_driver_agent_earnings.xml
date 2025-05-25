@@ -15,7 +15,7 @@
             android:layout_width="match_parent"
             android:layout_height="?attr/actionBarSize"
             android:background="?attr/colorPrimary"
-            app:title="My Earnings"
+            app:title="@string/my_earnings"
             app:titleTextColor="@color/white"
 
             />

@@ -29,7 +29,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="24dp"
-                android:text="Upload Driving License Details"
+                android:text="@string/upload_driving_license_details"
                 android:textColor="@color/text_dark"
                 android:textSize="24sp"
                 android:textStyle="bold" />
@@ -39,7 +39,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"
-                android:text="Note: Your information is kept confidential and used solely for verification and communication purposes."
+                android:text="@string/upload_driving_license_details_note"
                 android:textColor="@color/text_secondary" />
 
             <!-- License Number Input -->
@@ -47,7 +47,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="24dp"
-                android:hint="Driving License No *">
+                android:hint="@string/driving_license_no">
 
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/licenseNumberInput"
@@ -63,7 +63,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="24dp"
                 android:padding="8dp"
-                android:text="Driving License Front Photo"
+                android:text="@string/driving_license_front_photo"
                 android:textColor="@color/text_secondary" />
 
             <FrameLayout
@@ -102,7 +102,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="24dp"
                 android:padding="8dp"
-                android:text="Driving License Back Photo"
+                android:text="@string/driving_license_back_photo"
                 android:textColor="@color/text_secondary" />
 
             <FrameLayout

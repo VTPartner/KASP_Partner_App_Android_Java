@@ -42,6 +42,7 @@ import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationServices;
+import com.google.android.material.button.MaterialButton;
 import com.kapstranspvtltd.kaps_partner.fcm.AccessToken;
 import com.kapstranspvtltd.kaps_partner.fcm.FCMService;
 import com.kapstranspvtltd.kaps_partner.fcm.popups.GoodsBookingAcceptActivity;
@@ -136,7 +137,7 @@ public class GoodsNewBookingFloatingWindowService extends Service {
         return new NotificationCompat.Builder(this, CHANNEL_ID)
                 .setContentTitle("New Booking Alert")
                 .setContentText("You have a new booking request")
-                .setSmallIcon(R.drawable.ic_notification)
+                .setSmallIcon(R.drawable.logo)
                 .setContentIntent(pendingIntent)
                 .setPriority(NotificationCompat.PRIORITY_HIGH)
                 .setCategory(NotificationCompat.CATEGORY_CALL)
@@ -175,11 +176,16 @@ public class GoodsNewBookingFloatingWindowService extends Service {
         // Get access token asynchronously
         new Thread(() -> {
             try {
+                String driverId = preferenceManager.getStringValue("goods_driver_id");
+                String token = preferenceManager.getStringValue("goods_driver_token");
+
                 String serverToken = AccessToken.getAccessToken();
                 String url = APIClient.baseUrl + "booking_details_for_ride_acceptance";
 
                 JSONObject jsonBody = new JSONObject();
                 jsonBody.put("booking_id", bookingId);
+                jsonBody.put("driver_unique_id", driverId);
+                jsonBody.put("auth", token);
 
                 JsonObjectRequest request = new JsonObjectRequest(
                         Request.Method.POST,
@@ -279,7 +285,8 @@ public class GoodsNewBookingFloatingWindowService extends Service {
         DisplayMetrics displayMetrics = new DisplayMetrics();
         windowManager.getDefaultDisplay().getMetrics(displayMetrics);
         int screenHeight = displayMetrics.heightPixels;
-        params.height = (int) (screenHeight * 0.7); // 70% of screen height
+        params.height = (int) (screenHeight); // 70% of screen height
+//        params.height = (int) (screenHeight * 0.7); // 70% of screen height
 
         // Add the view to the window
         windowManager.addView(floatingView, params);
@@ -296,11 +303,14 @@ public class GoodsNewBookingFloatingWindowService extends Service {
             TextView dropAddressView = floatingView.findViewById(R.id.dropAddress);
             TextView customerNameView = floatingView.findViewById(R.id.customerName);
             TextView rideFareView = floatingView.findViewById(R.id.rideFare);
+            TextView hikePriceTxt = floatingView.findViewById(R.id.hikePriceTxt);
             TextView distanceView = floatingView.findViewById(R.id.distance);
             TextView pickupDistanceView = floatingView.findViewById(R.id.pickupLocationDistance);
             TextView bookingTypeView = floatingView.findViewById(R.id.bookingTypeText);
+
+            TextView tripTimeTxt = floatingView.findViewById(R.id.tripTime);
             Button acceptButton = floatingView.findViewById(R.id.acceptButton);
-            Button rejectButton = floatingView.findViewById(R.id.rejectButton);
+            ImageView rejectButton = floatingView.findViewById(R.id.rejectButton);
 
             // Start the countdown timer
             startCountdownTimer(timerText);
@@ -315,6 +325,16 @@ public class GoodsNewBookingFloatingWindowService extends Service {
             String customerName = bookingJsonDetails.optString("customer_name", "N/A");
             double totalPrice = bookingJsonDetails.optDouble("total_price", 0);
             double distance = bookingJsonDetails.optDouble("distance", 0);
+            String totalTime = bookingJsonDetails.optString("total_time", "0 Mins");
+            int hikePrice = bookingJsonDetails.optInt("hike_price", 0); //hike price
+
+            if(hikePrice>0){
+                hikePriceTxt.setVisibility(View.VISIBLE);
+                hikePriceTxt.setText("+ ₹"+hikePrice+"");
+                totalPrice-=hikePrice;
+            }
+            tripTimeTxt.setText(totalTime+" trip");
+
 
             pickupAddressView.setText(pickupAddress);
             customerNameView.setText(customerName);
@@ -367,7 +387,7 @@ public class GoodsNewBookingFloatingWindowService extends Service {
 
     private void setupDropLocations(TextView defaultDropAddressView, int multipleDrops, JSONArray dropLocations) {
         try {
-            LinearLayout expandedContent = floatingView.findViewById(R.id.expandedContent);
+
             LinearLayout dropSection = floatingView.findViewById(R.id.dropSection);
             RecyclerView dropRecyclerView = floatingView.findViewById(R.id.dropRecyclerView);
 
@@ -546,7 +566,9 @@ public class GoodsNewBookingFloatingWindowService extends Service {
 
         executor.execute(() -> {
             try {
+
                 String driverId = preferenceManager.getStringValue("goods_driver_id");
+                String token = preferenceManager.getStringValue("goods_driver_token");
                 String accessToken = AccessToken.getAccessToken();
 
                 if (accessToken == null || accessToken.isEmpty()) {
@@ -566,6 +588,8 @@ public class GoodsNewBookingFloatingWindowService extends Service {
                 jsonBody.put("driver_id", driverId);
                 jsonBody.put("server_token", accessToken);
                 jsonBody.put("customer_id", bookingJsonDetails.optString("customer_id"));
+                jsonBody.put("driver_unique_id", driverId);
+                jsonBody.put("auth", token);
 
                 // Make API request using Volley
                 String url = APIClient.baseUrl + "goods_driver_booking_accepted";
@@ -724,8 +748,8 @@ public class GoodsNewBookingFloatingWindowService extends Service {
             holder.dropAddressText.setText(drop.address);
 
             // Set the marker with number
-            holder.dropMarker.setImageResource(R.drawable.ic_current_long);
-            holder.dropMarker.setColorFilter(getResources().getColor(R.color.colorerror));
+            holder.dropMarker.setImageResource(R.drawable.ic_destination_long);
+
 
             // Display position number
             holder.dropPositionText.setText(String.valueOf(drop.position));

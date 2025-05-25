@@ -75,9 +75,14 @@ public class HandyManRatingsActivity extends AppCompatActivity {
         ordersList.clear();
         binding.progressBar.setVisibility(View.VISIBLE);
 
+        String handymanAgentId = preferenceManager.getStringValue("handyman_agent_id");
+        String handymanToken = preferenceManager.getStringValue("handyman_token");
+
         JSONObject jsonObject = new JSONObject();
         try {
             jsonObject.put("driver_id", getDriverId());
+            jsonObject.put("handyman_agent_id", handymanAgentId);
+            jsonObject.put("auth", handymanToken);
         } catch (JSONException e) {
             e.printStackTrace();
         }

@@ -78,11 +78,16 @@ public class DriverAgentEarningsActivity extends AppCompatActivity {
     private void fetchWholeYearsEarnings() {
         showLoading();
 
+        String driverId = preferenceManager.getStringValue("other_driver_id");
+        String token = preferenceManager.getStringValue("other_driver_token");
+
         JSONObject jsonObject = new JSONObject();
         try {
             String goodsDriverId = getDriverId();
             System.out.println("goodsDriverId::" + goodsDriverId);
             jsonObject.put("driver_id", goodsDriverId);
+            jsonObject.put("driver_unique_id", driverId);
+            jsonObject.put("auth", token);
         } catch (JSONException e) {
             e.printStackTrace();
         }
@@ -125,9 +130,14 @@ public class DriverAgentEarningsActivity extends AppCompatActivity {
     }
 
     private void fetchAllOrders() {
+        String driverId = preferenceManager.getStringValue("other_driver_id");
+        String token = preferenceManager.getStringValue("other_driver_token");
+
         JSONObject jsonObject = new JSONObject();
         try {
             jsonObject.put("driver_id", getDriverId());
+            jsonObject.put("driver_unique_id", driverId);
+            jsonObject.put("auth", token);
         } catch (JSONException e) {
             e.printStackTrace();
         }

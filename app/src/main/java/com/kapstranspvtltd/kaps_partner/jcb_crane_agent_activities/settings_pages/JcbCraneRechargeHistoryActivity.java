@@ -72,9 +72,14 @@ public class JcbCraneRechargeHistoryActivity extends AppCompatActivity {
     private void fetchRechargeHistory() {
         showLoading(true);
 
+        String token = preferenceManager.getStringValue("jcb_crane_token");
+        String driverId = preferenceManager.getStringValue("jcb_crane_agent_id");
+
         try {
             JSONObject params = new JSONObject();
             params.put("driver_id", preferenceManager.getStringValue("jcb_crane_agent_id"));
+            params.put("driver_unique_id", driverId);
+            params.put("auth", token);
 
             JsonObjectRequest request = new JsonObjectRequest(
                     Request.Method.POST,
