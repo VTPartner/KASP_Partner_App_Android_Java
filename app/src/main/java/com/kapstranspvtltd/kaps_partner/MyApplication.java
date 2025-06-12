@@ -1,14 +1,21 @@
 package com.kapstranspvtltd.kaps_partner;
 
+import static android.Manifest.permission.READ_PHONE_STATE;
+
 import android.app.Application;
 import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.content.Context;
+import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Handler;
 import android.os.Looper;
+import android.provider.Settings;
+import android.telephony.TelephonyManager;
 import android.util.Log;
+
+import androidx.core.app.ActivityCompat;
 
 import com.android.volley.DefaultRetryPolicy;
 import com.android.volley.Request;
@@ -45,6 +52,8 @@ public class MyApplication extends Application {
 
         getFCMToken();
     }
+
+
 
     private void getFCMToken() {
         FirebaseMessaging.getInstance().getToken()

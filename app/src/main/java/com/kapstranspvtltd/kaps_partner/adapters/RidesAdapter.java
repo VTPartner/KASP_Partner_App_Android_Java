@@ -64,10 +64,13 @@ public class RidesAdapter extends RecyclerView.Adapter<RidesAdapter.RideViewHold
                 binding.dottedLineLyt.setVisibility(View.GONE);
                 binding.dropLocationLayout.setVisibility(View.GONE);
             }
+            long totalPriceRoundAmount = Math.round(order.getTotalPrice());
+            long penaltyAmountRound = Math.round(order.getPenaltyAmount());
+            long totalPrice = totalPriceRoundAmount+penaltyAmountRound;
             // Set texts
             binding.dateTime.setText(formatDateTime(order.getBookingTiming()));
             binding.customerName.setText(order.getCustomerName());
-            binding.amount.setText(String.format("₹%d/-", Math.round(order.getTotalPrice())));
+            binding.amount.setText("₹"+totalPrice);
             binding.pickupAddress.setText(order.getPickupAddress());
             binding.dropAddress.setText(order.getDropAddress());
 

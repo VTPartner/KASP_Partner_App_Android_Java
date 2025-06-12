@@ -87,24 +87,41 @@ public class GoodsNewBookingFloatingWindowService extends Service {
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
+        Log.d(TAG, "Service onStartCommand called");
+
         // Start as foreground service first
         startForeground(NOTIFICATION_ID, buildNotification());
 
-        // Get booking ID from intent
-        if (intent != null && intent.getExtras() != null) {
-            bookingId = intent.getStringExtra("booking_id");
-            if (bookingId != null) {
-                Log.d(TAG, "Received booking ID: " + bookingId);
-                fetchBookingDetails(bookingId);
-                playNotificationSound();
-            } else {
-                stopSelf();
-            }
-        } else {
+        // Handle null intent
+        if (intent == null || intent.getExtras() == null) {
+            Log.e(TAG, "Null intent or extras received");
             stopSelf();
+            return START_NOT_STICKY;
         }
 
-        return START_STICKY;
+        // Get booking ID
+        bookingId = intent.getStringExtra("booking_id");
+        if (bookingId == null || bookingId.isEmpty()) {
+            Log.e(TAG, "Invalid booking ID received");
+            stopSelf();
+            return START_NOT_STICKY;
+        }
+
+        Log.d(TAG, "Received booking ID: " + bookingId);
+        fetchBookingDetails(bookingId);
+        playNotificationSound();
+
+        return START_NOT_STICKY; // Don't recreate if killed
+    }
+    private void removeFloatingWindow() {
+        if (windowManager != null && floatingView != null) {
+            try {
+                windowManager.removeView(floatingView);
+                floatingView = null;
+            } catch (IllegalArgumentException e) {
+                Log.e(TAG, "Error removing floating window: " + e.getMessage());
+            }
+        }
     }
 
     private void createNotificationChannel() {
@@ -307,6 +324,7 @@ public class GoodsNewBookingFloatingWindowService extends Service {
             TextView distanceView = floatingView.findViewById(R.id.distance);
             TextView pickupDistanceView = floatingView.findViewById(R.id.pickupLocationDistance);
             TextView bookingTypeView = floatingView.findViewById(R.id.bookingTypeText);
+            TextView isOutStationView = floatingView.findViewById(R.id.isOutStationText);
 
             TextView tripTimeTxt = floatingView.findViewById(R.id.tripTime);
             Button acceptButton = floatingView.findViewById(R.id.acceptButton);
@@ -327,6 +345,11 @@ public class GoodsNewBookingFloatingWindowService extends Service {
             double distance = bookingJsonDetails.optDouble("distance", 0);
             String totalTime = bookingJsonDetails.optString("total_time", "0 Mins");
             int hikePrice = bookingJsonDetails.optInt("hike_price", 0); //hike price
+            int bookingTypeLocation = bookingJsonDetails.optInt("booking_type_locations", 0); //hike price
+
+            if(bookingTypeLocation==2){
+                isOutStationView.setText("Outstation");
+            }
 
             if(hikePrice>0){
                 hikePriceTxt.setVisibility(View.VISIBLE);
@@ -334,6 +357,7 @@ public class GoodsNewBookingFloatingWindowService extends Service {
                 totalPrice-=hikePrice;
             }
             tripTimeTxt.setText(totalTime+" trip");
+
 
 
             pickupAddressView.setText(pickupAddress);
@@ -531,19 +555,29 @@ public class GoodsNewBookingFloatingWindowService extends Service {
         VolleySingleton.getInstance(this).addToRequestQueue(request);
     }
     private void startCountdownTimer(TextView timerText) {
+        if (countDownTimer != null) {
+            countDownTimer.cancel();
+            countDownTimer = null;
+        }
+
         countDownTimer = new CountDownTimer(15000, 1000) {
             @Override
             public void onTick(long millisUntilFinished) {
-                timerText.setText(String.format("%d sec left", millisUntilFinished / 1000));
+                if (timerText != null) {
+                    timerText.setText(String.format("%d sec left", millisUntilFinished / 1000));
+                }
             }
 
             @Override
             public void onFinish() {
-                try {
-                    stopService(new Intent(GoodsNewBookingFloatingWindowService.this, GoodsNewBookingFloatingWindowService.class));
-                } catch (Exception e) {
-                    Log.e(TAG, "Error stopping previous service: " + e.getMessage());
-                } // Close service when timer expires
+                // Remove floating window first
+                removeFloatingWindow();
+
+                // Stop foreground service and remove notification
+                stopForeground(true);
+
+                // Stop the service itself
+                stopSelf();
             }
         }.start();
     }
@@ -648,16 +682,19 @@ public class GoodsNewBookingFloatingWindowService extends Service {
     }
 
     private void handleRejectBooking() {
+        // First, stop all ongoing operations
         if (countDownTimer != null) {
             countDownTimer.cancel();
+            countDownTimer = null;
         }
         stopNotificationSound();
-//        stopSelf();
-        try {
-            stopService(new Intent(GoodsNewBookingFloatingWindowService.this, GoodsNewBookingFloatingWindowService.class));
-        } catch (Exception e) {
-            Log.e(TAG, "Error stopping previous service: " + e.getMessage());
-        } // Close service when timer expires
+
+        // Remove the floating window immediately
+        removeFloatingWindow();
+
+        // Stop the service
+        stopForeground(true); // Remove notification
+        stopSelf(); // Stop the service
     }
 
     private void handleVolleyError(VolleyError error) {
@@ -699,19 +736,67 @@ public class GoodsNewBookingFloatingWindowService extends Service {
 
     @Override
     public void onDestroy() {
-        super.onDestroy();
-        stopNotificationSound();
-        if (mediaPlayer != null) {
-            mediaPlayer.release();
-            mediaPlayer = null;
-        }
+        Log.d(TAG, "Service onDestroy called");
 
-        if (countDownTimer != null) {
-            countDownTimer.cancel();
-        }
+        try {
+            // Cancel timer first
+            if (countDownTimer != null) {
+                countDownTimer.cancel();
+                countDownTimer = null;
+            }
 
-        if (windowManager != null && floatingView != null) {
-            windowManager.removeView(floatingView);
+            // Stop and release media player
+            if (mediaPlayer != null) {
+                try {
+                    stopNotificationSound();
+                    mediaPlayer.release();
+                } catch (Exception e) {
+                    Log.e(TAG, "Error releasing MediaPlayer: " + e.getMessage());
+                } finally {
+                    mediaPlayer = null;
+                }
+            }
+
+            // Remove floating window with error handling
+            if (windowManager != null && floatingView != null && floatingView.isAttachedToWindow()) {
+                try {
+                    windowManager.removeView(floatingView);
+                } catch (Exception e) {
+                    Log.e(TAG, "Error removing window: " + e.getMessage());
+                } finally {
+                    floatingView = null;
+                    windowManager = null;
+                }
+            }
+
+            // Cancel all network requests
+            try {
+                VolleySingleton.getInstance(this).getRequestQueue().cancelAll(TAG);
+            } catch (Exception e) {
+                Log.e(TAG, "Error cancelling requests: " + e.getMessage());
+            }
+
+            // Stop foreground first
+            stopForeground(true);
+
+            // Clear any saved references
+            preferenceManager = null;
+            bookingJsonDetails = null;
+            bookingId = null;
+
+            // Call super last
+            super.onDestroy();
+
+            // Force stop the service
+            stopSelf();
+
+            // Kill the process if needed (last resort)
+            android.os.Process.killProcess(android.os.Process.myPid());
+
+        } catch (Exception e) {
+            Log.e(TAG, "Error in onDestroy: " + e.getMessage());
+            // Force stop even if there's an error
+            stopSelf();
         }
     }
 

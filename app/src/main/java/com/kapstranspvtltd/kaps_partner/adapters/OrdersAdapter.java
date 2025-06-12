@@ -33,7 +33,12 @@ public class OrdersAdapter extends RecyclerView.Adapter<OrdersAdapter.OrderViewH
             binding.customerName.setText(order.getCustomerName());
 
             // Set date
-            String formattedDateTime = order.getDayFromDate() + ", " + order.getFormattedDate();
+//            String formattedDateTime = order.getDayFromDate() + ", " + order.getFormattedDate();
+//            binding.orderDate.setText(formattedDateTime);
+            String day = order.getDayFromDate();
+            String formattedDateTime = !day.isEmpty() ?
+                    day + ", " + order.getFormattedDate() :
+                    order.getFormattedDate();
             binding.orderDate.setText(formattedDateTime);
 
             // Set price

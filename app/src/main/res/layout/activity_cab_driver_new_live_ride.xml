@@ -111,6 +111,46 @@
                     app:tint="@color/colorPrimary" />
             </LinearLayout>
 
+            <!--                Timer shown after otp is verified-->
+
+            <LinearLayout
+                android:id="@+id/timerContainer"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="8dp"
+                android:visibility="gone"
+                >
+
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal">
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Waiting Time Remaining: "
+                        android:textColor="@color/grey"
+                        android:textSize="14sp"/>
+
+                    <TextView
+                        android:id="@+id/txt_unloading_time"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textColor="@color/colorPrimary"
+                        android:textSize="14sp"
+                        android:textStyle="bold"/>
+                </LinearLayout>
+
+                <TextView
+                    android:id="@+id/txt_penalty_info"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:visibility="gone"
+                    android:textColor="@color/colorerror"
+                    android:textSize="14sp"
+                    />
+            </LinearLayout>
 
             <LinearLayout
                 android:id="@+id/lvl_click"

@@ -177,7 +177,7 @@ public class FloatingWindowService extends Service {
         NotificationCompat.Builder builder = new NotificationCompat.Builder(this, CHANNEL_ID)
                 .setContentTitle("KAPS Partner")
                 .setContentText("Running in background")
-                .setSmallIcon(R.drawable.ic_launcher_background)
+                .setSmallIcon(R.drawable.logo)
                 .setPriority(NotificationCompat.PRIORITY_LOW)
                 .setOngoing(true);
 

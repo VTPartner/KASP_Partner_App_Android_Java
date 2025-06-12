@@ -8,6 +8,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.graphics.Color;
+import android.location.Location;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
@@ -25,6 +26,8 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.android.volley.DefaultRetryPolicy;
 import com.android.volley.NoConnectionError;
@@ -32,6 +35,7 @@ import com.android.volley.Request;
 import com.android.volley.TimeoutError;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonObjectRequest;
+import com.bumptech.glide.Glide;
 import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
@@ -44,6 +48,12 @@ import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.Polyline;
 import com.google.android.gms.maps.model.PolylineOptions;
+import com.google.android.material.bottomsheet.BottomSheetDialog;
+import com.google.android.material.textfield.TextInputEditText;
+import com.google.android.material.textfield.TextInputLayout;
+import com.kapstranspvtltd.kaps_partner.common_activities.ProximityNotificationManager;
+import com.kapstranspvtltd.kaps_partner.common_activities.adapters.CancelReasonAdapter;
+import com.kapstranspvtltd.kaps_partner.common_activities.models.CancelReason;
 import com.kapstranspvtltd.kaps_partner.fcm.AccessToken;
 import com.kapstranspvtltd.kaps_partner.goods_driver_activities.helper.UnloadingTimerManager;
 import com.kapstranspvtltd.kaps_partner.network.APIClient;
@@ -70,6 +80,8 @@ import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+import de.hdodenhof.circleimageview.CircleImageView;
+
 public class NewLiveRideActivity extends AppCompatActivity implements OnMapReadyCallback {
 
     private static final String TAG = "NewLiveRideActivity";
@@ -95,7 +107,14 @@ public class NewLiveRideActivity extends AppCompatActivity implements OnMapReady
     private static final String ACTION_END_TRIP = "End Trip";
     // --- End Constants ---
 
+    private static final float ARRIVAL_THRESHOLD_METERS = 100; // Show arrived button within 100 meters
 
+    private ProximityNotificationManager proximityManager;
+
+    private static final float DROP_THRESHOLD_METERS = 100; // Show payment button within 100 meters
+
+    private boolean isWithinDropThreshold = false;
+    private BroadcastReceiver locationUpdateReceiver;
 
     private ActivityNewLiveRideBinding binding;
     private PreferenceManager preferenceManager;
@@ -149,14 +168,312 @@ public class NewLiveRideActivity extends AppCompatActivity implements OnMapReady
         setContentView(binding.getRoot());
         Log.d(TAG, "onCreate");
 
+        proximityManager = new ProximityNotificationManager(this);
         initializeViews();
+
         setupClickListeners();
         getCurrentBookingIdDetails(); // This will trigger fetchBookingDetails if ID is found
+        setupLocationUpdateReceiver();
         startLocationUpdates(); // Start location service regardless
 
         binding.navigateBtn.setOnClickListener(v -> navigateToDestination());
     }
 
+    private void checkProximityNotifications(String statusType) {
+        String bookingId = assignedBookingId + "";
+        if (bookingId == null || bookingId.isEmpty()) return;
+
+        String url = APIClient.baseUrl + "check_location_proximity";
+
+
+        try {
+            int currentDropIndex = preferenceManager.getIntValue("current_drop_index_" + bookingId, 0);
+
+            JSONObject params = new JSONObject();
+            params.put("booking_id", bookingId);
+            params.put("status_type", statusType);
+            params.put("current_drop_index", currentDropIndex);
+            params.put("server_token", AccessToken.getAccessToken());
+
+            JsonObjectRequest request = new JsonObjectRequest(
+                    Request.Method.POST,
+                    url,
+                    params,
+                    response -> {
+                        if (response.optBoolean("success", false)) {
+                            // Mark notification as sent in local tracking
+                            if (statusType.equals("Pickup")) {
+                                preferenceManager.saveBooleanValue("isPickupNotificationSent",true);
+                                proximityManager.markNotificationSent(bookingId, "pickup", 0);
+                            } else {
+                                proximityManager.markNotificationSent(bookingId, "drop", currentDropIndex);
+                            }
+                            Log.d(TAG, "Proximity notification sent successfully: " +
+                                    response.optString("message", ""));
+                        } else {
+                            Log.w(TAG, "Failed to send proximity notification: " +
+                                    response.optString("message", "Unknown error"));
+                        }
+                    },
+                    error -> {
+                        Log.e(TAG, "Error checking proximity: " +
+                                (error.getMessage() != null ? error.getMessage() : "Unknown error"));
+                        if (error.networkResponse != null) {
+                            Log.e(TAG, "Error code: " + error.networkResponse.statusCode);
+                        }
+                    }
+            );
+
+            configureAndAddRequest(request);
+
+        } catch (Exception e) {
+            Log.e(TAG, "Error preparing proximity check request: " + e.getMessage());
+        }
+    }
+
+
+    private void setupLocationUpdateReceiver() {
+        locationUpdateReceiver = new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context context, Intent intent) {
+                if (intent.getAction() != null && intent.getAction().equals("driver_location_update")) {
+                    double driverLat = intent.getDoubleExtra("latitude", 0.0);
+                    double driverLng = intent.getDoubleExtra("longitude", 0.0);
+                    checkProximityToPickup(driverLat, driverLng);
+                }
+            }
+        };
+        // Create intent filter with export flag
+        IntentFilter filter = new IntentFilter("driver_location_update");
+        registerReceiver(locationUpdateReceiver, filter, Context.RECEIVER_EXPORTED);
+//        registerReceiver(locationUpdateReceiver, new IntentFilter("driver_location_update"));
+    }
+
+  /*  private void checkProximityToPickup(double driverLat, double driverLng) {
+        Location driverLocation = new Location("driver");
+        driverLocation.setLatitude(driverLat);
+        driverLocation.setLongitude(driverLng);
+
+        // Check pickup proximity
+        if (STATUS_DRIVER_ACCEPTED.equals(currentApiStatus) &&
+                pickupLat != null && !pickupLat.equals("0.0")) {
+
+            Location pickupLocation = new Location("pickup");
+            pickupLocation.setLatitude(Double.parseDouble(pickupLat));
+            pickupLocation.setLongitude(Double.parseDouble(pickupLng));
+
+            float distanceToPickup = driverLocation.distanceTo(pickupLocation);
+
+            mainThreadHandler.post(() -> {
+                if (distanceToPickup <= ARRIVAL_THRESHOLD_METERS) {
+                    binding.btnArrived.setVisibility(View.VISIBLE);
+                } else {
+                    binding.btnArrived.setVisibility(View.GONE);
+                }
+            });
+        }
+
+        // Check drop location proximity
+        // Inside checkProximityToPickup method, in the drop location proximity check section
+        if (STATUS_START_TRIP.equals(currentApiStatus)) {
+            LatLng targetDrop = null;
+
+            if (multipleDrops > 0 && !allDropLatLngs.isEmpty() && currentDropIndex < allDropLatLngs.size()) {
+                targetDrop = allDropLatLngs.get(currentDropIndex);
+            } else if (destinationLat != null && !destinationLat.equals("0.0")) {
+                targetDrop = new LatLng(
+                        Double.parseDouble(destinationLat),
+                        Double.parseDouble(destinationLng)
+                );
+            }
+
+            if (targetDrop != null) {
+                Location dropLocation = new Location("drop");
+                dropLocation.setLatitude(targetDrop.latitude);
+                dropLocation.setLongitude(targetDrop.longitude);
+
+                float distanceToDrop = driverLocation.distanceTo(dropLocation);
+
+                mainThreadHandler.post(() -> {
+                    isWithinDropThreshold = distanceToDrop <= DROP_THRESHOLD_METERS;
+                    if (isWithinDropThreshold) {
+                        if (nextAction != null &&
+                                (nextAction.startsWith(ACTION_CONFIRM_REACHED_DROP) ||
+                                        (nextAction.equals(ACTION_SEND_PAYMENT_DETAILS) && !STATUS_MAKE_PAYMENT.equals(currentApiStatus)))) {
+                            binding.btnSendPaymentDetails.setVisibility(View.VISIBLE);
+                            binding.btnSendPaymentDetails.setText(nextAction);
+                        }
+                    } else {
+                        if (nextAction != null &&
+                                (nextAction.startsWith(ACTION_CONFIRM_REACHED_DROP) ||
+                                        (nextAction.equals(ACTION_SEND_PAYMENT_DETAILS) && !STATUS_MAKE_PAYMENT.equals(currentApiStatus)))) {
+//                            binding.btnSendPaymentDetails.setVisibility(View.VISIBLE);
+//                            binding.btnSendPaymentDetails.setText(nextAction);
+                            binding.btnSendPaymentDetails.setVisibility(View.GONE);
+//                            showToast("Get closer to drop location to mark delivery");
+                        }
+                    }
+                });
+            }
+        }
+    }
+
+  */
+
+    private void checkProximityToPickup(double driverLat, double driverLng) {
+        // Quick validation to avoid unnecessary processing
+        if (driverLat == 0.0 || driverLng == 0.0) {
+            return;
+        }
+
+        Location driverLocation = new Location("driver");
+        driverLocation.setLatitude(driverLat);
+        driverLocation.setLongitude(driverLng);
+
+        // Use local variables to avoid repeated field access
+        String localCurrentStatus = currentApiStatus;
+
+        // Only calculate pickup distance if relevant
+        if (STATUS_DRIVER_ACCEPTED.equals(localCurrentStatus) &&
+                pickupLat != null && !pickupLat.equals("0.0")) {
+
+            // Calculate pickup distance
+            float distanceToPickup = calculateDistance(
+                    driverLat, driverLng,
+                    Double.parseDouble(pickupLat),
+                    Double.parseDouble(pickupLng)
+            );
+
+            // Update UI only if visibility needs to change
+            boolean shouldShowArrived = distanceToPickup <= ARRIVAL_THRESHOLD_METERS;
+            boolean isPickupNotificationSent = preferenceManager.getBooleanValue("isPickupNotificationSent", false);
+            if (shouldShowArrived != (binding.btnArrived.getVisibility() == View.VISIBLE)) {
+                mainThreadHandler.post(() ->{
+                        binding.btnArrived.setVisibility(shouldShowArrived ? View.VISIBLE : View.GONE);
+                        if(shouldShowArrived && isPickupNotificationSent == false){
+
+                            checkProximityNotifications("Pickup");
+                        }
+                }
+                );
+            }
+        }
+
+        // Check drop location only if in trip
+        if (STATUS_START_TRIP.equals(localCurrentStatus)) {
+            LatLng targetDrop = getTargetDropLocation();
+
+
+            if (targetDrop != null) {
+                float distanceToDrop = calculateDistance(
+                        driverLat, driverLng,
+                        targetDrop.latitude,
+                        targetDrop.longitude
+                );
+                System.out.println("distanceToDrop::"+distanceToDrop);
+                System.out.println("DROP_THRESHOLD_METERS::"+DROP_THRESHOLD_METERS);
+                System.out.println("isWithinDropThreshold::"+isWithinDropThreshold);
+                boolean newThresholdState = distanceToDrop <= DROP_THRESHOLD_METERS;
+                System.out.println("newThresholdState::"+newThresholdState);
+                // Only update if state changed
+                if (newThresholdState != isWithinDropThreshold) {
+                    isWithinDropThreshold = newThresholdState;
+                    updateDropButtonVisibility();
+                }
+            }
+        }
+    }
+
+    // Helper method to calculate distance faster
+    private float calculateDistance(double lat1, double lng1, double lat2, double lng2) {
+        // Using the Haversine formula
+        double earthRadius = 6371000; // meters
+        double dLat = Math.toRadians(lat2 - lat1);
+        double dLng = Math.toRadians(lng2 - lng1);
+        double a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+                Math.cos(Math.toRadians(lat1)) * Math.cos(Math.toRadians(lat2)) *
+                        Math.sin(dLng/2) * Math.sin(dLng/2);
+        double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+        return (float) (earthRadius * c);
+    }
+
+    // Helper method to get target drop location
+    private LatLng getTargetDropLocation() {
+        if (multipleDrops > 0 && !allDropLatLngs.isEmpty() && currentDropIndex < allDropLatLngs.size()) {
+            return allDropLatLngs.get(currentDropIndex);
+        } else if (destinationLat != null && !destinationLat.equals("0.0")) {
+            return new LatLng(
+                    Double.parseDouble(destinationLat),
+                    Double.parseDouble(destinationLng)
+            );
+        }
+        return null;
+    }
+
+    // Helper method to update drop button visibility
+    private void updateDropButtonVisibility() {
+        String bookingId = String.valueOf(assignedBookingId);
+        boolean hasNotificationBeenSent = false;
+
+        // Check if notification has been sent for current drop
+        if (multipleDrops > 0) {
+            hasNotificationBeenSent = proximityManager.hasNotificationBeenSent(
+                    bookingId, "drop", currentDropIndex);
+        } else {
+            hasNotificationBeenSent = proximityManager.hasNotificationBeenSent(
+                    bookingId, "drop", 0);
+        }
+
+        boolean finalHasNotificationBeenSent = hasNotificationBeenSent;
+        mainThreadHandler.post(() -> {
+            if (nextAction != null &&
+                    (nextAction.startsWith(ACTION_CONFIRM_REACHED_DROP) ||
+                            (nextAction.equals(ACTION_SEND_PAYMENT_DETAILS) &&
+                                    !STATUS_MAKE_PAYMENT.equals(currentApiStatus)))) {
+
+                binding.btnSendPaymentDetails.setVisibility(
+                        isWithinDropThreshold ? View.VISIBLE : View.GONE
+                );
+
+                // Send proximity notification if within threshold and not sent yet
+                if (isWithinDropThreshold && !finalHasNotificationBeenSent) {
+                    if (multipleDrops > 0) {
+                        checkProximityNotifications("Drop_" + currentDropIndex);
+                    } else {
+                        checkProximityNotifications("Drop_0"); // Use 0-based index consistently
+                    }
+                }
+
+                if (isWithinDropThreshold) {
+                    binding.btnSendPaymentDetails.setText(nextAction);
+                }
+            }
+        });
+    }
+    /*private void updateDropButtonVisibility() {
+        boolean isDropNotificationSent = preferenceManager.getBooleanValue("isDropNotificationSent", false);
+        mainThreadHandler.post(() -> {
+            if (nextAction != null &&
+                    (nextAction.startsWith(ACTION_CONFIRM_REACHED_DROP) ||
+                            (nextAction.equals(ACTION_SEND_PAYMENT_DETAILS) &&
+                                    !STATUS_MAKE_PAYMENT.equals(currentApiStatus)))) {
+
+                binding.btnSendPaymentDetails.setVisibility(
+                        isWithinDropThreshold ? View.VISIBLE : View.GONE
+                );
+                if(isWithinDropThreshold && isDropNotificationSent){
+                    if(multipleDrops>0) {
+                        checkProximityNotifications("Drop_" + currentDropIndex);
+                    } else{
+                        checkProximityNotifications("Drop_1");
+                    }
+                }
+                if (isWithinDropThreshold) {
+                    binding.btnSendPaymentDetails.setText(nextAction);
+                }
+            }
+        });
+    }*/
     private void initializeViews() {
         preferenceManager = new PreferenceManager(this);
         progressDialog = new ProgressDialog(this);
@@ -217,7 +534,32 @@ public class NewLiveRideActivity extends AppCompatActivity implements OnMapReady
     private void setupClickListeners() {
         binding.imgBack.setOnClickListener(v -> onBackPressed());
         binding.imgCall.setOnClickListener(v -> handleCallClick());
+        binding.txtTripDetails.setOnClickListener(v -> toggleTripDetails());
+        binding.cancelTripBtn.setOnClickListener(v -> showCancelBookingBottomSheet());
+        
         setupStatusButtonListeners();
+    }
+
+    private boolean isTripDetailsExpanded = false;
+    private void toggleTripDetails() {
+        isTripDetailsExpanded = !isTripDetailsExpanded;
+
+        // Show/hide cancel button without rotation animation
+        if (isTripDetailsExpanded) {
+            binding.cancelTripBtn.setVisibility(View.VISIBLE);
+            binding.cancelTripBtn.animate()
+                    .alpha(1f)
+                    .translationY(0f)
+                    .setDuration(200)
+                    .start();
+        } else {
+            binding.cancelTripBtn.animate()
+                    .alpha(0f)
+                    .translationY(-binding.cancelTripBtn.getHeight())
+                    .setDuration(200)
+                    .withEndAction(() -> binding.cancelTripBtn.setVisibility(View.GONE))
+                    .start();
+        }
     }
 
     private void setupStatusButtonListeners() {
@@ -377,7 +719,7 @@ public class NewLiveRideActivity extends AppCompatActivity implements OnMapReady
             System.out.println("penaltyCharges::"+penaltyCharges);
             System.out.println("currentApiStatus::"+currentApiStatus);
             //It will start can culating the timings
-            if (currentApiStatus.equalsIgnoreCase("Otp Verified")) {
+            if (currentApiStatus.equalsIgnoreCase(STATUS_DRIVER_ARRIVED)) {
                 // Initialize timer
                 timerManager = new UnloadingTimerManager(this, assignedBookingId,
                         binding.txtUnloadingTime, binding.txtPenaltyInfo,
@@ -493,6 +835,13 @@ public class NewLiveRideActivity extends AppCompatActivity implements OnMapReady
             binding.toolbarBookingId.setText("#CRN " + assignedBookingId);
             binding.bookingStatus.setText(currentApiStatus); // Show status from API
 
+            if (STATUS_DRIVER_ARRIVED.equals(currentApiStatus)) {
+                binding.txtTripDetails.setVisibility(View.VISIBLE);
+            } else {
+                binding.txtTripDetails.setVisibility(View.GONE);
+                binding.cancelTripBtn.setVisibility(View.GONE); // Hide cancel button when not in ARRIVED state
+            }
+
             // Handle UI visibility for single vs multiple drops
             if (multipleDrops > 0 && !allDropLatLngs.isEmpty()) {
                 binding.singleDropLayout.setVisibility(View.GONE);
@@ -600,6 +949,7 @@ public class NewLiveRideActivity extends AppCompatActivity implements OnMapReady
         System.out.println("currentApiStatus::"+currentApiStatus);
         switch (currentApiStatus) {
             case STATUS_DRIVER_ACCEPTED:
+                binding.txtTripDetails.setVisibility(View.VISIBLE);
                 nextAction = ACTION_CONFIRM_ARRIVAL;
                 break;
             case STATUS_DRIVER_ARRIVED:
@@ -668,10 +1018,39 @@ public class NewLiveRideActivity extends AppCompatActivity implements OnMapReady
     private void updateStatusButtons() {
         hideAllActionButtons(); // Start clean
 
+        Log.d(TAG, "Updating status buttons based on nextAction: " + nextAction);
+
+        if (ACTION_CONFIRM_ARRIVAL.equals(nextAction)) {
+            // Not showing arrived button here - handled by proximity check
+        } else if (ACTION_VERIFY_OTP.equals(nextAction)) {
+            binding.btnVerifyOtp.setVisibility(View.VISIBLE);
+        } else if (ACTION_START_TRIP.equals(nextAction)) {
+            binding.btnSendTrip.setVisibility(View.VISIBLE);
+        } else if (nextAction != null &&
+                (nextAction.startsWith(ACTION_CONFIRM_REACHED_DROP) ||
+                        nextAction.equals(ACTION_SEND_PAYMENT_DETAILS))) {
+            // Only show payment/drop confirmation buttons if:
+            // 1. We're at final payment stage (STATUS_MAKE_PAYMENT)
+            // 2. OR we're within threshold of the drop location
+            if (STATUS_MAKE_PAYMENT.equals(currentApiStatus) || isWithinDropThreshold) {
+                binding.btnSendPaymentDetails.setVisibility(View.VISIBLE);
+                binding.btnSendPaymentDetails.setText(nextAction);
+            }
+        } else if (ACTION_END_TRIP.equals(nextAction)) {
+            binding.btnEndTrip.setVisibility(View.VISIBLE);
+        } else {
+            Log.d(TAG, "No specific action button to show for nextAction: " + nextAction);
+        }
+    }
+
+   /* private void updateStatusButtons() {
+        hideAllActionButtons(); // Start clean
+
         Log.d(TAG,"Updating status buttons based on nextAction: " + nextAction);
 
         if (ACTION_CONFIRM_ARRIVAL.equals(nextAction)) {
-            binding.btnArrived.setVisibility(View.VISIBLE);
+            // not showing arrived button here - it will be shown by proximity check
+//            binding.btnArrived.setVisibility(View.VISIBLE);
         } else if (ACTION_VERIFY_OTP.equals(nextAction)) {
             binding.btnVerifyOtp.setVisibility(View.VISIBLE);
         } else if (ACTION_START_TRIP.equals(nextAction)) {
@@ -689,7 +1068,7 @@ public class NewLiveRideActivity extends AppCompatActivity implements OnMapReady
             Log.d(TAG,"No specific action button to show for nextAction: " + nextAction);
             // No button shown if nextAction is empty or unhandled
         }
-    }
+    }*/
 
 
     // --- User Actions & Dialogs ---
@@ -1112,6 +1491,13 @@ public class NewLiveRideActivity extends AppCompatActivity implements OnMapReady
 
     private void clearRideState() {
         Log.d(TAG,"Clearing ride state for booking ID: " + assignedBookingId);
+        // Consider clearing other ride detail variables if necessary
+        preferenceManager.saveBooleanValue("isPickupNotificationSent",false);
+        String bookingId = assignedBookingId+"";
+        if (bookingId != null && !bookingId.isEmpty()) {
+            proximityManager.clearNotifications(bookingId);
+        }
+
         preferenceManager.saveBooleanValue("isLiveRide", false);
         preferenceManager.saveStringValue("current_booking_id_assigned", "");
         preferenceManager.removeValue("penalty_amount_" + assignedBookingId);
@@ -1124,7 +1510,7 @@ public class NewLiveRideActivity extends AppCompatActivity implements OnMapReady
         // Reset local variables
         assignedBookingId = -1;
         currentDropIndex = 0;
-        // Consider clearing other ride detail variables if necessary
+
     }
 
     private void handleNoLiveRideFound(String... message) {
@@ -1656,6 +2042,13 @@ public class NewLiveRideActivity extends AppCompatActivity implements OnMapReady
     protected void onDestroy() {
         super.onDestroy();
         Log.d(TAG, "onDestroy");
+        if (locationUpdateReceiver != null) {
+            try {
+                unregisterReceiver(locationUpdateReceiver);
+            } catch (Exception e) {
+                Log.e(TAG, "Error unregistering location receiver", e);
+            }
+        }
         // Clean up resources
         if (timerManager != null) {
             timerManager.pauseTimer();
@@ -1779,5 +2172,195 @@ public class NewLiveRideActivity extends AppCompatActivity implements OnMapReady
                 configureAndAddRequest(request);
             });
         });
+    }
+
+    private void showCancelBookingBottomSheet() {
+        BottomSheetDialog bottomSheetDialog = new BottomSheetDialog(this);
+        View bottomSheetView = getLayoutInflater().inflate(R.layout.bottom_sheet_cancel_booking, null);
+        bottomSheetDialog.setContentView(bottomSheetView);
+
+        // Initialize views
+
+        TextView cancelText = bottomSheetView.findViewById(R.id.cancelText);
+        RecyclerView reasonsRecyclerView = bottomSheetView.findViewById(R.id.reasonsRecyclerView);
+        TextInputLayout otherReasonLayout = bottomSheetView.findViewById(R.id.otherReasonLayout);
+        TextInputEditText otherReasonInput = bottomSheetView.findViewById(R.id.otherReasonInput);
+        Button submitButton = bottomSheetView.findViewById(R.id.submitButton);
+
+
+
+
+        cancelText.setText("You are about to cancel the booking which was assigned to " + customerName);
+
+        // Fetch cancel reasons from API
+        fetchCancelReasons(reasonsRecyclerView, otherReasonLayout, otherReasonInput, submitButton, bottomSheetDialog);
+
+        bottomSheetDialog.show();
+    }
+
+    private void fetchCancelReasons(RecyclerView recyclerView, TextInputLayout otherReasonLayout,
+                                    TextInputEditText otherReasonInput, Button submitButton,
+                                    BottomSheetDialog dialog) {
+
+
+
+        JSONObject params = new JSONObject();
+        try {
+            params.put("category_id",  1); // Fixed category_id as 1
+
+        } catch (JSONException e) {
+            e.printStackTrace();
+            return;
+        }
+
+
+
+        JsonObjectRequest request = new JsonObjectRequest(
+                Request.Method.POST,
+                APIClient.baseUrl + "get_driver_category_cancel_reasons",
+                params,
+                response -> {
+                    try {
+                        JSONArray reasonsArray = response.getJSONArray("reasons");
+                        List<CancelReason> cancelReasons = new ArrayList<>();
+
+                        for (int i = 0; i < reasonsArray.length(); i++) {
+                            JSONObject reasonObj = reasonsArray.getJSONObject(i);
+                            cancelReasons.add(new CancelReason(
+                                    reasonObj.getInt("reason_id"),
+                                    reasonObj.getString("reason")
+                            ));
+                        }
+
+                        // Add "Other reasons" option
+                        cancelReasons.add(new CancelReason(-1, "Other reasons"));
+
+                        setupCancelReasonAdapter(cancelReasons, recyclerView, otherReasonLayout,
+                                otherReasonInput, submitButton, dialog);
+
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                        showError("Error loading cancel reasons");
+                    }
+                },
+                error -> {
+                    error.printStackTrace();
+                    showError("Failed to load cancel reasons");
+                }
+        );
+
+        VolleySingleton.getInstance(this).addToRequestQueue(request);
+    }
+
+    private void setupCancelReasonAdapter(List<CancelReason> reasons, RecyclerView recyclerView,
+                                          TextInputLayout otherReasonLayout, TextInputEditText otherReasonInput,
+                                          Button submitButton, BottomSheetDialog dialog) {
+
+        final CancelReason[] selectedReason = {null};
+
+        CancelReasonAdapter adapter = new CancelReasonAdapter(reasons, reason -> {
+            selectedReason[0] = reason;
+            submitButton.setEnabled(true);
+
+            // Show/hide other reason input
+            if (reason.getReason().equals("Other reasons")) {
+                otherReasonLayout.setVisibility(View.VISIBLE);
+            } else {
+                otherReasonLayout.setVisibility(View.GONE);
+            }
+        });
+
+        recyclerView.setLayoutManager(new LinearLayoutManager(this));
+        recyclerView.setAdapter(adapter);
+
+        // Handle submit button
+        submitButton.setOnClickListener(v -> {
+            if (selectedReason[0] == null) {
+                showError("Please select a reason");
+                return;
+            }
+
+            String finalReason;
+            if (selectedReason[0].getReason().equals("Other reasons")) {
+                String otherReason = otherReasonInput.getText().toString();
+                if (otherReason.isEmpty()) {
+                    otherReasonInput.setError("Please enter a reason");
+                    return;
+                }
+                finalReason = otherReason;
+            } else {
+                finalReason = selectedReason[0].getReason();
+            }
+
+            // Show loading
+            ProgressDialog progressDialog = new ProgressDialog(this);
+            progressDialog.setMessage("Cancelling booking...");
+            progressDialog.show();
+
+            cancelBooking(finalReason, new CancelBookingCallback() {
+                @Override
+                public void onSuccess() {
+                    progressDialog.dismiss();
+                    dialog.dismiss();
+                }
+
+                @Override
+                public void onError(String error) {
+                    progressDialog.dismiss();
+                    showError(error);
+                }
+            });
+        });
+    }
+
+    private void cancelBooking(String reason, CancelBookingCallback callback) {
+        String url =  APIClient.baseUrl +"cancel_booking";
+        String customerAccessToken = AccessToken.getAccessToken();
+        String agentAccessToken = AccessToken.getAgentAccessToken();
+
+
+        String fcmToken = preferenceManager.getStringValue("fcm_token");
+        String driverId = preferenceManager.getStringValue("goods_driver_id");
+
+
+        JSONObject params = new JSONObject();
+        try {
+            params.put("booking_id", bookingIdStr);
+            params.put("customer_id", customerID);
+            params.put("driver_id", driverId);
+            params.put("agent_server_token", agentAccessToken);
+            params.put("customer_server_token", customerAccessToken);
+            params.put("pickup_address", pickupAddress);
+            params.put("cancel_reason", reason);
+            params.put("auth", fcmToken);
+            params.put("cancelled_by","Agent"  );
+
+            JsonObjectRequest request = new JsonObjectRequest(
+                    Request.Method.POST,
+                    url,
+                    params,
+                    response -> {
+                        showError("Booking Cancelled Successfully");
+                        clearRideState();
+                        onBackPressed();
+                    },
+                    error -> callback.onError(error.getMessage())
+            );
+
+            request.setRetryPolicy(new DefaultRetryPolicy(
+                    30000,
+                    DefaultRetryPolicy.DEFAULT_MAX_RETRIES,
+                    DefaultRetryPolicy.DEFAULT_BACKOFF_MULT
+            ));
+
+            VolleySingleton.getInstance(this).addToRequestQueue(request);
+        } catch (JSONException e) {
+            callback.onError(e.getMessage());
+        }
+    }
+
+    interface CancelBookingCallback {
+        void onSuccess();
+        void onError(String error);
     }
 }

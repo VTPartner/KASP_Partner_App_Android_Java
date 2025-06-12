@@ -1,5 +1,7 @@
 package com.kapstranspvtltd.kaps_partner.common_activities;
 
+import static android.Manifest.permission.READ_PHONE_STATE;
+
 import android.Manifest;
 import android.content.ClipboardManager;
 import android.content.Context;
@@ -11,17 +13,18 @@ import android.os.CountDownTimer;
 import android.os.Handler;
 import android.os.PowerManager;
 import android.provider.Settings;
+import android.telephony.TelephonyManager;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.view.KeyEvent;
 import android.view.View;
-import android.view.autofill.AutofillManager;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
 import android.widget.Toast;
 
-import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 
 import com.android.volley.NetworkResponse;
 import com.android.volley.Request;
@@ -46,6 +49,8 @@ import java.util.concurrent.TimeUnit;
 public class OtpVerificationActivity extends AppCompatActivity {
 
     private ActivityOtpVerificationBinding binding;
+
+    private static final int PERMISSION_REQUEST_CODE = 123;
     private String mobileNumber;
     private String countryCode;
 
@@ -72,12 +77,13 @@ public class OtpVerificationActivity extends AppCompatActivity {
         countryCode = "+91";
 
         binding.txtMob.setText("We have sent you an SMS on " + countryCode + " " + mobileNumber + "\n with 6 digit verification code");
-
+        checkPermissions();
         sendOTP();
         initializeTextWatchers();
         setUpButtons();
         setupOtpPaste();
         updateEditTextInputTypes();
+        getMobileDeviceId();
     }
 
     private void setUpButtons() {
@@ -236,9 +242,15 @@ public class OtpVerificationActivity extends AppCompatActivity {
     private void verifyOTPAndLogin() {
         showLoading();
         try {
+            String deviceImeiNo = preferenceManager.getStringValue("deviceImeiNo");
+            if(deviceImeiNo == null || deviceImeiNo.isEmpty()){
+                Toast.makeText(this,"Please Provide Restart the app",Toast.LENGTH_LONG).show();
+                return;
+            }
             String url = APIClient.baseUrl + "goods_driver_login";
             JSONObject jsonBody = new JSONObject();
             jsonBody.put("mobile_no", countryCode + mobileNumber);
+            jsonBody.put("device_imei",deviceImeiNo);
 
             JsonObjectRequest request = new JsonObjectRequest(
                     Request.Method.POST,
@@ -485,6 +497,31 @@ public class OtpVerificationActivity extends AppCompatActivity {
         finish();
     }
 
+    private String getMobileDeviceId() {
+        String deviceId = "";
+
+        // First try to get ANDROID_ID
+        deviceId = Settings.Secure.getString(getContentResolver(), Settings.Secure.ANDROID_ID);
+
+        // If ANDROID_ID fails, try to get IMEI if permission is granted
+        if (deviceId == null || deviceId.isEmpty() || deviceId.equals("9774d56d682e549c")) {
+            if (ActivityCompat.checkSelfPermission(this, Manifest.permission.READ_PHONE_STATE)
+                    == PackageManager.PERMISSION_GRANTED) {
+                TelephonyManager tm = (TelephonyManager) getSystemService(Context.TELEPHONY_SERVICE);
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                    deviceId = tm.getImei();
+                } else {
+                    @SuppressWarnings("deprecation")
+                    String imei = tm.getDeviceId();
+                    deviceId = imei;
+                }
+            }
+        }
+        System.out.println("deviceImeiNo::"+deviceId);
+preferenceManager.saveStringValue("deviceImeiNo",deviceId);
+        return deviceId;
+    }
+
     private boolean areAllPermissionsGranted() {
         return checkLocationPermissions() &&
                 isIgnoringBatteryOptimizations() &&
@@ -513,5 +550,26 @@ public class OtpVerificationActivity extends AppCompatActivity {
                     == PackageManager.PERMISSION_GRANTED;
         }
         return true; // Always return true for Android < 13
+    }
+
+    private void checkPermissions() {
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_PHONE_STATE)
+                != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(this,
+                    new String[]{Manifest.permission.READ_PHONE_STATE},
+                    PERMISSION_REQUEST_CODE);
+        }
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (requestCode == PERMISSION_REQUEST_CODE) {
+            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                // Permission granted
+            } else {
+                // Permission denied - fallback to ANDROID_ID only
+            }
+        }
     }
 }

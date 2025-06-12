@@ -93,4 +93,7 @@ dependencies {
     implementation("com.google.firebase:firebase-messaging:24.1.1")
     implementation(platform("com.google.firebase:firebase-bom:33.12.0"))
     implementation("com.google.firebase:firebase-analytics")
+
+    //Chip
+    implementation ("org.threeten:threetenbp:1.5.1")
 }

@@ -622,7 +622,7 @@ public class FCMService extends FirebaseMessagingService {
         }
 
         // Create pending intent for notification
-        Intent intent = new Intent(this, GoodsBookingAcceptActivity.class);
+        Intent intent = new Intent(this, GoodsNewBookingFloatingWindowService.class);
         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK |
                 Intent.FLAG_ACTIVITY_CLEAR_TOP |
                 Intent.FLAG_ACTIVITY_SINGLE_TOP);

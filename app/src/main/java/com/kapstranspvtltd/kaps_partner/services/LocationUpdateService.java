@@ -112,11 +112,15 @@ public class LocationUpdateService extends Service {
     }
 
     private Location lastSentLocation = null;
-    private static final float MIN_DISTANCE_CHANGE_FOR_UPDATE = 3.0f; // 3 meters
+    private static final float MIN_DISTANCE_CHANGE_FOR_UPDATE = 1.0f; // 3 meters
 
     private void updateLocationToServer(Location location) {
         if (location == null) return;
-
+// Broadcast location update
+        Intent intent = new Intent("driver_location_update");
+        intent.putExtra("latitude", location.getLatitude());
+        intent.putExtra("longitude", location.getLongitude());
+        sendBroadcast(intent);
         // Get driver ID
         String driverId = preferenceManager.getStringValue("goods_driver_id");
         if (driverId.isEmpty()) {

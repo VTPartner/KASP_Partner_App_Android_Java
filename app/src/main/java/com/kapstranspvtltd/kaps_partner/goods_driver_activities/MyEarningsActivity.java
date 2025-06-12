@@ -1,5 +1,6 @@
 package com.kapstranspvtltd.kaps_partner.goods_driver_activities;
 
+import android.app.DatePickerDialog;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.view.View;
@@ -19,7 +20,12 @@ import com.github.mikephil.charting.data.BarData;
 import com.github.mikephil.charting.data.BarDataSet;
 import com.github.mikephil.charting.data.BarEntry;
 import com.google.android.material.snackbar.Snackbar;
+import com.kapstranspvtltd.kaps_partner.adapters.CalendarAdapter;
+import com.kapstranspvtltd.kaps_partner.adapters.DateChipAdapter;
+import com.kapstranspvtltd.kaps_partner.adapters.EarningsSummary;
 import com.kapstranspvtltd.kaps_partner.adapters.OrdersAdapter;
+import com.kapstranspvtltd.kaps_partner.adapters.TripsAdapter;
+import com.kapstranspvtltd.kaps_partner.common_activities.models.CalendarDay;
 import com.kapstranspvtltd.kaps_partner.models.OrderModel;
 import com.kapstranspvtltd.kaps_partner.network.APIClient;
 import com.kapstranspvtltd.kaps_partner.network.VolleySingleton;
@@ -31,10 +37,16 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
+import java.util.function.Consumer;
 
 public class MyEarningsActivity extends AppCompatActivity {
 
@@ -46,6 +58,17 @@ public class MyEarningsActivity extends AppCompatActivity {
     private boolean noOrdersFound;
     private PreferenceManager preferenceManager;
 
+    private List<OrderModel> ordersList;
+    private SimpleDateFormat displayDateFormat = new SimpleDateFormat("dd MMM yyyy", Locale.getDefault());
+    private SimpleDateFormat apiDateFormat = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
+
+    private EarningsSummary todaySummary;
+    private EarningsSummary weeklySummary;
+
+    private CalendarAdapter calendarAdapter;
+    private List<CalendarDay> calendarDays = new ArrayList<>();
+
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -53,12 +76,66 @@ public class MyEarningsActivity extends AppCompatActivity {
         setContentView(binding.getRoot());
 
         initializeVariables();
-        setupUI();
-        fetchWholeYearsEarnings();
-        fetchAllOrders();
+//        setupUI();
+//        fetchWholeYearsEarnings();
+//        fetchAllOrders();
+//        setupDateSelection();
+
+        setupCalendarView();
+        setupBackButton();
+        fetchTodayOrders();
+        fetchWeeklySummary();
+
     }
 
+    private void setupBackButton() {
+        binding.backButton.setOnClickListener(v -> onBackPressed());
+    }
+
+    private void setupCalendarView() {
+        // Generate last 7 days
+        Calendar calendar = Calendar.getInstance();
+        SimpleDateFormat dayFormat = new SimpleDateFormat("EEE", Locale.getDefault());
+
+        for (int i = 0; i < 7; i++) {
+            calendarDays.add(new CalendarDay(
+                    dayFormat.format(calendar.getTime()),
+                    calendar.get(Calendar.DAY_OF_MONTH),
+                    calendar.getTime()
+            ));
+            calendar.add(Calendar.DAY_OF_MONTH, -1);
+        }
+
+        // Setup RecyclerView
+        binding.calendarRecyclerView.setLayoutManager(
+                new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false));
+
+        calendarAdapter = new CalendarAdapter(calendarDays, (day, position) -> {
+            // Handle day selection
+
+            SimpleDateFormat currentDateFormat = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
+            String currentDate = currentDateFormat.format(calendar.getTime());
+
+            String selectedDate = apiDateFormat.format(day.getDate()); // use the same format for both
+
+            if (selectedDate.equals(currentDate)) {
+                binding.todaySummaryTxt.setText("Today's Summary");
+            } else {
+                binding.todaySummaryTxt.setText(selectedDate + " Summary");
+            }
+
+            fetchOrders(selectedDate, selectedDate, summary -> {
+                todaySummary = summary;
+                updateTodaySummary();
+            });
+        });
+
+        binding.calendarRecyclerView.setAdapter(calendarAdapter);
+    }
+
+
     private void initializeVariables() {
+        ordersList = new ArrayList<>();
         monthlyEarnings = new ArrayList<>();
         allOrdersList = new ArrayList<>();
         isLoading = true;
@@ -66,143 +143,141 @@ public class MyEarningsActivity extends AppCompatActivity {
         preferenceManager = new PreferenceManager(this);
     }
 
-    private void setupUI() {
-//        setSupportActionBar(binding.toolbar);
-//        if (getSupportActionBar() != null) {
-//            getSupportActionBar().setTitle("My Earnings");
-//            getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-//        }
-//        binding.toolbar.setNavigationOnClickListener(v -> finish());
+
+
+
+
+    private void fetchWeeklySummary() {
+        Calendar calendar = Calendar.getInstance();
+        String endDate = apiDateFormat.format(calendar.getTime());
+        calendar.add(Calendar.DAY_OF_WEEK, -7);
+        String startDate = apiDateFormat.format(calendar.getTime());
+
+        fetchOrders(startDate, endDate, summary -> {
+            weeklySummary = summary;
+            updateWeeklySummary();
+        });
     }
 
-    private void fetchWholeYearsEarnings() {
-        showLoading();
-        String driverId = preferenceManager.getStringValue("goods_driver_id");
-        String token = preferenceManager.getStringValue("goods_driver_token");
-        JSONObject jsonObject = new JSONObject();
+    private void fetchOrders(String startDate, String endDate, Consumer<EarningsSummary> callback) {
+
+        JSONObject requestBody = new JSONObject();
         try {
-            String goodsDriverId = getDriverId();
-            System.out.println("goodsDriverId::" + goodsDriverId);
-            jsonObject.put("driver_id", goodsDriverId);
-            jsonObject.put("driver_unique_id", driverId);
-            jsonObject.put("auth", token);
+            requestBody.put("driver_id", preferenceManager.getStringValue("goods_driver_id"));
+            requestBody.put("driver_unique_id", preferenceManager.getStringValue("goods_driver_id"));
+            requestBody.put("auth", preferenceManager.getStringValue("goods_driver_token"));
+            requestBody.put("start_date", startDate);
+            requestBody.put("end_date", endDate);
         } catch (JSONException e) {
             e.printStackTrace();
         }
 
         JsonObjectRequest request = new JsonObjectRequest(
                 Request.Method.POST,
-                APIClient.baseUrl + "goods_driver_whole_year_earnings",
-                jsonObject,
+                APIClient.baseUrl + "goods_driver_earning_orders",
+                requestBody,
                 response -> {
                     try {
                         JSONArray results = response.getJSONArray("results");
-                        monthlyEarningsTotal = calculateMonthlyEarnings(results);
-                        monthlyEarnings.clear();
+                        double totalEarnings = response.getDouble("total_earnings");
+                        String timeSpent = response.getString("time_spent");
+                        String weeklyTimeSpent = response.getString("weekly_time_spent");
+                        int totalOrders = response.getInt("total_orders");
 
-                        for (int i = 0; i < results.length(); i++) {
-                            double earning = results.getJSONObject(i).getDouble("total_earnings");
-                            monthlyEarnings.add(earning);
-                        }
+                        List<OrderModel> orders = parseOrders(results);
+                        EarningsSummary summary = new EarningsSummary(
+                                totalEarnings,
+                                timeSpent,
+                                weeklyTimeSpent,
+                                totalOrders,
+                                orders
+                        );
 
-                        updateEarningsUI();
-                    } catch (Exception e) {
-                        showError("Error parsing earnings data");
+                        callback.accept(summary);
+                    } catch (JSONException e) {
+                        showError("Error parsing response");
                     }
-                    hideLoading();
+//                    hideLoading();
                 },
                 error -> {
                     handleError(error);
-                    hideLoading();
+//                    hideLoading();
                 }
-        ) {
-            @Override
-            public Map<String, String> getHeaders() {
-                Map<String, String> headers = new HashMap<>();
-                headers.put("Content-Type", "application/json");
-                return headers;
-            }
-        };
+        );
 
         VolleySingleton.getInstance(this).addToRequestQueue(request);
     }
 
-    private void fetchAllOrders() {
-        String driverId = preferenceManager.getStringValue("goods_driver_id");
-        String token = preferenceManager.getStringValue("goods_driver_token");
+    private void updateWeeklySummary() {
+        if (weeklySummary == null) return;
 
-        JSONObject jsonObject = new JSONObject();
-        try {
-            jsonObject.put("driver_id", getDriverId());
-            jsonObject.put("driver_unique_id", driverId);
-            jsonObject.put("auth", token);
-        } catch (JSONException e) {
-            e.printStackTrace();
+        binding.weeklyEarnings.setText(String.format("₹%.0f", weeklySummary.getEarnings()));
+        binding.weeklyTime.setText(weeklySummary.getWeeklyTimeSpent());  // Use weekly time spent
+        binding.weeklyTrips.setText(String.valueOf(weeklySummary.getTripsCount()));
+    }
+
+    private void updateTodaySummary() {
+        if (todaySummary == null) return;
+
+        binding.todayEarnings.setText(String.format("₹%.0f", todaySummary.getEarnings()));
+        binding.todayTime.setText(todaySummary.getTimeSpent());
+        binding.todayTrips.setText(String.valueOf(todaySummary.getTripsCount()));
+
+        // Setup trips RecyclerView
+        TripsAdapter tripsAdapter = new TripsAdapter(todaySummary.getOrders());
+        binding.tripsRecyclerView.setLayoutManager(new LinearLayoutManager(this));
+        binding.tripsRecyclerView.setAdapter(tripsAdapter);
+    }
+
+    private List<OrderModel> parseOrders(JSONArray results) throws JSONException {
+        List<OrderModel> orders = new ArrayList<>();
+        for (int i = 0; i < results.length(); i++) {
+            JSONObject order = results.getJSONObject(i);
+            orders.add(new OrderModel(
+                    order.getString("customer_name"),
+                    order.getString("booking_date"),
+                    order.getString("total_price"),
+                    order.getDouble("booking_timing")
+            ));
         }
+        return orders;
+    }
+    private void fetchTodayOrders() {
+        // Get current date in yyyy-MM-dd format
+        Calendar calendar = Calendar.getInstance();
+        SimpleDateFormat apiDateFormat = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
+        String currentDate = apiDateFormat.format(calendar.getTime());
 
-        JsonObjectRequest request = new JsonObjectRequest(
-                Request.Method.POST,
-                APIClient.baseUrl + "goods_driver_all_orders",
-                jsonObject,
-                response -> {
-                    try {
-                        JSONArray results = response.getJSONArray("results");
-                        allOrdersList.clear();
+        System.out.println("Current Date: " + currentDate); // Debug log
 
-                        for (int i = 0; i < results.length(); i++) {
-                            JSONObject orderJson = results.getJSONObject(i);
-                            OrderModel order = new OrderModel(
-                                    orderJson.getString("customer_name"),
-                                    orderJson.getString("booking_date"),
-                                    orderJson.getString("total_price")
-                            );
-                            allOrdersList.add(order);
-                        }
+        fetchOrders(currentDate, currentDate, summary -> {
+            todaySummary = summary;
+            updateTodaySummary();
+        });
 
-                        noOrdersFound = allOrdersList.isEmpty();
-                        updateOrdersUI();
-                    } catch (Exception e) {
-                        showError("Error parsing orders data");
-                    }
-                    isLoading = false;
-                },
-                error -> {
-                    handleError(error);
-                    isLoading = false;
+        // Update calendar view to select current date
+        if (calendarAdapter != null) {
+            for (int i = 0; i < calendarDays.size(); i++) {
+                if (apiDateFormat.format(calendarDays.get(i).getDate()).equals(currentDate)) {
+                    calendarDays.get(i).setSelected(true);
+                    calendarAdapter.notifyItemChanged(i);
+                    break;
                 }
-        ) {
-            @Override
-            public Map<String, String> getHeaders() {
-                Map<String, String> headers = new HashMap<>();
-                headers.put("Content-Type", "application/json");
-                return headers;
             }
-        };
-
-        VolleySingleton.getInstance(this).addToRequestQueue(request);
-    }
-
-    private void updateEarningsUI() {
-        BarData barData = generateBarChartData();
-        binding.earningsChart.setData(barData);
-        binding.earningsChart.invalidate();
-        binding.totalEarningsText.setText("₹" + Math.round(monthlyEarningsTotal) + " /-");
-    }
-
-    private void updateOrdersUI() {
-        if (noOrdersFound) {
-            binding.ordersRecyclerView.setVisibility(View.GONE);
-            binding.noOrdersText.setVisibility(View.VISIBLE);
-        } else {
-            binding.ordersRecyclerView.setVisibility(View.VISIBLE);
-            OrdersAdapter adapter = new OrdersAdapter(allOrdersList);
-            binding.ordersRecyclerView.setAdapter(adapter);
-            binding.ordersRecyclerView.setLayoutManager(
-                    new LinearLayoutManager(this)
-            );
-            binding.noOrdersText.setVisibility(View.GONE);
         }
     }
+
+
+
+
+//    private void updateEarningsUI() {
+//        BarData barData = generateBarChartData();
+//        binding.earningsChart.setData(barData);
+//        binding.earningsChart.invalidate();
+//        binding.totalEarningsText.setText("₹" + Math.round(monthlyEarningsTotal) + " /-");
+//    }
+
+
 
     private BarData generateBarChartData() {
         List<BarEntry> entries = new ArrayList<>();
@@ -253,7 +328,8 @@ public class MyEarningsActivity extends AppCompatActivity {
             switch (statusCode) {
 
                 case 404:
-                    message = "You have not yet completed any ride";
+                    message = "No Rides done on this day";
+//                    updateOrdersUI();
                     break;
                 case 400:
                     message = "Bad request";
@@ -286,11 +362,5 @@ public class MyEarningsActivity extends AppCompatActivity {
         Snackbar.make(binding.getRoot(), message, Snackbar.LENGTH_LONG).show();
     }
 
-    private void showLoading() {
-        binding.progressBar.setVisibility(View.VISIBLE);
-    }
 
-    private void hideLoading() {
-        binding.progressBar.setVisibility(View.GONE);
-    }
 }

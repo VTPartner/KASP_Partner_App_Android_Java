@@ -5,6 +5,8 @@ import static android.Manifest.permission.ACCESS_COARSE_LOCATION;
 import static android.Manifest.permission.ACCESS_FINE_LOCATION;
 import static android.Manifest.permission.POST_NOTIFICATIONS;
 
+import static androidx.core.content.ContentProviderCompat.requireContext;
+
 import android.Manifest;
 import android.app.AlertDialog;
 import android.app.Dialog;
@@ -98,6 +100,7 @@ import com.kapstranspvtltd.kaps_partner.network.VolleySingleton;
 import com.kapstranspvtltd.kaps_partner.services.FloatingWindowService;
 import com.kapstranspvtltd.kaps_partner.services.LocationUpdateService;
 import com.kapstranspvtltd.kaps_partner.utils.PreferenceManager;
+import com.kapstranspvtltd.kaps_partner.utils.SwipeButton;
 import com.kapstranspvtltd.kaps_partner.utils.Utility;
 import com.kapstranspvtltd.kaps_partner.R;
 import com.kapstranspvtltd.kaps_partner.databinding.ActivityHomeBinding;
@@ -141,7 +144,7 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
     private LocationRequest locationRequest;
     private Marker currentLocationMarker;
     private boolean isFirstLocation = true;
-    private SwitchMaterial dutySwitch;
+//    private SwitchMaterial dutySwitch;
 
     private Double latitude = 0.0;
 
@@ -161,6 +164,10 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     boolean planExpired = false;
     boolean noPlanYet = false;
+
+    private boolean isRecreating = false;
+
+    private SwipeButton dutySwipeButton;
 
 
     public void restartApp(Context context) {
@@ -206,10 +213,21 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
         setupMap();
         setupLocationServices();
 
+        // Add this check
+        if (savedInstanceState != null) {
+            isRecreating = savedInstanceState.getBoolean("is_recreating", false);
+        }
+
         getFCMToken();
 
 
 
+    }
+
+    @Override
+    protected void onSaveInstanceState(@NonNull Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putBoolean("is_recreating", isRecreating);
     }
 
     private void showLocationTypeDialog() {
@@ -449,7 +467,7 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
         getSupportActionBar().setDisplayShowTitleEnabled(false);
 
         // Initialize toolbar views
-        dutySwitch = binding.toolbar.findViewById(R.id.duty_switch);
+//        dutySwitch = binding.toolbar.findViewById(R.id.duty_switch);
         ImageView menuIcon = binding.toolbar.findViewById(R.id.menu_icon);
 
         ImageView notificationIcon = binding.toolbar.findViewById(R.id.notification_icon);
@@ -470,11 +488,28 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         // Setup click listeners
         menuIcon.setOnClickListener(v -> binding.drawerLayout.openDrawer(GravityCompat.START));
+        dutySwipeButton = binding.dutySwipeButton;
+        binding.dutySwipeButton.setOnSlideCompleteListener(() -> {
+            if (!isUserAction || isRecreating) {
+                return;
+            }
+            if (noPlanYet) {
+                showError("No active recharge plan found. Please recharge now");
+                dutySwipeButton.reset();
+                return;
+            }
+            if (isOnline) {
+                showGoOfflineDialog();
+            } else {
+                showGoOnlineDialog();
+            }
+        });
 
         // Setup duty switch with user action tracking
+/*
         dutySwitch.setOnCheckedChangeListener((buttonView, isChecked) -> {
-            if (!isUserAction) {
-                return; // Skip if this is a programmatic change
+            if (!isUserAction || isRecreating) {
+                return; // Skip if this is a programmatic change or recreation
             }
             if (noPlanYet) {
                 isUserAction = false;
@@ -499,6 +534,7 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
             // Reset the flag after handling the event
             isUserAction = true;
         });
+*/
 
 
 
@@ -563,6 +599,7 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
                         response -> {
                             String message = response.optString("message");
                             Log.d("Auth", "Token update response: " + message);
+                            fetchControlSettings();
                             fetchCurrentPlanDetails();
                             fetchDriverStatus();
                             fetchEarnings();
@@ -604,6 +641,63 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
         executor.shutdown();
     }
 
+    private void fetchControlSettings() {
+        String url = APIClient.baseUrl + "get_control_settings";
+
+        JsonObjectRequest request = new JsonObjectRequest(
+                Request.Method.POST,
+                url,
+                null, // No body needed for this request
+                response -> {
+                    try {
+                        if (response.has("settings")) {
+                            JSONObject settings = response.getJSONObject("settings");
+
+                            // Save each setting to preferences
+                            preferenceManager.saveStringValue("booking_timeout",
+                                    settings.optString("booking_timeout", "30"));
+
+                            preferenceManager.saveStringValue("multiple_drops",
+                                    settings.optString("multiple_drops", "3"));
+
+                            preferenceManager.saveStringValue("agent_recharge_expiry_show",
+                                    settings.optString("agent_recharge_expiry_show", "No"));
+
+                            preferenceManager.saveStringValue("hike_price_show",
+                                    settings.optString("hike_price_show", "No"));
+
+                            preferenceManager.saveStringValue("agent_cancel_button_show",
+                                    settings.optString("agent_cancel_button_show", "No"));
+
+                            // Save last updated times if needed
+                            if (response.has("last_updated")) {
+                                JSONObject lastUpdated = response.getJSONObject("last_updated");
+                                preferenceManager.saveStringValue("settings_last_updated",
+                                        lastUpdated.optString("booking_timeout", "0"));
+                            }
+                        }
+                    } catch (Exception e) {
+                        Log.e("ControlSettings", "Error parsing settings: " + e.getMessage());
+                    }
+                },
+                error -> Log.e("ControlSettings", "Error fetching settings: " + error.getMessage())
+        ) {
+            @Override
+            public Map<String, String> getHeaders() {
+                Map<String, String> headers = new HashMap<>();
+                headers.put("Content-Type", "application/json");
+                return headers;
+            }
+        };
+
+        request.setRetryPolicy(new DefaultRetryPolicy(
+                30000,
+                DefaultRetryPolicy.DEFAULT_MAX_RETRIES,
+                DefaultRetryPolicy.DEFAULT_BACKOFF_MULT
+        ));
+
+        VolleySingleton.getInstance(this).addToRequestQueue(request);
+    }
 
     private void setupMap() {
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
@@ -748,6 +842,18 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
     @Override
     protected void onResume() {
         super.onResume();
+
+        // Reset recreation flag after resume
+        if (isRecreating) {
+            isRecreating = false;
+            // Restore previous online state without showing dialog
+            if (isOnline) {
+                isUserAction = false;
+//                dutySwitch.setChecked(true);
+                isUserAction = true;
+            }
+        }
+
         PowerManager powerManager = (PowerManager) getSystemService(POWER_SERVICE);
         if (powerManager != null) {
             String packageName = getPackageName();
@@ -1055,6 +1161,9 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
     }
 
     private void setLocale(String langCode) {
+        // Set flag before recreation
+        isRecreating = true;
+
         Locale locale = new Locale(langCode);
         Locale.setDefault(locale);
         Resources resources = getResources();
@@ -1154,6 +1263,17 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
     }
 
     private void showGoOnlineDialog() {
+
+        // Check plan expiry first
+        if (planExpired) {
+            isUserAction = false;
+//            dutySwitch.setChecked(false);
+            dutySwipeButton.reset();
+            showDutyStatusCheckBox(true, false);
+            isUserAction = true;
+            showError("Please recharge before you go online");
+            return;
+        }
         new AlertDialog.Builder(this)
                 .setTitle("Go On Duty")
                 .setMessage("Are you sure you want to go duty?.\nTo go On Duty you have to provide recent selfie with your vehicle.")
@@ -1163,15 +1283,20 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
                     } else {
                         requestLocationPermission();
                     }
+
                     showSelfieDialog();
                 })
                 .setNegativeButton("No", (dialog, which) -> {
                     isUserAction = false;
-                    dutySwitch.setChecked(false);
+                    dutySwipeButton.reset();
+//                    dutySwitch.setChecked(false);
                     stopLocationUpdates();
                     showDutyStatusCheckBox(true, false);
                     isUserAction = true; // Reset after handling
+
                 })
+                .setCancelable(false)
+
                 .show();
     }
 
@@ -1184,6 +1309,7 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
     }
 
     private void showSelfieDialog() {
+        dutySwipeButton.reset();
         Dialog dialog = new Dialog(this, android.R.style.Theme_Black_NoTitleBar_Fullscreen);
         dialog.setContentView(R.layout.dialog_camera_preview);
 
@@ -1428,6 +1554,7 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
     }
 
     private void showGoOfflineDialog() {
+
         new AlertDialog.Builder(this)
                 .setTitle("Go Off Duty")
                 .setMessage("Are you sure you want to go offline?")
@@ -1436,9 +1563,11 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
                 })
                 .setNegativeButton("No", (dialog, which) -> {
                     isUserAction = false;
-                    dutySwitch.setChecked(true);
+//                    dutySwitch.setChecked(true);
+                    dutySwipeButton.reset();
                     showDutyStatusCheckBox(true, isOnline);
                 })
+                .setCancelable(false)
                 .show();
     }
 
@@ -1591,6 +1720,9 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
 //                }
                 planExpired = true;
                 binding.currentPlanValidity.setText("Plan Expired");
+
+                showPurchasePlanButton();
+
                 binding.currentPlanValidity.setTextColor(getResources().getColor(R.color.colorerror));
             } else {
                 // Calculate remaining time
@@ -1600,6 +1732,7 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
                 binding.currentPlanValidity.setText(String.format("Valid till: %s\n%s",
                         outputFormat.format(expiryDate),
                         remainingTime));
+                binding.btnBuyPlan.setVisibility(View.GONE);
                 binding.currentPlanValidity.setTextColor(getResources().getColor(R.color.green));
             }
         } catch (ParseException e) {
@@ -1634,11 +1767,11 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     private void showPurchasePlanButton() {
         // If you have a purchase button in your layout
-        if (binding.btnPurchasePlan != null) {
-            binding.btnPurchasePlan.setVisibility(View.VISIBLE);
-            binding.btnPurchasePlan.setOnClickListener(v -> {
+        if (binding.btnBuyPlan != null) {
+            binding.btnBuyPlan.setVisibility(View.VISIBLE);
+            binding.btnBuyPlan.setOnClickListener(v -> {
                 // Navigate to purchase plan screen
-                // startActivity(new Intent(this, PurchasePlanActivity.class));
+                 startActivity(new Intent(this, MyRechargeHomeActivity.class));
             });
         }
     }
@@ -1999,7 +2132,10 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
                                 stopLocationUpdates();
                             }
                             preferenceManager.saveStringValue("recent_online_pic", recentOnlinePic);
-
+                            if(vehicleId == 2){
+                                //HIde open body option here
+                                binding.bodyType.setVisibility(View.GONE);
+                            }
                             // Update verification status
                             switch (status) {
                                 case "0":
@@ -2066,6 +2202,34 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
     }
 
     private void showDutyStatusCheckBox(boolean visible, boolean isOnline) {
+        isUserAction = false;
+// Reset the swipe button first
+        dutySwipeButton.reset();
+        if (visible) {
+            dutySwipeButton.setVisibility(View.VISIBLE);
+            if (isOnline) {
+                dutySwipeButton.setText("Slide to Go Off Duty");
+                dutySwipeButton.setColors(
+                        getResources().getColor(R.color.colorerror),
+                        Color.WHITE
+                );
+            } else {
+                dutySwipeButton.setText("Slide to Go On Duty");
+                dutySwipeButton.setColors(
+                        getResources().getColor(R.color.green),
+                        Color.WHITE
+                );
+            }
+        } else {
+            dutySwipeButton.setVisibility(View.GONE);
+        }
+
+        new Handler().postDelayed(() -> {
+            isUserAction = !isRecreating;
+        }, 100);
+    }
+
+    /*private void showDutyStatusCheckBox(boolean visible, boolean isOnline) {
         // Temporarily disable user action tracking
         isUserAction = false;
 
@@ -2080,9 +2244,9 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
         binding.dutySwitch.setText(isOnline ? "Go Off Duty" : "Go On Duty");
         // Reset the flag after a short delay to ensure the switch state is set
         new Handler().postDelayed(() -> {
-            isUserAction = true;
+            isUserAction = !isRecreating; // Only enable user actions if not recreating
         }, 100);
-    }
+    }*/
 
 
     private void fetchEarnings() {
@@ -2203,7 +2367,8 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
     private void updateVerificationStatus(String statusText) {
         //Show the not verified status here
         binding.verificationStatus.setVisibility(View.VISIBLE);
-        binding.dutySwitch.setVisibility(View.GONE);
+//        binding.dutySwitch.setVisibility(View.GONE);
+        binding.dutySwipeButton.setVisibility(View.GONE);
         binding.verificationStatus.setText(statusText);
     }
 

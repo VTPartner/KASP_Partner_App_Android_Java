@@ -9,16 +9,23 @@ public class OrderRidesModel implements Parcelable {
     private final String customerName;
     private final double bookingTiming;
     private final double totalPrice;
+
+    public double getPenaltyAmount() {
+        return penaltyAmount;
+    }
+
+    private final double penaltyAmount;
     private final String pickupAddress;
     private final String dropAddress;
     private final String customerImage;
 
     // Constructor
     public OrderRidesModel(String customerName, double bookingTiming, double totalPrice,
-                          String pickupAddress, String dropAddress, String customerImage) {
+                           double penaltyAmount, String pickupAddress, String dropAddress, String customerImage) {
         this.customerName = customerName;
         this.bookingTiming = bookingTiming;
         this.totalPrice = totalPrice;
+        this.penaltyAmount = penaltyAmount;
         this.pickupAddress = pickupAddress;
         this.dropAddress = dropAddress;
         this.customerImage = customerImage;
@@ -29,6 +36,7 @@ public class OrderRidesModel implements Parcelable {
         customerName = in.readString();
         bookingTiming = in.readDouble();
         totalPrice = in.readDouble();
+        penaltyAmount = in.readDouble();
         pickupAddress = in.readString();
         dropAddress = in.readString();
         customerImage = in.readString();
@@ -41,6 +49,7 @@ public class OrderRidesModel implements Parcelable {
                 json.getString("customer_name"),
                 Double.parseDouble(json.getString("booking_timing")),
                 Double.parseDouble(json.getString("total_price")),
+                    Double.parseDouble(json.getString("penalty_amount")),
                 json.getString("pickup_address"),
                 json.getString("drop_address"),
                 json.optString("customer_image")
@@ -99,6 +108,7 @@ public class OrderRidesModel implements Parcelable {
         dest.writeString(customerName);
         dest.writeDouble(bookingTiming);
         dest.writeDouble(totalPrice);
+        dest.writeDouble(penaltyAmount);
         dest.writeString(pickupAddress);
         dest.writeString(dropAddress);
         dest.writeString(customerImage);
@@ -112,6 +122,7 @@ public class OrderRidesModel implements Parcelable {
         OrderRidesModel that = (OrderRidesModel) o;
         return Double.compare(that.bookingTiming, bookingTiming) == 0 &&
                Double.compare(that.totalPrice, totalPrice) == 0 &&
+                Double.compare(that.penaltyAmount, penaltyAmount) == 0 &&
                customerName.equals(that.customerName) &&
                pickupAddress.equals(that.pickupAddress) &&
                dropAddress.equals(that.dropAddress) &&
@@ -124,6 +135,7 @@ public class OrderRidesModel implements Parcelable {
         int result = customerName.hashCode();
         result = 31 * result + Double.hashCode(bookingTiming);
         result = 31 * result + Double.hashCode(totalPrice);
+        result = 31 * result + Double.hashCode(penaltyAmount);
         result = 31 * result + pickupAddress.hashCode();
         result = 31 * result + dropAddress.hashCode();
         result = 31 * result + (customerImage != null ? customerImage.hashCode() : 0);
@@ -137,6 +149,7 @@ public class OrderRidesModel implements Parcelable {
                "customerName='" + customerName + '\'' +
                ", bookingTiming=" + bookingTiming +
                ", totalPrice=" + totalPrice +
+                ", penaltyAmount=" + penaltyAmount +
                ", pickupAddress='" + pickupAddress + '\'' +
                ", dropAddress='" + dropAddress + '\'' +
                ", customerImage='" + customerImage + '\'' +

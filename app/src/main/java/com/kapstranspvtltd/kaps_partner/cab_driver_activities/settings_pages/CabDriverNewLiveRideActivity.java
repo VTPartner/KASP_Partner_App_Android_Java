@@ -43,6 +43,7 @@ import com.kapstranspvtltd.kaps_partner.databinding.DialogPaymentDetailsBinding;
 import com.kapstranspvtltd.kaps_partner.fcm.AccessToken;
 import com.kapstranspvtltd.kaps_partner.goods_driver_activities.HomeActivity;
 import com.kapstranspvtltd.kaps_partner.goods_driver_activities.NewLiveRideActivity;
+import com.kapstranspvtltd.kaps_partner.goods_driver_activities.helper.UnloadingTimerManager;
 import com.kapstranspvtltd.kaps_partner.network.APIClient;
 import com.kapstranspvtltd.kaps_partner.network.VolleySingleton;
 import com.kapstranspvtltd.kaps_partner.services.CabLocationUpdateService;
@@ -64,6 +65,7 @@ import java.util.Map;
 
 public class CabDriverNewLiveRideActivity extends AppCompatActivity implements OnMapReadyCallback {
 
+    private static final String TAG = "CabDriverNewLiveRideActivity";
     private BroadcastReceiver serviceRestartReceiver;
     private ActivityCabDriverNewLiveRideBinding binding;
     private PreferenceManager preferenceManager;
@@ -98,6 +100,9 @@ public class CabDriverNewLiveRideActivity extends AppCompatActivity implements O
     String bookingId = "";
 
     String pickupLat,pickupLng,destinationLat,destinationLng ="0.0";
+
+    int minimumWaitingTime = 0;
+    double penaltyCharges = 0;
 
 
     @Override
@@ -520,6 +525,8 @@ public class CabDriverNewLiveRideActivity extends AppCompatActivity implements O
         VolleySingleton.getInstance(this).addToRequestQueue(request);
     }
 
+    private UnloadingTimerManager timerManager;
+
     private void updateRideDetails(JSONObject rideDetails) {
         try {
             bookingId = rideDetails.getString("booking_id");
@@ -545,6 +552,37 @@ public class CabDriverNewLiveRideActivity extends AppCompatActivity implements O
             String bookingTiming = rideDetails.getString("booking_timing");
             String formattedBookingTiming = getFormattedBookingTiming(bookingTiming);
 
+            if (bookingStatus.equalsIgnoreCase("Driver Arrived")) {
+                // Initialize timer
+                timerManager = new UnloadingTimerManager(this, assignedBookingId,
+                        binding.txtUnloadingTime, binding.txtPenaltyInfo,
+                        new UnloadingTimerManager.UnloadingTimerListener() {
+                            @Override
+                            public void onPenaltyUpdated(double totalPenalty, long penaltyMinutes) {
+                                // Store penalty for API update
+                                penaltyCharges = totalPenalty;
+                            }
+
+                            @Override
+                            public void onTimerFinished() {
+                                showToast("Free unloading time finished!");
+                            }
+                        });
+
+                binding.timerContainer.setVisibility(View.VISIBLE);
+                timerManager.startTimer(minimumWaitingTime, penaltyCharges);
+            } else if (bookingStatus.equalsIgnoreCase("Start Trip")) {
+                if (timerManager != null) {
+                    double finalPenalty = timerManager.getCurrentPenalty();
+                    if (finalPenalty > 0) {
+                        penaltyCharges = finalPenalty;
+                        //TODO: Update penalty amount in backend
+//                        updatePenaltyAmount(finalPenalty);
+                    }
+                    timerManager.stopTimer();
+                }
+                binding.timerContainer.setVisibility(View.GONE);
+            }
 
 
             // Update UI
@@ -573,6 +611,17 @@ public class CabDriverNewLiveRideActivity extends AppCompatActivity implements O
         } catch (JSONException e) {
             e.printStackTrace();
             showToast("Error updating ride details");
+        }
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        if (timerManager != null) {
+            timerManager.pauseTimer();
+        }
+        if (progressDialog != null && progressDialog.isShowing()) {
+            progressDialog.dismiss();
         }
     }
 

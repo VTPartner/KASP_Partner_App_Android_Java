@@ -129,11 +129,11 @@ public class GoodsBookingAcceptActivity extends AppCompatActivity {
     private void stopNotificationSound() {
         if (mediaPlayer != null && mediaPlayer.isPlaying()) {
             mediaPlayer.stop();
-            try {
-                mediaPlayer.prepare();
-            } catch (Exception e) {
-                Log.e(TAG, "Error preparing media player: " + e.getMessage());
-            }
+//            try {
+//                mediaPlayer.prepare();
+//            } catch (Exception e) {
+//                Log.e(TAG, "Error preparing media player: " + e.getMessage());
+//            }
         }
     }
 

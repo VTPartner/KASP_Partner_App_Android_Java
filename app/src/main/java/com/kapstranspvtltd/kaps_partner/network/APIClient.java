@@ -26,7 +26,7 @@ package com.kapstranspvtltd.kaps_partner.network;
  */
 
 public class APIClient {
-    public static final String RAZORPAY_ID = "rzp_test_61op4YoSkMBW6u"; //Test key rzp_test_crEnVFpHxMBW6u
+    public static final String RAZORPAY_ID = "rzp_live_2A74eAF3LgxMVM"; //Test key rzp_test_crEnVFpHxMBW6u //Live Key rzp_live_2A74eAF3LgxMVM
 
     private static final int DEV_MODE = 0; // If Dev Mode is 1 then development server is on and if 0 then production server is on
 

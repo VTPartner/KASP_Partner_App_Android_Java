@@ -88,6 +88,77 @@ public class AccessToken {
         VolleySingleton.getInstance(MyApplication.mContext).addToRequestQueue(request);
         return future;
     }
+
+    public static String getAgentAccessToken() {
+        // Return cached token if it's still valid
+        if (cachedToken != null && !cachedToken.isEmpty() && System.currentTimeMillis() < tokenExpiry) {
+            return cachedToken;
+        }
+
+        // Get new token
+        try {
+            return fetchAgentNewToken().get();
+        } catch (ExecutionException | InterruptedException e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+    private static CompletableFuture<String> fetchAgentNewToken() {
+        CompletableFuture<String> future = new CompletableFuture<>();
+        String url = APIClient.baseUrl + "get_agent_app_firebase_access_token";
+
+        JsonObjectRequest request = new JsonObjectRequest(
+                Request.Method.GET,
+                url,
+                null,
+                response -> {
+                    try {
+                        if (response.getString("status").equals("success")) {
+                            String token = response.getString("token");
+                            // Cache the token with 50 minutes expiry
+                            cachedToken = token;
+                            tokenExpiry = System.currentTimeMillis() + (50 * 60 * 1000);
+                            future.complete(token);
+                        } else {
+                            future.completeExceptionally(new Exception("Failed to get access token"));
+                        }
+                    } catch (Exception e) {
+                        future.completeExceptionally(e);
+                    }
+                },
+                error -> {
+                    String errorMessage;
+                    if (error instanceof NoConnectionError) {
+                        errorMessage = "No internet connection";
+                    } else if (error instanceof TimeoutError) {
+                        errorMessage = "Request timed out";
+                    } else if (error instanceof ServerError) {
+                        errorMessage = "Server error";
+                    } else {
+                        errorMessage = "Error: " + error.getMessage();
+                    }
+                    future.completeExceptionally(new Exception(errorMessage));
+                }
+        ) {
+            @Override
+            public Map<String, String> getHeaders() {
+                Map<String, String> headers = new HashMap<>();
+                headers.put("Content-Type", "application/json");
+                return headers;
+            }
+        };
+
+        request.setRetryPolicy(new DefaultRetryPolicy(
+                30000, // 30 seconds timeout
+                DefaultRetryPolicy.DEFAULT_MAX_RETRIES,
+                DefaultRetryPolicy.DEFAULT_BACKOFF_MULT
+        ));
+
+        VolleySingleton.getInstance(MyApplication.mContext).addToRequestQueue(request);
+        return future;
+    }
+
 }
 
 /* Commented out original implementation using service account
