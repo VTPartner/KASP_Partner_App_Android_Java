@@ -16,7 +16,8 @@
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.CALL_PHONE" />
     <uses-permission android:name="android.permission.CAMERA" />
-    <uses-permission android:name="android.permission.READ_PRIVILEGED_PHONE_STATE"
+    <uses-permission
+        android:name="android.permission.READ_PRIVILEGED_PHONE_STATE"
         tools:ignore="ProtectedPermissions" />
     <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
     <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS" />
@@ -50,6 +51,12 @@
         android:theme="@style/Theme.PartnerApp.NoActionBar"
         android:usesCleartextTraffic="true"
         tools:targetApi="31">
+        <activity
+            android:name=".goods_driver_activities.withdrawals.GoodsAgentWithdrawalTransactions"
+            android:exported="false" />
+        <activity
+            android:name=".goods_driver_activities.withdrawals.GoodsDriverWithdrawBottomSheet"
+            android:exported="false" />
         <activity
             android:name=".cab_driver_activities.settings_pages.CabAgentWalletActivity"
             android:exported="false" />
@@ -96,20 +103,17 @@
             android:name=".GoodsNewBookingFloatingWindowService"
             android:enabled="true"
             android:exported="true"
-            android:foregroundServiceType="specialUse" />
-
-        <receiver
-            android:name=".BootReceiver"
-            android:enabled="true"
-            android:exported="true"
-            android:permission="android.permission.RECEIVE_BOOT_COMPLETED">
-            <intent-filter>
-                <action android:name="android.intent.action.BOOT_COMPLETED" />
-                <action android:name="android.intent.action.QUICKBOOT_POWERON" />
-                <action android:name="com.htc.intent.action.QUICKBOOT_POWERON" />
-            </intent-filter>
-        </receiver>
-
+            android:foregroundServiceType="specialUse" /> <!-- <receiver -->
+        <!-- android:name=".BootReceiver" -->
+        <!-- android:enabled="true" -->
+        <!-- android:exported="true" -->
+        <!-- android:permission="android.permission.RECEIVE_BOOT_COMPLETED"> -->
+        <!-- <intent-filter> -->
+        <!-- <action android:name="android.intent.action.BOOT_COMPLETED" /> -->
+        <!-- <action android:name="android.intent.action.QUICKBOOT_POWERON" /> -->
+        <!-- <action android:name="com.htc.intent.action.QUICKBOOT_POWERON" /> -->
+        <!-- </intent-filter> -->
+        <!-- </receiver> -->
         <activity
             android:name=".jcb_crane_agent_activities.documents.vehicle_documents.JcbCraneAgentPUCUploadActivity"
             android:exported="false" />

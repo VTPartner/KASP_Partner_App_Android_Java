@@ -56,6 +56,9 @@ public class LocationUpdateService extends Service {
     private PreferenceManager preferenceManager;
     private VolleySingleton volleySingleton;
 
+    private static Location lastKnownLocation = null;
+    private static final Object locationLock = new Object();
+
     @Override
     public void onCreate() {
         super.onCreate();
@@ -87,6 +90,12 @@ public class LocationUpdateService extends Service {
         }
     }
 
+    public static Location getLastKnownLocation() {
+        synchronized (locationLock) {
+            return lastKnownLocation;
+        }
+    }
+
     private void requestLocationUpdates() {
         LocationRequest locationRequest = LocationRequest.create()
                 .setPriority(Priority.PRIORITY_HIGH_ACCURACY)
@@ -98,6 +107,10 @@ public class LocationUpdateService extends Service {
             public void onLocationResult(@NonNull LocationResult locationResult) {
                 Location location = locationResult.getLastLocation();
                 if (location != null) {
+                    // Store location in thread-safe way
+                    synchronized (locationLock) {
+                        lastKnownLocation = location;
+                    }
                     updateLocationToServer(location);
                 }
             }
@@ -306,6 +319,11 @@ public class LocationUpdateService extends Service {
         } else {
             startService(serviceIntent);
         }
+
+                // Clear last known location when service is manually stopped
+                synchronized (locationLock) {
+                    lastKnownLocation = null;
+                }
 //                // Restart service if it wasn't manually stopped
 //                Intent broadcastIntent = new Intent("com.vtpartnertranspvtltd.vt_partner.RESTART_SERVICE");
 //                sendBroadcast(broadcastIntent);

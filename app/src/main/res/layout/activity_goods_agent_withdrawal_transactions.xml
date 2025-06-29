@@ -28,7 +28,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:gravity="center|start"
-                android:text="@string/my_wallet"
+                android:text="@string/my_transaction"
                 android:textColor="@color/black"
                 android:textSize="18dp" />
         </LinearLayout>
@@ -70,18 +70,7 @@
                     android:textSize="14dp" />
             </LinearLayout>
 
-            <TextView
-                android:id="@+id/btnWithdraw"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginRight="10dp"
-                android:background="@drawable/rounded_button"
-                android:padding="7dp"
 
-
-                android:text="@string/withdraw"
-                android:textColor="@color/white"
-                android:textSize="12dp" />
 
         </LinearLayout>
 

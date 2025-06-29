@@ -7,7 +7,13 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.res.Resources;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.Canvas;
 import android.graphics.Color;
+import android.graphics.Paint;
+import android.graphics.Rect;
 import android.location.Location;
 import android.net.Uri;
 import android.os.Build;
@@ -92,9 +98,11 @@ public class NewLiveRideActivity extends AppCompatActivity implements OnMapReady
     private static final String STATUS_OTP_VERIFIED = "Otp Verified";
     private static final String STATUS_START_TRIP = "Start Trip";
     // Specific status for API if backend uses them
-    private static final String STATUS_REACHED_DROP_1 = "Reached Drop Location 1";
-    private static final String STATUS_REACHED_DROP_2 = "Reached Drop Location 2";
-    private static final String STATUS_REACHED_DROP_3 = "Reached Drop Location 3";
+//    private static final String STATUS_REACHED_DROP_1 = "Reached Drop Location 1";
+//    private static final String STATUS_REACHED_DROP_2 = "Reached Drop Location 2";
+//    private static final String STATUS_REACHED_DROP_3 = "Reached Drop Location 3";
+
+    private static final String STATUS_REACHED_DROP_PREFIX = "Reached Drop Location ";
     private static final String STATUS_MAKE_PAYMENT = "Make Payment";
     private static final String STATUS_END_TRIP = "End Trip";
     // Internal state marker for logic
@@ -107,11 +115,11 @@ public class NewLiveRideActivity extends AppCompatActivity implements OnMapReady
     private static final String ACTION_END_TRIP = "End Trip";
     // --- End Constants ---
 
-    private static final float ARRIVAL_THRESHOLD_METERS = 100; // Show arrived button within 100 meters
+    private static final float ARRIVAL_THRESHOLD_METERS = 150; // Show arrived button within 100 meters
 
     private ProximityNotificationManager proximityManager;
 
-    private static final float DROP_THRESHOLD_METERS = 100; // Show payment button within 100 meters
+    private static final float DROP_THRESHOLD_METERS = 150; // Show payment button within 100 meters
 
     private boolean isWithinDropThreshold = false;
     private BroadcastReceiver locationUpdateReceiver;
@@ -128,6 +136,8 @@ public class NewLiveRideActivity extends AppCompatActivity implements OnMapReady
     private int assignedBookingId = -1; // Initialize to invalid ID
     private String nextAction = ""; // Renamed from nextStatus for clarity
     private String currentApiStatus = ""; // Status received from API
+
+    private Double walletAmount = 0.0;
     private ProgressDialog progressDialog;
     private final ExecutorService executorService = Executors.newSingleThreadExecutor();
     private final Handler mainThreadHandler = new Handler(Looper.getMainLooper());
@@ -180,20 +190,21 @@ public class NewLiveRideActivity extends AppCompatActivity implements OnMapReady
     }
 
     private void checkProximityNotifications(String statusType) {
-        String bookingId = assignedBookingId + "";
-        if (bookingId == null || bookingId.isEmpty()) return;
+        String bookingId = String.valueOf(assignedBookingId);
+        if (bookingId.isEmpty()) return;
 
         String url = APIClient.baseUrl + "check_location_proximity";
 
-
         try {
-            int currentDropIndex = preferenceManager.getIntValue("current_drop_index_" + bookingId, 0);
-
             JSONObject params = new JSONObject();
             params.put("booking_id", bookingId);
             params.put("status_type", statusType);
-            params.put("current_drop_index", currentDropIndex);
             params.put("server_token", AccessToken.getAccessToken());
+
+            // Add current drop index for drop notifications
+            if (statusType.startsWith("Drop_")) {
+                params.put("current_drop_index", currentDropIndex);
+            }
 
             JsonObjectRequest request = new JsonObjectRequest(
                     Request.Method.POST,
@@ -201,33 +212,29 @@ public class NewLiveRideActivity extends AppCompatActivity implements OnMapReady
                     params,
                     response -> {
                         if (response.optBoolean("success", false)) {
-                            // Mark notification as sent in local tracking
+                            // Mark notification as sent
                             if (statusType.equals("Pickup")) {
-                                preferenceManager.saveBooleanValue("isPickupNotificationSent",true);
+                                preferenceManager.saveBooleanValue("isPickupNotificationSent", true);
                                 proximityManager.markNotificationSent(bookingId, "pickup", 0);
-                            } else {
+                            } else if (statusType.startsWith("Drop_")) {
                                 proximityManager.markNotificationSent(bookingId, "drop", currentDropIndex);
                             }
-                            Log.d(TAG, "Proximity notification sent successfully: " +
-                                    response.optString("message", ""));
+                            Log.d(TAG, "Proximity notification sent: " + statusType);
                         } else {
                             Log.w(TAG, "Failed to send proximity notification: " +
                                     response.optString("message", "Unknown error"));
                         }
                     },
                     error -> {
-                        Log.e(TAG, "Error checking proximity: " +
-                                (error.getMessage() != null ? error.getMessage() : "Unknown error"));
-                        if (error.networkResponse != null) {
-                            Log.e(TAG, "Error code: " + error.networkResponse.statusCode);
-                        }
+                        Log.e(TAG, "Error sending proximity notification: " + error.getMessage());
+                        handleVolleyError(error);
                     }
             );
 
             configureAndAddRequest(request);
 
         } catch (Exception e) {
-            Log.e(TAG, "Error preparing proximity check request: " + e.getMessage());
+            Log.e(TAG, "Error preparing proximity notification", e);
         }
     }
 
@@ -321,67 +328,96 @@ public class NewLiveRideActivity extends AppCompatActivity implements OnMapReady
   */
 
     private void checkProximityToPickup(double driverLat, double driverLng) {
-        // Quick validation to avoid unnecessary processing
-        if (driverLat == 0.0 || driverLng == 0.0) {
-            return;
-        }
-
         Location driverLocation = new Location("driver");
         driverLocation.setLatitude(driverLat);
         driverLocation.setLongitude(driverLng);
 
-        // Use local variables to avoid repeated field access
         String localCurrentStatus = currentApiStatus;
 
-        // Only calculate pickup distance if relevant
-        if (STATUS_DRIVER_ACCEPTED.equals(localCurrentStatus) &&
-                pickupLat != null && !pickupLat.equals("0.0")) {
+        // Handle pickup proximity
+        if (STATUS_DRIVER_ACCEPTED.equals(localCurrentStatus)) {
+            handlePickupProximity(driverLocation);
+        }
 
-            // Calculate pickup distance
-            float distanceToPickup = calculateDistance(
-                    driverLat, driverLng,
-                    Double.parseDouble(pickupLat),
-                    Double.parseDouble(pickupLng)
+        // Handle drop location proximity for both START_TRIP and REACHED_DROP states
+        if (STATUS_START_TRIP.equals(localCurrentStatus) ||
+                localCurrentStatus.startsWith(STATUS_REACHED_DROP_PREFIX)) {
+            handleDropProximity(driverLocation);
+        }
+    }
+
+    private void handlePickupProximity(Location driverLocation) {
+        if (pickupLat == null || pickupLat.equals("0.0")) return;
+
+        float distanceToPickup = calculateDistance(
+                driverLocation.getLatitude(), driverLocation.getLongitude(),
+                Double.parseDouble(pickupLat), Double.parseDouble(pickupLng)
+        );
+
+        boolean shouldShowArrived = distanceToPickup <= ARRIVAL_THRESHOLD_METERS;
+        boolean isPickupNotificationSent = preferenceManager.getBooleanValue("isPickupNotificationSent", false);
+
+        mainThreadHandler.post(() -> {
+            binding.btnArrived.setVisibility(shouldShowArrived ? View.VISIBLE : View.GONE);
+            if (shouldShowArrived && !isPickupNotificationSent) {
+                checkProximityNotifications("Pickup");
+            }
+        });
+    }
+
+    private void handleDropProximity(Location driverLocation) {
+        LatLng targetDrop = getTargetDropLocation();
+        if (targetDrop == null) return;
+
+        float distanceToDrop = calculateDistance(
+                driverLocation.getLatitude(), driverLocation.getLongitude(),
+                targetDrop.latitude, targetDrop.longitude
+        );
+
+        boolean newThresholdState = distanceToDrop <= DROP_THRESHOLD_METERS;
+        if (newThresholdState != isWithinDropThreshold) {
+            isWithinDropThreshold = newThresholdState;
+            updateDropButtonVisibility();
+
+            // Send notification if within threshold and not sent yet
+            if (isWithinDropThreshold) {
+                String bookingId = String.valueOf(assignedBookingId);
+                boolean hasNotificationBeenSent;
+
+                if (multipleDrops > 0) {
+                    hasNotificationBeenSent = proximityManager.hasNotificationBeenSent(
+                            bookingId, "drop", currentDropIndex);
+                } else {
+                    hasNotificationBeenSent = proximityManager.hasNotificationBeenSent(
+                            bookingId, "drop", 0);
+                }
+
+                if (!hasNotificationBeenSent) {
+                    String dropNotificationType;
+                    if (multipleDrops > 0) {
+                        dropNotificationType = "Drop_" + (currentDropIndex + 1);
+                    } else {
+                        dropNotificationType = "Drop_1";
+                    }
+                    checkProximityNotifications(dropNotificationType);
+                }
+            }
+        }
+    }
+
+
+
+    private LatLng getTargetDropLocation() {
+        if (multipleDrops > 0 && !allDropLatLngs.isEmpty() &&
+                currentDropIndex < allDropLatLngs.size()) {
+            return allDropLatLngs.get(currentDropIndex);
+        } else if (destinationLat != null && !destinationLat.equals("0.0")) {
+            return new LatLng(
+                    Double.parseDouble(destinationLat),
+                    Double.parseDouble(destinationLng)
             );
-
-            // Update UI only if visibility needs to change
-            boolean shouldShowArrived = distanceToPickup <= ARRIVAL_THRESHOLD_METERS;
-            boolean isPickupNotificationSent = preferenceManager.getBooleanValue("isPickupNotificationSent", false);
-            if (shouldShowArrived != (binding.btnArrived.getVisibility() == View.VISIBLE)) {
-                mainThreadHandler.post(() ->{
-                        binding.btnArrived.setVisibility(shouldShowArrived ? View.VISIBLE : View.GONE);
-                        if(shouldShowArrived && isPickupNotificationSent == false){
-
-                            checkProximityNotifications("Pickup");
-                        }
-                }
-                );
-            }
         }
-
-        // Check drop location only if in trip
-        if (STATUS_START_TRIP.equals(localCurrentStatus)) {
-            LatLng targetDrop = getTargetDropLocation();
-
-
-            if (targetDrop != null) {
-                float distanceToDrop = calculateDistance(
-                        driverLat, driverLng,
-                        targetDrop.latitude,
-                        targetDrop.longitude
-                );
-                System.out.println("distanceToDrop::"+distanceToDrop);
-                System.out.println("DROP_THRESHOLD_METERS::"+DROP_THRESHOLD_METERS);
-                System.out.println("isWithinDropThreshold::"+isWithinDropThreshold);
-                boolean newThresholdState = distanceToDrop <= DROP_THRESHOLD_METERS;
-                System.out.println("newThresholdState::"+newThresholdState);
-                // Only update if state changed
-                if (newThresholdState != isWithinDropThreshold) {
-                    isWithinDropThreshold = newThresholdState;
-                    updateDropButtonVisibility();
-                }
-            }
-        }
+        return null;
     }
 
     // Helper method to calculate distance faster
@@ -398,58 +434,43 @@ public class NewLiveRideActivity extends AppCompatActivity implements OnMapReady
     }
 
     // Helper method to get target drop location
-    private LatLng getTargetDropLocation() {
-        if (multipleDrops > 0 && !allDropLatLngs.isEmpty() && currentDropIndex < allDropLatLngs.size()) {
-            return allDropLatLngs.get(currentDropIndex);
-        } else if (destinationLat != null && !destinationLat.equals("0.0")) {
-            return new LatLng(
-                    Double.parseDouble(destinationLat),
-                    Double.parseDouble(destinationLng)
-            );
-        }
-        return null;
-    }
+
 
     // Helper method to update drop button visibility
     private void updateDropButtonVisibility() {
-        String bookingId = String.valueOf(assignedBookingId);
-        boolean hasNotificationBeenSent = false;
-
-        // Check if notification has been sent for current drop
-        if (multipleDrops > 0) {
-            hasNotificationBeenSent = proximityManager.hasNotificationBeenSent(
-                    bookingId, "drop", currentDropIndex);
-        } else {
-            hasNotificationBeenSent = proximityManager.hasNotificationBeenSent(
-                    bookingId, "drop", 0);
-        }
-
-        boolean finalHasNotificationBeenSent = hasNotificationBeenSent;
         mainThreadHandler.post(() -> {
-            if (nextAction != null &&
-                    (nextAction.startsWith(ACTION_CONFIRM_REACHED_DROP) ||
-                            (nextAction.equals(ACTION_SEND_PAYMENT_DETAILS) &&
-                                    !STATUS_MAKE_PAYMENT.equals(currentApiStatus)))) {
+            if (nextAction == null) return;
 
-                binding.btnSendPaymentDetails.setVisibility(
-                        isWithinDropThreshold ? View.VISIBLE : View.GONE
-                );
+            boolean shouldShowButton = false;
+            String buttonText = "";
 
-                // Send proximity notification if within threshold and not sent yet
-                if (isWithinDropThreshold && !finalHasNotificationBeenSent) {
-                    if (multipleDrops > 0) {
-                        checkProximityNotifications("Drop_" + currentDropIndex);
-                    } else {
-                        checkProximityNotifications("Drop_0"); // Use 0-based index consistently
-                    }
+            // Determine if button should be shown and what text to display
+            if (nextAction.startsWith(ACTION_CONFIRM_REACHED_DROP) ||
+                    (nextAction.equals(ACTION_SEND_PAYMENT_DETAILS) &&
+                            !STATUS_MAKE_PAYMENT.equals(currentApiStatus))) {
+
+                if (isWithinDropThreshold || STATUS_MAKE_PAYMENT.equals(currentApiStatus)) {
+                    shouldShowButton = true;
+                    buttonText = nextAction;
                 }
+            }
 
-                if (isWithinDropThreshold) {
-                    binding.btnSendPaymentDetails.setText(nextAction);
-                }
+            // Update button visibility and text
+            binding.btnSendPaymentDetails.setVisibility(shouldShowButton ? View.VISIBLE : View.GONE);
+            if (shouldShowButton) {
+                binding.btnSendPaymentDetails.setText(buttonText);
+            }
+
+            // Show toast if moving out of threshold
+            if (!shouldShowButton && !STATUS_MAKE_PAYMENT.equals(currentApiStatus)) {
+                showToast("Get closer to drop location to mark delivery");
             }
         });
     }
+
+
+
+
     /*private void updateDropButtonVisibility() {
         boolean isDropNotificationSent = preferenceManager.getBooleanValue("isDropNotificationSent", false);
         mainThreadHandler.post(() -> {
@@ -677,6 +698,7 @@ public class NewLiveRideActivity extends AppCompatActivity implements OnMapReady
                             Log.d(TAG, "Received Ride Details: " + rideDetails.toString());
                             updateRideDetails(rideDetails);
                             showOnMap(); // Update map after details are processed
+                            preferenceManager.saveBooleanValue("isOnLiveRide",true);
                         } else {
                             Log.w(TAG, "No results found in fetchBookingDetails response for ID: " + bookingIdToFetch);
                             showError("Booking details not found.");
@@ -710,6 +732,7 @@ public class NewLiveRideActivity extends AppCompatActivity implements OnMapReady
     private void updateRideDetails(JSONObject rideDetails) {
         try {
             // --- Basic Details ---
+            walletAmount = rideDetails.getDouble("wallet_amount_used");
             currentApiStatus = rideDetails.getString("booking_status"); // Store the status from API
             minimumWaitingTime = rideDetails.getInt("minimum_waiting_time");
             penaltyCharges = rideDetails.getDouble("penalty_charge");
@@ -942,76 +965,94 @@ public class NewLiveRideActivity extends AppCompatActivity implements OnMapReady
         }
     }
 
+    private String getReachedDropStatus(int dropNumber) {
+        return STATUS_REACHED_DROP_PREFIX + dropNumber;
+    }
+
+    private int getDropNumberFromStatus(String status) {
+        if (status != null && status.startsWith(STATUS_REACHED_DROP_PREFIX)) {
+            try {
+                return Integer.parseInt(status.substring(STATUS_REACHED_DROP_PREFIX.length()));
+            } catch (NumberFormatException e) {
+                Log.e(TAG, "Error parsing drop number from status: " + status);
+            }
+        }
+        return -1;
+    }
+
     // Determines the next *action* the driver should take
     private void updateNextStatus(String currentApiStatus) {
-        this.currentApiStatus = currentApiStatus; // Store the latest status from API
-        nextAction = ""; // Reset next action
-        System.out.println("currentApiStatus::"+currentApiStatus);
+        this.currentApiStatus = currentApiStatus;
+        nextAction = "";
+
+        if (currentApiStatus.startsWith(STATUS_REACHED_DROP_PREFIX)) {
+            // Extract drop number from status
+            int completedDropNumber = getDropNumberFromStatus(currentApiStatus);
+            if (completedDropNumber > 0) {
+                currentDropIndex = completedDropNumber; // Update current index based on completed drop
+            }
+        }
+
         switch (currentApiStatus) {
             case STATUS_DRIVER_ACCEPTED:
                 binding.txtTripDetails.setVisibility(View.VISIBLE);
                 nextAction = ACTION_CONFIRM_ARRIVAL;
                 break;
+
             case STATUS_DRIVER_ARRIVED:
                 nextAction = ACTION_VERIFY_OTP;
                 break;
+
             case STATUS_OTP_VERIFIED:
                 nextAction = ACTION_START_TRIP;
                 break;
+
             case STATUS_START_TRIP:
-                // Determine if heading to a drop or finished all drops
                 if (multipleDrops > 0 && !allDropLatLngs.isEmpty()) {
-                    if (currentDropIndex < allDropLatLngs.size()) {
-                        // Still have drops to visit
-                        int dropNumber = currentDropIndex + 1;
-                        nextAction = ACTION_CONFIRM_REACHED_DROP + dropNumber;
-                    } else {
-                        // All multi-drops completed
-                        nextAction = ACTION_SEND_PAYMENT_DETAILS; // Ready for payment
-                    }
+                    nextAction = ACTION_CONFIRM_REACHED_DROP + "1";
                 } else {
-                    // Single drop scenario
-                    nextAction = ACTION_SEND_PAYMENT_DETAILS; // Ready for payment
-                }
-                break;
-            // Handle cases where the API status reflects a completed drop
-            case STATUS_REACHED_DROP_1:
-            case STATUS_REACHED_DROP_2:
-            case STATUS_REACHED_DROP_3: // Add more if needed
-                if (multipleDrops > 0 && !allDropLatLngs.isEmpty()) {
-                    // Assume currentDropIndex was updated *before* this status was set
-                    if (currentDropIndex < allDropLatLngs.size()) {
-                        int dropNumber = currentDropIndex + 1;
-                        nextAction = ACTION_CONFIRM_REACHED_DROP + dropNumber;
-                    } else {
-                        nextAction = ACTION_SEND_PAYMENT_DETAILS; // All done
-                    }
-                } else {
-                    // Should technically not happen for single drop
                     nextAction = ACTION_SEND_PAYMENT_DETAILS;
                 }
                 break;
 
-            case STATUS_MAKE_PAYMENT: // Status indicating payment details sent
-                nextAction = ACTION_END_TRIP; // Final step is ending via payment dialog
+            case STATUS_MAKE_PAYMENT:
+                nextAction = ACTION_END_TRIP;
                 break;
+
             case STATUS_END_TRIP:
-                nextAction = ""; // Ride finished
-                // Consider triggering navigation home here if not done elsewhere
+                nextAction = "";
                 handleNoLiveRideFound();
                 break;
-            // Add case for "Cancelled" if needed
+
             default:
-                Log.w(TAG, "Unhandled API Status: " + currentApiStatus);
-                // If unknown status, maybe default to ending trip or showing no action
-                if (totalPrice > 0) { // Basic check if ride seems active
-                    nextAction = ACTION_END_TRIP;
+                if (currentApiStatus.startsWith(STATUS_REACHED_DROP_PREFIX)) {
+                    handleReachedDropStatus();
                 } else {
-                    nextAction = "";
+                    Log.w(TAG, "Unhandled API Status: " + currentApiStatus);
+                    if (totalPrice > 0) {
+                        nextAction = ACTION_END_TRIP;
+                    }
                 }
                 break;
         }
-        Log.i(TAG, "updateNextStatus - Current API Status: '" + currentApiStatus + "', Next Driver Action: '" + nextAction + "', Drop Index: " + currentDropIndex);
+
+        Log.i(TAG, String.format("Status Update - API Status: '%s', Next Action: '%s', Drop Index: %d",
+                currentApiStatus, nextAction, currentDropIndex));
+    }
+
+    private void handleReachedDropStatus() {
+        if (multipleDrops > 0 && !allDropLatLngs.isEmpty()) {
+            if (currentDropIndex < allDropLatLngs.size()) {
+                // More drops remaining
+                nextAction = ACTION_CONFIRM_REACHED_DROP + (currentDropIndex + 1);
+            } else {
+                // All drops completed
+                nextAction = ACTION_SEND_PAYMENT_DETAILS;
+            }
+        } else {
+            // Single drop scenario - move to payment
+            nextAction = ACTION_SEND_PAYMENT_DETAILS;
+        }
     }
 
     // Updates button visibility and text based on 'nextAction'
@@ -1124,51 +1165,28 @@ public class NewLiveRideActivity extends AppCompatActivity implements OnMapReady
 
     // Specific confirmation for reaching a drop-off point
     private void handleReachedDropConfirmation() {
-        if (multipleDrops <= 0 || allDropAddresses.isEmpty() || currentDropIndex >= allDropAddresses.size()) {
-            Log.e(TAG, "Invalid state for Reached Drop confirmation. Index: " + currentDropIndex + ", Total Drops: " + allDropAddresses.size());
-            showToast("Internal error confirming drop.");
+        if (multipleDrops <= 0 || allDropLatLngs.isEmpty() || currentDropIndex >= allDropLatLngs.size()) {
+            showToast("Invalid drop state");
             return;
         }
 
-        int dropNumberUi = currentDropIndex + 1; // For display (1-based)
+        int dropNumber = currentDropIndex + 1;
         String address = allDropAddresses.get(currentDropIndex);
-        String title = "Confirm Drop " + dropNumberUi;
-        String message = "Have you reached Drop " + dropNumberUi + " at:\n" + address + "?";
 
         new AlertDialog.Builder(this, R.style.AlertDialogTheme)
-                .setTitle(title)
-                .setMessage(message)
+                .setTitle("Confirm Drop " + dropNumber)
+                .setMessage("Have you reached Drop " + dropNumber + " at:\n" + address + "?")
                 .setPositiveButton("Yes, Reached", (dialog, which) -> {
-                    // --- Driver Confirmed Reaching Drop ---
-                    Log.i(TAG, "Driver confirmed reaching Drop " + dropNumberUi);
-
-                    // Determine the API status to send based on which drop it is
                     String apiStatusUpdate;
-                    int nextDropIndex = currentDropIndex + 1; // Index after this one is completed
-
-                    if (nextDropIndex >= allDropLatLngs.size()) {
-                        // This was the LAST drop
-                        apiStatusUpdate = STATUS_MAKE_PAYMENT; // Or a specific "Reached Last Drop" if API supports it
-                        Log.d(TAG, "This was the last drop. Setting status for API: " + apiStatusUpdate);
+                    if (currentDropIndex + 1 >= allDropLatLngs.size()) {
+                        // Last drop
+                        apiStatusUpdate = STATUS_MAKE_PAYMENT;
                     } else {
-                        // Intermediate drop completed, determine specific status
-                        switch(dropNumberUi) {
-                            case 1: apiStatusUpdate = STATUS_REACHED_DROP_1; break;
-                            case 2: apiStatusUpdate = STATUS_REACHED_DROP_2; break;
-                            case 3: apiStatusUpdate = STATUS_REACHED_DROP_3; break;
-                            // Add more cases if needed, or use a generic "Reached Drop"
-                            default:
-                                Log.w(TAG, "Reached drop " + dropNumberUi + ", using generic status (if API supports).");
-                                apiStatusUpdate = "Reached Drop Location"; // Generic fallback - CHECK API
-                                break;
-                        }
-                        Log.d(TAG, "Intermediate drop " + dropNumberUi + " reached. Setting status for API: " + apiStatusUpdate);
+                        // Generate dynamic status for any drop number
+                        apiStatusUpdate = getReachedDropStatus(dropNumber);
                     }
 
-                    // Update the status via API
                     updateRideStatus(apiStatusUpdate);
-
-
                 })
                 .setNegativeButton("No", null)
                 .show();
@@ -1250,30 +1268,23 @@ public class NewLiveRideActivity extends AppCompatActivity implements OnMapReady
 
                     // --- Include current_drop_index if relevant ---
                     // Send the index of the drop that was *just completed* when confirming reach.
-                    if (statusToUpdate.startsWith("Reached Drop Location") || statusToUpdate.equals(STATUS_MAKE_PAYMENT)) {
-                        // If status is "Reached Drop Location X", index X-1 was just completed.
-                        // If status is "Make Payment", the last drop (index size-1) was just completed.
-                        int completedIndex = -1;
+                    // Handle dynamic drop locations
+                    if (statusToUpdate.startsWith(STATUS_REACHED_DROP_PREFIX) ||
+                            statusToUpdate.equals(STATUS_MAKE_PAYMENT)) {
+
+                        int completedDropIndex = -1;
                         if (statusToUpdate.equals(STATUS_MAKE_PAYMENT)) {
-                            completedIndex = allDropLatLngs.size() - 1; // Last index
-                        } else if (statusToUpdate.startsWith("Reached Drop Location")) {
-                            try {
-                                // Extract number from status string (e.g., "Reached Drop Location 1" -> 1)
-                                String numberStr = statusToUpdate.substring(statusToUpdate.lastIndexOf(" ") + 1);
-                                int dropNumber = Integer.parseInt(numberStr);
-                                completedIndex = dropNumber - 1; // 0-based index
-                            } catch (NumberFormatException | IndexOutOfBoundsException e) {
-                                Log.e(TAG,"Could not parse drop number from status: " + statusToUpdate);
-                                // Fallback: send the current index? Check API docs.
-                                completedIndex = currentDropIndex; // Might be off by one depending on timing
+                            completedDropIndex = allDropLatLngs.size() - 1;
+                        } else {
+                            int dropNumber = getDropNumberFromStatus(statusToUpdate);
+                            if (dropNumber > 0) {
+                                completedDropIndex = dropNumber - 1;
                             }
                         }
 
-                        if (completedIndex >= 0) {
-                            params.put("current_drop_index", completedIndex);
-                            Log.d(TAG,"Including completed_drop_index: " + completedIndex + " for status update: " + statusToUpdate);
-                        } else {
-                            Log.w(TAG, "Not including drop index for status: " + statusToUpdate);
+                        if (completedDropIndex >= 0) {
+                            params.put("current_drop_index", completedDropIndex);
+                            Log.d(TAG, "Including completed_drop_index: " + completedDropIndex);
                         }
                     }
                     // --- End include current_drop_index ---
@@ -1292,6 +1303,7 @@ public class NewLiveRideActivity extends AppCompatActivity implements OnMapReady
                         response -> {
                             hideLoading();
                             Log.d(TAG, "updateRideStatus Success: " + response.toString());
+                            hideAllActionButtons();
                             showToast("Status updated to " + statusToUpdate);
 
                             // --- IMPORTANT: Update local state AFTER API success ---
@@ -1346,6 +1358,14 @@ public class NewLiveRideActivity extends AppCompatActivity implements OnMapReady
                 .setCancelable(false)
                 .create();
 
+        //Showing Wallet Amount if Used
+
+        if(walletAmount>0){
+            dialogBinding.walletLyt.setVisibility(View.VISIBLE);
+            dialogBinding.txtWalletAmtUsed.setText("₹" + Math.round(walletAmount));
+        }else{
+            dialogBinding.walletLyt.setVisibility(View.GONE);
+        }
 
 
         // Show penalty amount if exists
@@ -1492,6 +1512,10 @@ public class NewLiveRideActivity extends AppCompatActivity implements OnMapReady
     private void clearRideState() {
         Log.d(TAG,"Clearing ride state for booking ID: " + assignedBookingId);
         // Consider clearing other ride detail variables if necessary
+
+
+        preferenceManager.saveBooleanValue("isOnLiveRide",false);
+
         preferenceManager.saveBooleanValue("isPickupNotificationSent",false);
         String bookingId = assignedBookingId+"";
         if (bookingId != null && !bookingId.isEmpty()) {
@@ -1523,12 +1547,19 @@ public class NewLiveRideActivity extends AppCompatActivity implements OnMapReady
     }
 
     private void navigateToHome() {
+        boolean isOnLiveRide = preferenceManager.getBooleanValue("isOnLiveRide");
         Log.d(TAG, "Navigating to HomeActivity.");
-        Intent intent = new Intent(this, HomeActivity.class);
-        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-        startActivity(intent);
-        finish(); // Finish this activity
+        if (isOnLiveRide) {
+            // Minimize the app (send to background)
+            moveTaskToBack(true);
+        } else {
+            Intent intent = new Intent(this, HomeActivity.class);
+            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+            startActivity(intent);
+            finish(); // Finish this activity
+        }
     }
+
 
     private void navigateToHomeDelayed() {
         new Handler(Looper.getMainLooper()).postDelayed(this::navigateToHome, 1500); // 1.5 second delay
@@ -1565,7 +1596,7 @@ public class NewLiveRideActivity extends AppCompatActivity implements OnMapReady
         }
     }
 
-    private void showOnMap() {
+    /*private void showOnMap() {
         if (mMap == null) {
             Log.w(TAG, "showOnMap called but map is not ready.");
             return;
@@ -1583,14 +1614,16 @@ public class NewLiveRideActivity extends AppCompatActivity implements OnMapReady
         dropMarkers.clear();
         routePolylines.clear();
 
+
         // --- Add Pickup Marker ---
         LatLng pickupLatLng = new LatLng(Double.parseDouble(pickupLat), Double.parseDouble(pickupLng));
+        Bitmap pickupBitmap = drawTextToBitmap(this, R.drawable.ic_current_long, "P");
         pickupMarker = mMap.addMarker(new MarkerOptions()
                 .position(pickupLatLng)
                 .title("Pickup")
-                .snippet(pickupAddress) // Show address in snippet
-                .icon(BitmapDescriptorFactory.fromResource(R.drawable.ic_current_long)) // Use specific icon
-                .zIndex(0.5f)); // Slightly above default
+                .snippet(pickupAddress)
+                .icon(BitmapDescriptorFactory.fromBitmap(pickupBitmap))
+                .zIndex(0.5f));
 
         LatLngBounds.Builder boundsBuilder = new LatLngBounds.Builder();
         boundsBuilder.include(pickupLatLng);
@@ -1603,56 +1636,70 @@ public class NewLiveRideActivity extends AppCompatActivity implements OnMapReady
             for (int i = 0; i < allDropLatLngs.size(); i++) {
                 LatLng dropLatLng = allDropLatLngs.get(i);
                 String title = "Drop " + (i + 1);
-                int markerIconRes;
                 float alpha = 1.0f;
                 float zIndex = 0.0f;
-                boolean isCurrentTarget = (i == currentDropIndex && currentApiStatus != null && (currentApiStatus.equals(STATUS_START_TRIP) || currentApiStatus.startsWith("Reached Drop")));
+                boolean isCurrentTarget = (i == currentDropIndex && currentApiStatus != null &&
+                        (currentApiStatus.equals(STATUS_START_TRIP) ||
+                                currentApiStatus.startsWith("Reached Drop")));
 
+                // Create marker with index number
+                Bitmap markerBitmap;
                 if (i < currentDropIndex) {
-                    // Completed Drop
-                    markerIconRes = R.drawable.ic_destination_long; // Use completed icon
+                    // Completed Drop - faded with number
+                    markerBitmap = drawTextToBitmap(this, R.drawable.ic_destination_long,
+                            String.valueOf(i + 1));
                     title += " (Completed)";
-                    alpha = 0.6f; // Fade completed
+                    alpha = 0.6f;
                 } else if (isCurrentTarget) {
-                    // Current Target Drop
-                    markerIconRes = R.drawable.ic_current_long; // Use highlighted icon
+                    // Current Target Drop - highlighted with number
+                    markerBitmap = drawTextToBitmap(this, R.drawable.ic_destination_long,
+                            String.valueOf(i + 1));
                     title += " (Next)";
-                    zIndex = 1.0f; // Bring to front
+                    zIndex = 1.0f;
                 } else {
-                    // Upcoming Drop
-                    markerIconRes = R.drawable.ic_destination_long; // Standard drop icon
+                    // Upcoming Drop - normal with number
+                    markerBitmap = drawTextToBitmap(this, R.drawable.ic_destination_long,
+                            String.valueOf(i + 1));
                 }
 
                 Marker dropMarker = mMap.addMarker(new MarkerOptions()
                         .position(dropLatLng)
                         .title(title)
-                        .snippet(allDropAddresses.size() > i ? allDropAddresses.get(i) : "Drop Address") // Show address
-                        .icon(BitmapDescriptorFactory.fromResource(markerIconRes))
+                        .snippet(allDropAddresses.size() > i ? allDropAddresses.get(i) : "Drop Address")
+                        .icon(BitmapDescriptorFactory.fromBitmap(markerBitmap))
                         .alpha(alpha)
                         .zIndex(zIndex));
                 dropMarkers.add(dropMarker);
                 boundsBuilder.include(dropLatLng);
 
-                // Draw route segment if this drop is relevant
-                if (i <= currentDropIndex || i == 0) { // Draw route up to and including current target
+                // Draw route segment
+                if (i <= currentDropIndex || i == 0) {
                     drawRoute(lastPointForRoute, dropLatLng);
-                    lastPointForRoute = dropLatLng; // Next route starts from here
+                    lastPointForRoute = dropLatLng;
                 }
             }
         } else {
             // Single Drop Scenario
-            if (destinationLat != null && !destinationLat.equals("0.0") && destinationLng != null && !destinationLng.equals("0.0")) {
-                LatLng dropLatLng = new LatLng(Double.parseDouble(destinationLat), Double.parseDouble(destinationLng));
+            if (destinationLat != null && !destinationLat.equals("0.0") &&
+                    destinationLng != null && !destinationLng.equals("0.0")) {
+
+                LatLng dropLatLng = new LatLng(
+                        Double.parseDouble(destinationLat),
+                        Double.parseDouble(destinationLng));
+
+                // Create single drop marker with "1"
+                Bitmap dropBitmap = drawTextToBitmap(this, R.drawable.ic_destination_long, "1");
                 Marker dropMarker = mMap.addMarker(new MarkerOptions()
                         .position(dropLatLng)
                         .title("Drop")
                         .snippet(dropAddress)
-                        .icon(BitmapDescriptorFactory.fromResource(R.drawable.ic_destination_long))); // Standard drop icon
-                dropMarkers.add(dropMarker); // Add to list even if single
+                        .icon(BitmapDescriptorFactory.fromBitmap(dropBitmap)));
+
+                dropMarkers.add(dropMarker);
                 boundsBuilder.include(dropLatLng);
-                drawRoute(lastPointForRoute, dropLatLng); // Draw route from pickup to single drop
+                drawRoute(lastPointForRoute, dropLatLng);
             } else {
-                Log.w(TAG,"Single drop selected, but destination coordinates are invalid.");
+                Log.w(TAG, "Single drop selected, but destination coordinates are invalid.");
             }
         }
 
@@ -1703,6 +1750,286 @@ public class NewLiveRideActivity extends AppCompatActivity implements OnMapReady
             LatLng centerPoint = determineMapCenter();
             mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(centerPoint, 14)); // Non-animated fallback
         }
+    }*/
+
+    private void showOnMap() {
+        if (mMap == null) {
+            Log.w(TAG, "showOnMap called but map is not ready.");
+            return;
+        }
+        if (pickupLat == null || pickupLat.equals("0.0") || pickupLng == null || pickupLng.equals("0.0")) {
+            Log.w(TAG, "showOnMap called but pickup location is invalid.");
+            // Don't clear map if pickup is invalid, might be showing previous state
+            return;
+        }
+
+        Log.d(TAG,"showOnMap - Updating map for booking: " + assignedBookingId + ", Current Drop Index: " + currentDropIndex + ", Status: " + currentApiStatus);
+
+        // --- Clear Previous Map Elements ---
+        mMap.clear(); // Clears all markers, polylines, etc.
+        dropMarkers.clear();
+        routePolylines.clear();
+
+        // --- Add Pickup Marker ---
+
+        LatLng pickupLatLng = new LatLng(Double.parseDouble(pickupLat), Double.parseDouble(pickupLng));
+        Bitmap pickupBitmap = drawTextToBitmap(this, R.drawable.ic_current_long, "P");
+        pickupMarker = mMap.addMarker(new MarkerOptions()
+                .position(pickupLatLng)
+                .title("Pickup")
+                .snippet(pickupAddress)
+                .icon(BitmapDescriptorFactory.fromBitmap(pickupBitmap))
+                .zIndex(0.5f));
+
+        LatLngBounds.Builder boundsBuilder = new LatLngBounds.Builder();
+
+        boundsBuilder.include(pickupLatLng);
+
+        // --- Add Driver Location Marker ---
+        Location driverLocation = LocationUpdateService.getLastKnownLocation();
+        LatLng driverLatLng = null;
+
+
+        if (driverLocation != null) {
+            driverLatLng = new LatLng(driverLocation.getLatitude(), driverLocation.getLongitude());
+            // Use a distinct icon for driver
+            Bitmap driverBitmap = drawTextToBitmap(this, R.drawable.ic_logistic, "D");
+            mMap.addMarker(new MarkerOptions()
+                    .position(driverLatLng)
+                    .title("Your Location")
+                    .icon(BitmapDescriptorFactory.fromBitmap(driverBitmap))
+                    .zIndex(2.0f)); // Keep driver marker on top
+
+            boundsBuilder.include(driverLatLng);
+        }
+
+
+
+
+
+
+        // Determine navigation target based on current status
+        LatLng targetForDriverRoute = null;
+        if (STATUS_DRIVER_ACCEPTED.equals(currentApiStatus) ||
+                STATUS_DRIVER_ARRIVED.equals(currentApiStatus)) {
+            // Route to pickup
+            targetForDriverRoute = pickupLatLng;
+        } else if (STATUS_START_TRIP.equals(currentApiStatus) ||
+                currentApiStatus.startsWith(STATUS_REACHED_DROP_PREFIX)) {
+            // Route to current drop
+            if (multipleDrops > 0 && !allDropLatLngs.isEmpty() &&
+                    currentDropIndex < allDropLatLngs.size()) {
+                targetForDriverRoute = allDropLatLngs.get(currentDropIndex);
+            } else if (multipleDrops < 0 && destinationLat != null &&
+                    !destinationLat.equals("0.0")) {
+                targetForDriverRoute = new LatLng(
+                        Double.parseDouble(destinationLat),
+                        Double.parseDouble(destinationLng)
+                );
+            }
+        }
+
+        // Draw route from driver to target if both points exist
+        if (driverLatLng != null && targetForDriverRoute != null) {
+            drawDriverRoute(driverLatLng, targetForDriverRoute);
+            boundsBuilder.include(targetForDriverRoute);
+        }
+
+
+        // --- Add Drop Markers & Calculate Routes ---
+        LatLng lastPointForRoute = pickupLatLng; // Start route from pickup
+
+        if (multipleDrops > 0 && !allDropLatLngs.isEmpty()) {
+            // Multiple Drops Scenario
+            for (int i = 0; i < allDropLatLngs.size(); i++) {
+                LatLng dropLatLng = allDropLatLngs.get(i);
+                String title = "Drop " + (i + 1);
+                float alpha = 1.0f;
+                float zIndex = 0.0f;
+                boolean isCurrentTarget = (i == currentDropIndex && currentApiStatus != null &&
+                        (currentApiStatus.equals(STATUS_START_TRIP) ||
+                                currentApiStatus.startsWith("Reached Drop")));
+
+                // Create marker with index number
+                Bitmap markerBitmap;
+                if (i < currentDropIndex) {
+                    // Completed Drop - faded with number
+                    markerBitmap = drawTextToBitmap(this, R.drawable.ic_destination_long,
+                            String.valueOf(i + 1));
+                    title += " (Completed)";
+                    alpha = 0.6f;
+                } else if (isCurrentTarget) {
+                    // Current Target Drop - highlighted with number
+                    markerBitmap = drawTextToBitmap(this, R.drawable.ic_destination_long,
+                            String.valueOf(i + 1));
+                    title += " (Next)";
+                    zIndex = 1.0f;
+                } else {
+                    // Upcoming Drop - normal with number
+                    markerBitmap = drawTextToBitmap(this, R.drawable.ic_destination_long,
+                            String.valueOf(i + 1));
+                }
+
+                Marker dropMarker = mMap.addMarker(new MarkerOptions()
+                        .position(dropLatLng)
+                        .title(title)
+                        .snippet(allDropAddresses.size() > i ? allDropAddresses.get(i) : "Drop Address")
+                        .icon(BitmapDescriptorFactory.fromBitmap(markerBitmap))
+                        .alpha(alpha)
+                        .zIndex(zIndex));
+                dropMarkers.add(dropMarker);
+                boundsBuilder.include(dropLatLng);
+
+                // Draw route segment
+                if (i <= currentDropIndex || i == 0) {
+                    drawRoute(lastPointForRoute, dropLatLng);
+                    lastPointForRoute = dropLatLng;
+                }
+            }
+        } else {
+            // Single Drop Scenario
+            if (destinationLat != null && !destinationLat.equals("0.0") &&
+                    destinationLng != null && !destinationLng.equals("0.0")) {
+
+                LatLng dropLatLng = new LatLng(
+                        Double.parseDouble(destinationLat),
+                        Double.parseDouble(destinationLng));
+
+                // Create single drop marker with "1"
+                Bitmap dropBitmap = drawTextToBitmap(this, R.drawable.ic_destination_long, "1");
+                Marker dropMarker = mMap.addMarker(new MarkerOptions()
+                        .position(dropLatLng)
+                        .title("Drop")
+                        .snippet(dropAddress)
+                        .icon(BitmapDescriptorFactory.fromBitmap(dropBitmap)));
+
+                dropMarkers.add(dropMarker);
+                boundsBuilder.include(dropLatLng);
+                drawRoute(lastPointForRoute, dropLatLng);
+            } else {
+                Log.w(TAG, "Single drop selected, but destination coordinates are invalid.");
+            }
+        }
+
+
+        // Update camera bounds to include all points
+        if (targetForDriverRoute != null) {
+            boundsBuilder.include(targetForDriverRoute);
+        }
+
+        // --- Move Camera ---
+        try {
+            // Use post to ensure map layout is complete
+            final View mapView = getSupportFragmentManager().findFragmentById(R.id.map).getView();
+            if (mapView != null && mapView.getViewTreeObserver().isAlive()) {
+                mapView.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
+                    @Override
+                    public void onGlobalLayout() {
+                        // Remove listener to prevent multiple calls
+                        if (mapView.getViewTreeObserver().isAlive()){
+                            mapView.getViewTreeObserver().removeOnGlobalLayoutListener(this);
+                        }
+
+                        try {
+                            LatLngBounds bounds = boundsBuilder.build();
+                            int padding = 150; // Pixels padding
+                            // Check if width/height are valid before calling newLatLngBounds
+                            if (mapView.getWidth() == 0 || mapView.getHeight() == 0) {
+                                Log.w(TAG,"Map layout not ready for bounds animation (width/height is 0). Moving camera directly.");
+                                // Fallback: Center on pickup or current drop target
+                                LatLng centerPoint = determineMapCenter();
+                                mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(centerPoint, 14));
+                            } else {
+                                CameraUpdate cu = CameraUpdateFactory.newLatLngBounds(bounds, padding);
+                                mMap.animateCamera(cu);
+                                Log.d(TAG,"Map camera animated to bounds.");
+                            }
+                        } catch (IllegalStateException ise) {
+                            // Bounds contain no points
+                            Log.e(TAG, "Error building bounds for camera animation (likely no points): " + ise.getMessage());
+                            LatLng centerPoint = determineMapCenter();
+                            mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(centerPoint, 14)); // Fallback zoom
+                        } catch (Exception e) {
+                            Log.e(TAG,"Error animating camera in OnGlobalLayoutListener: " + e.getMessage());
+                        }
+                    }
+                });
+            } else {
+                Log.w(TAG,"MapView or ViewTreeObserver is null/dead, cannot animate camera safely.");
+                LatLng centerPoint = determineMapCenter();
+                mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(centerPoint, 14)); // Non-animated fallback
+            }
+        } catch (Exception e) {
+            Log.e(TAG, "General error setting up map camera animation: " + e.getMessage());
+            LatLng centerPoint = determineMapCenter();
+            mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(centerPoint, 14)); // Non-animated fallback
+        }
+
+    }
+
+    private void drawDriverRoute(LatLng origin, LatLng destination) {
+        String url = getDirectionsUrl(origin, destination);
+        JsonObjectRequest jsonObjectRequest = new JsonObjectRequest(
+                Request.Method.GET, url, null,
+                response -> {
+                    try {
+                        JSONArray routes = response.optJSONArray("routes");
+                        if (routes != null && routes.length() > 0) {
+                            JSONObject route = routes.getJSONObject(0);
+                            JSONObject polyline = route.getJSONObject("overview_polyline");
+                            String encodedPath = polyline.getString("points");
+                            List<LatLng> decodedPath = decodePolyline(encodedPath);
+
+                            PolylineOptions polylineOptions = new PolylineOptions()
+                                    .addAll(decodedPath)
+                                    .width(12) // Slightly thicker
+                                    .color(ContextCompat.getColor(this, R.color.driver_route_color))
+                                    .geodesic(true)
+                                    .zIndex(2.0f); // Keep on top
+
+                            mainThreadHandler.post(() -> {
+                                Polyline driverPolyline = mMap.addPolyline(polylineOptions);
+                                routePolylines.add(driverPolyline);
+                            });
+                        }
+                    } catch (JSONException e) {
+                        Log.e(TAG, "Error parsing driver route", e);
+                    }
+                },
+                error -> Log.e(TAG, "Error fetching driver route: " + error.getMessage())
+        );
+        configureAndAddRequest(jsonObjectRequest);
+    }
+
+    private Bitmap drawTextToBitmap(Context context, int resourceId, String text) {
+        Resources resources = context.getResources();
+        float scale = resources.getDisplayMetrics().density;
+        Bitmap bitmap = BitmapFactory.decodeResource(resources, resourceId);
+
+        Bitmap.Config bitmapConfig = bitmap.getConfig();
+        if (bitmapConfig == null) {
+            bitmapConfig = Bitmap.Config.ARGB_8888;
+        }
+        bitmap = bitmap.copy(bitmapConfig, true);
+
+        Canvas canvas = new Canvas(bitmap);
+        Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
+
+        // Customize text appearance
+        paint.setColor(Color.WHITE);  // White text
+        paint.setTextSize((int) (14 * scale));  // Adjusted text size
+        paint.setFakeBoldText(true);  // Make text bold
+        paint.setShadowLayer(2f, 0f, 0f, Color.BLACK);  // Black shadow for better visibility
+
+        // Center text
+        Rect bounds = new Rect();
+        paint.getTextBounds(text, 0, text.length(), bounds);
+        int x = (bitmap.getWidth() - bounds.width()) / 2;
+        int y = (bitmap.getHeight() + bounds.height()) / 2;  // Centered vertically
+
+        canvas.drawText(text, x, y, paint);
+
+        return bitmap;
     }
 
     private LatLng determineMapCenter() {
@@ -1827,8 +2154,9 @@ public class NewLiveRideActivity extends AppCompatActivity implements OnMapReady
         LatLng targetLatLng = null;
         String targetLabel = "Destination";
 
-        if (currentApiStatus != null && currentApiStatus.equals(STATUS_START_TRIP)) {
             // During the trip, navigate to the current drop target
+//        if (currentApiStatus != null && currentApiStatus.equals(STATUS_START_TRIP)) {
+        if (currentApiStatus != null ) {
             if (multipleDrops > 0 && !allDropLatLngs.isEmpty()) {
                 if (currentDropIndex < allDropLatLngs.size()) {
                     targetLatLng = allDropLatLngs.get(currentDropIndex);
@@ -2029,12 +2357,21 @@ public class NewLiveRideActivity extends AppCompatActivity implements OnMapReady
     @Override
     public void onBackPressed() {
         Log.d(TAG, "onBackPressed called. isFromFCM: " + isFromFCM);
+        boolean isOnLiveRide = preferenceManager.getBooleanValue("isOnLiveRide");
         if (isFromFCM) {
+
             // If opened from FCM notification, always go to Home screen
             navigateToHome();
+
         } else {
             // Allow normal back press behavior otherwise
-            super.onBackPressed();
+            if (isOnLiveRide) {
+                // Minimize the app (send to background)
+                moveTaskToBack(true);
+            }else {
+                super.onBackPressed();
+            }
+
         }
     }
 

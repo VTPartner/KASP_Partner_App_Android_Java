@@ -94,6 +94,7 @@ import com.kapstranspvtltd.kaps_partner.common_activities.DriverTypeActivity;
 import com.kapstranspvtltd.kaps_partner.common_activities.LoginActivity;
 import com.kapstranspvtltd.kaps_partner.driver_app_activities.settings_pages.DriverAgentWalletActivity;
 import com.kapstranspvtltd.kaps_partner.fcm.AccessToken;
+import com.kapstranspvtltd.kaps_partner.goods_driver_activities.withdrawals.GoodsAgentWithdrawalTransactions;
 import com.kapstranspvtltd.kaps_partner.network.APIClient;
 import com.kapstranspvtltd.kaps_partner.network.MultipartRequest;
 import com.kapstranspvtltd.kaps_partner.network.VolleySingleton;
@@ -1055,6 +1056,9 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
 
             else if (itemId == R.id.nav_wallet) {
                 intent = new Intent(this, GoodsAgentWalletActivity.class);
+            }
+            else if (itemId == R.id.nav_withdraw) {
+                intent = new Intent(this, GoodsAgentWithdrawalTransactions.class);
             }
             // Check GPS for Live Ride
             else if (itemId == R.id.nav_live_ride) {

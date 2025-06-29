@@ -304,7 +304,7 @@ public class GoodsDriverVehicleOwnerDetailsActivity extends AppCompatActivity {
                         preferenceManager.saveStringValue("profile_pic",
                                 preferenceManager.getStringValue("selfie_photo_url"));
                         preferenceManager.saveStringValue("mobile_no",
-                                preferenceManager.getStringValue("goods_driver_mobno"));
+                                preferenceManager.getStringValue("goods_driver_mobile_no"));
 
                         // Location Info
                         preferenceManager.saveStringValue("r_lat", String.valueOf(currentLatitude));

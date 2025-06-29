@@ -274,11 +274,11 @@
                             android:layout_height="wrap_content"
                             android:paddingStart="24dp"
                             android:paddingEnd="24dp"
-                            android:text="Buy Now"
+                            android:text="@string/recharge_now"
                             app:cornerRadius="5dp"
-android:visibility="gone"
+                            android:visibility="gone"
                             android:textAllCaps="false"
-                            android:textSize="14sp"
+                            android:textSize="10sp"
                             app:elevation="4dp"/>
                     </LinearLayout>
 

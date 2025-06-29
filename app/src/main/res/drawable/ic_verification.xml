@@ -1,0 +1,32 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="64dp"
+    android:height="64dp"
+    android:viewportWidth="64"
+    android:viewportHeight="64">
+
+
+    <!-- Background circle (radius 32, centered at 32,32) -->
+    <path
+        android:fillColor="#2563FF"
+        android:fillAlpha="0.1"
+        android:pathData="M32,0a32,32 0 1,0 0.001,0z" />
+
+    <!-- Solid blue inner circle (radius 16, center 32,32) -->
+    <path
+        android:fillColor="#2563FF"
+        android:pathData="M32,16a16,16 0 1,1 0.001,0z" />
+
+    <!-- White circle inside (radius 12, center 32,32) -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M32,20a12,12 0 1,1 0.001,0z" />
+
+    <!-- Checkmark -->
+    <path
+        android:pathData="M29,32l3,3l7,-7"
+        android:strokeColor="#2563FF"
+        android:strokeWidth="2"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round"
+        android:fillAlpha="0" />
+</vector>

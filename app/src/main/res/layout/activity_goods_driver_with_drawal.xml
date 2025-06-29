@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:background="#F7F8FA"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:padding="24dp">
+
+    <TextView
+        android:id="@+id/tv_balance"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Balance"
+        android:textColor="#888"
+        android:textSize="14sp"/>
+
+    <TextView
+        android:id="@+id/tv_balance_amount"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="₹413.81"
+        android:textStyle="bold"
+        android:textSize="28sp"
+        android:layout_marginBottom="24dp"/>
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Set amount"
+        android:textSize="16sp"
+        android:textColor="#222"
+        android:layout_marginBottom="8dp"/>
+
+    <EditText
+        android:id="@+id/et_amount"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Enter amount"
+        android:inputType="numberDecimal"
+        android:textSize="24sp"
+        android:gravity="center"
+        android:background="@android:color/transparent"
+        android:textStyle="bold"
+        android:layout_marginBottom="16dp"/>
+
+    <LinearLayout
+        android:orientation="horizontal"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center">
+
+        <Button
+            android:id="@+id/btn_amount_10"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="₹10"/>
+        <Button
+            android:id="@+id/btn_amount_50"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="₹50"
+            android:layout_marginStart="8dp"/>
+        <Button
+            android:id="@+id/btn_amount_100"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="₹100"
+            android:layout_marginStart="8dp"/>
+    </LinearLayout>
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Withdraw to"
+        android:textSize="16sp"
+        android:layout_marginTop="24dp"
+        android:layout_marginBottom="8dp"/>
+
+    <RadioGroup
+        android:id="@+id/rg_withdraw_option"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+        <RadioButton
+            android:id="@+id/rb_bank"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Bank"/>
+
+        <RadioButton
+            android:id="@+id/rb_upi"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="UPI"
+            android:layout_marginStart="16dp"/>
+    </RadioGroup>
+
+    <Button
+        android:id="@+id/btn_withdraw"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Slide to withdraw"
+        android:layout_marginTop="32dp"
+        android:backgroundTint="#2563FF"
+        android:textColor="#FFF"/>
+</LinearLayout>

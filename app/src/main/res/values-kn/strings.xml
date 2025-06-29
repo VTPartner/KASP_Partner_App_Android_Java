@@ -242,13 +242,17 @@
         <string name="camera_description">ಸೆಲ್ಫಿಗಳು ಮತ್ತು ಡಾಕ್ಯುಮೆಂಟ್ ಫೋಟೋಗಳನ್ನು ತೆಗೆದುಕೊಳ್ಳಲು ಅಗತ್ಯ</string>
         <string name="notifications">ಅಧಿಸೂಚನೆಗಳು</string>
         <string name="post_notify">ಮುಖ್ಯ ಅಪ್‌ಡೇಟುಗಳು ಮತ್ತು ಹೊಸ ಆದೇಶಗಳ ಎಚ್ಚರಿಕೆಗಳಿಗಾಗಿ ಅಗತ್ಯ</string>
-        <string name="wallet_history_not_found">Wallet History not founc</string>
-        <string name="history">History</string>
-        <string name="my_wallet">My Wallet</string>
-        <string name="kaps_credit">Kaps Credits</string>
-        <string name="withdraw">Withdraw</string>
-        <string name="enter_amount">Enter Amount</string>
-        <string name="proceed_payment">Proceed</string>
+        <string name="wallet_history_not_found">ವಾಲೆಟ್ ಇತಿಹಾಸ ದೊರಕಿಲ್ಲ</string>
+        <string name="history">ಇತಿಹಾಸ</string>
+        <string name="my_wallet">ನನ್ನ ವಾಲೆಟ್</string>
+        <string name="kaps_credit">ಕ್ಯಾಪ್ಸ್ ಕ್ರೆಡಿಟ್ಸ್</string>
+        <string name="withdraw">ತೆಗೆದುಕೊಳ್ಳಿ</string>
+        <string name="enter_amount">ಮೊತ್ತವನ್ನು ನಮೂದಿಸಿ</string>
+        <string name="proceed_payment">ಮುಂದೆ ಸಾಗು</string>
+        <string name="recharge_now">ಈಗ ರೀಚಾರ್ಜ್ ಮಾಡಿ</string>
+        <string name="my_withdrawal">ನನ್ನ ವ್ಯವಹಾರಗಳು</string>
+        <string name="my_transaction">ನನ್ನ ವ್ಯವಹಾರಗಳು</string>
+
 
 
 </resources>

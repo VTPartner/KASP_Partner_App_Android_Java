@@ -63,16 +63,46 @@ public class WalletHistoryAdapter extends RecyclerView.Adapter<WalletHistoryAdap
         }
 
         public void bind(WalletTransaction transaction, Context context) {
-            String amountText = "₹"+transaction.getAmount();
+            String amountText = "₹" + transaction.getAmount();
             txtAmount.setText(amountText);
-            txtAmount.setTextColor(ContextCompat.getColor(context,
-                    transaction.getType().equalsIgnoreCase("DEPOSIT") ? R.color.green : R.color.colorerror));
 
-            txtType.setText("#"+transaction.getRazorPayID());
+            String type = transaction.getType();
+            String razorPayID = transaction.getRazorPayID() != null ? transaction.getRazorPayID() : "NA";
+            String remarks = transaction.getRemarks();
+
+            // Show RazorPay ID or remarks
+            txtType.setText(!"NA".equalsIgnoreCase(razorPayID) ? "#" + razorPayID : remarks);
+
+            // Set date
             txtDate.setText(transaction.getDate());
-            txtStatus.setText(transaction.getType());
-            txtStatus.setTextColor(ContextCompat.getColor(context,
-                    transaction.getType().equalsIgnoreCase("DEPOSIT") ? R.color.green : R.color.colorerror));
+
+            // Determine status label and color
+            String statusLabel;
+            int statusColor;
+
+            switch (type.toUpperCase()) {
+                case "DEPOSIT":
+                    statusLabel = "Deposit";
+                    statusColor = ContextCompat.getColor(context, R.color.green);
+                    break;
+                case "WITHDRAWAL":
+                    statusLabel = "Withdrawal";
+                    statusColor = ContextCompat.getColor(context, R.color.colorerror);
+                    break;
+                case "WITHDRAWAL_REVERSAL":
+                    statusLabel = "Reversed";
+                    statusColor = ContextCompat.getColor(context, R.color.green); // use a warning color like orange
+                    break;
+                default:
+                    statusLabel = type;
+                    statusColor = ContextCompat.getColor(context, R.color.grey); // fallback color
+                    break;
+            }
+
+            txtStatus.setText(statusLabel);
+            txtStatus.setTextColor(statusColor);
+            txtAmount.setTextColor(statusColor);  // Keep same as status
         }
+
     }
 }

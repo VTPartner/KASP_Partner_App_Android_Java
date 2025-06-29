@@ -38,6 +38,11 @@
             android:id="@+id/nav_wallet"
             android:icon="@drawable/ic_recharge"
             android:title="@string/my_wallet" />
+
+        <item
+            android:id="@+id/nav_withdraw"
+            android:icon="@drawable/ic_recharge"
+            android:title="@string/my_withdrawal" />
         <item
             android:id="@+id/nav_faqs"
             android:icon="@drawable/ic_faq"

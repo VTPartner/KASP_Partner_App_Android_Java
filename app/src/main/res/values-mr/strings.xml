@@ -226,12 +226,17 @@
     <string name="camera_description">सेल्फी आणि कागदपत्रांचे फोटो काढण्यासाठी आवश्यक</string>
     <string name="notifications">सूचना</string>
     <string name="post_notify">महत्त्वाची अपडेट्स आणि नवीन ऑर्डर सूचना प्राप्त करण्यासाठी आवश्यक</string>
-    <string name="wallet_history_not_found">Wallet History not founc</string>
-    <string name="history">History</string>
-    <string name="my_wallet">My Wallet</string>
-    <string name="kaps_credit">Kaps Credits</string>
-    <string name="withdraw">Withdraw</string>
-    <string name="enter_amount">Enter Amount</string>
-    <string name="proceed_payment">Proceed</string>
+    <string name="wallet_history_not_found">वॉलेट इतिहास सापडला नाही</string>
+    <string name="history">इतिहास</string>
+    <string name="my_wallet">माझं वॉलेट</string>
+    <string name="kaps_credit">कॅप्स क्रेडिट्स</string>
+    <string name="withdraw">रक्कम काढा</string>
+    <string name="enter_amount">रक्कम प्रविष्ट करा</string>
+    <string name="proceed_payment">पुढे जा</string>
+    <string name="recharge_now">आत्ताच रिचार्ज करा</string>
+    <string name="my_withdrawal">माझे व्यवहार</string>
+    <string name="my_transaction">माझे व्यवहार</string>
+
+
 
 </resources>

@@ -634,6 +634,7 @@ public class GoodsNewBookingFloatingWindowService extends Service {
                         jsonBody,
                         response -> {
                             // Handle successful response
+                            preferenceManager.saveBooleanValue("isOnLiveRide",true);
                             Intent intent = new Intent(GoodsNewBookingFloatingWindowService.this,
                                     NewLiveRideActivity.class);
                             intent.putExtra("booking_id", bookingId);
@@ -641,6 +642,7 @@ public class GoodsNewBookingFloatingWindowService extends Service {
                             intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                             startActivity(intent);
                             onDestroy();
+
                             FCMService.cancelAllNotifications(this);
                         },
                         error -> {

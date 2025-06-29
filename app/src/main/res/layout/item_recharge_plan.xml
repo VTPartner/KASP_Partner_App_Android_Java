@@ -51,7 +51,8 @@
                 android:id="@+id/buyButton"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Buy Now" />
+                android:textSize="10dp"
+                android:text="@string/recharge_now" />
         </LinearLayout>
 
         <TextView

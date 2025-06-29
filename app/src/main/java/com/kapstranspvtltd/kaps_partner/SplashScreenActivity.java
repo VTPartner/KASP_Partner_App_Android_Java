@@ -21,6 +21,7 @@ import com.kapstranspvtltd.kaps_partner.common_activities.PermissionsActivity;
 import com.kapstranspvtltd.kaps_partner.driver_app_activities.DriverAgentHomeActivity;
 import com.kapstranspvtltd.kaps_partner.driver_app_activities.DriverAgentLoginScreenActivity;
 import com.kapstranspvtltd.kaps_partner.goods_driver_activities.HomeActivity;
+import com.kapstranspvtltd.kaps_partner.goods_driver_activities.NewLiveRideActivity;
 import com.kapstranspvtltd.kaps_partner.handyman_agent_activities.HandyManAgentHomeActivity;
 import com.kapstranspvtltd.kaps_partner.handyman_agent_activities.HandyManLoginScreenActivity;
 import com.kapstranspvtltd.kaps_partner.jcb_crane_agent_activities.JcbCraneAgentLoginScreenActivity;
@@ -113,6 +114,7 @@ public class SplashScreenActivity extends AppCompatActivity {
         if (areAllPermissionsGranted()) {
             // All permissions granted, check user type and redirect
             String roleType = preferenceManager.getStringValue("role_type");
+
             redirectBasedOnUserType(roleType);
         } else {
             // Some permissions missing, go to PermissionsActivity
@@ -175,9 +177,12 @@ public class SplashScreenActivity extends AppCompatActivity {
     private void handleGoodsDriver() {
         String driverId = preferenceManager.getStringValue("goods_driver_id");
         String driverName = preferenceManager.getStringValue("goods_driver_name");
-
+        boolean isOnLiveRide = preferenceManager.getBooleanValue("isOnLiveRide");
         if (isValidCredentials(driverId, driverName)) {
-            startActivity(new Intent(this, HomeActivity.class));
+            if(isOnLiveRide)
+                startActivity(new Intent(this, NewLiveRideActivity.class));
+            else
+                startActivity(new Intent(this, HomeActivity.class));
         } else {
             startActivity(new Intent(this, LoginActivity.class));
         }

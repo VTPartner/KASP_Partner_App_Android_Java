@@ -243,12 +243,15 @@
     <string name="camera_description">Required for taking selfies and document photos</string>
     <string name="notifications">Notifications</string>
     <string name="post_notify">Required for receiving important updates and new order alerts</string>
-    <string name="wallet_history_not_found">Wallet History not founc</string>
+    <string name="wallet_history_not_found">Wallet History not found</string>
     <string name="history">History</string>
     <string name="my_wallet">My Wallet</string>
     <string name="kaps_credit">Kaps Credits</string>
     <string name="withdraw">Withdraw</string>
     <string name="enter_amount">Enter Amount</string>
     <string name="proceed_payment">Proceed</string>
+    <string name="recharge_now">Recharge Now</string>
+    <string name="my_withdrawal">My Transactions</string>
+    <string name="my_transaction">My Transactions</string>
 
 </resources>
