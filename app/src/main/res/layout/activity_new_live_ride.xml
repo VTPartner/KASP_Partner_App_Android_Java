@@ -114,43 +114,84 @@
 <!--                Timer shown after otp is verified-->
 
                 <LinearLayout
-                    android:id="@+id/timerContainer"
+                    android:id="@+id/waitingPenaltyContainer"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="vertical"
                     android:padding="8dp"
-                    android:visibility="gone"
-                    >
-
-                   <LinearLayout
-                       android:layout_width="wrap_content"
-                       android:layout_height="wrap_content"
-                       android:orientation="horizontal">
-                       <TextView
-                           android:layout_width="wrap_content"
-                           android:layout_height="wrap_content"
-                           android:text="Waiting Time Remaining: "
-                           android:textColor="@color/grey"
-                           android:textSize="14sp"/>
-
-                       <TextView
-                           android:id="@+id/txt_unloading_time"
-                           android:layout_width="wrap_content"
-                           android:layout_height="wrap_content"
-                           android:textColor="@color/colorPrimary"
-                           android:textSize="14sp"
-                           android:textStyle="bold"/>
-                   </LinearLayout>
+                    android:background="@color/light_gray"
+                    android:layout_margin="4dp"
+                    android:visibility="gone">
 
                     <TextView
-                        android:id="@+id/txt_penalty_info"
+                        android:id="@+id/loadingWaitInfo"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:visibility="gone"
-                        android:textColor="@color/colorerror"
-                        android:textSize="14sp"
-                        />
+                        android:text="Loading Wait: " />
+
+                    <TextView
+                        android:id="@+id/loadingCountdown"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Loading Timer: " />
+
+                    <TextView
+                        android:id="@+id/unloadingWaitInfo"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Unloading Wait: " />
+
+                    <TextView
+                        android:id="@+id/unloadingCountdown"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Unloading Timer: " />
+
+                    <TextView
+                        android:id="@+id/penaltyInfo"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Penalty: " />
                 </LinearLayout>
+
+<!--                <LinearLayout-->
+<!--                    android:id="@+id/timerContainer"-->
+<!--                    android:layout_width="match_parent"-->
+<!--                    android:layout_height="wrap_content"-->
+<!--                    android:orientation="vertical"-->
+<!--                    android:padding="8dp"-->
+<!--                    android:visibility="gone"-->
+<!--                    >-->
+
+<!--                   <LinearLayout-->
+<!--                       android:layout_width="wrap_content"-->
+<!--                       android:layout_height="wrap_content"-->
+<!--                       android:orientation="horizontal">-->
+<!--                       <TextView-->
+<!--                           android:layout_width="wrap_content"-->
+<!--                           android:layout_height="wrap_content"-->
+<!--                           android:text="Waiting Time Remaining: "-->
+<!--                           android:textColor="@color/grey"-->
+<!--                           android:textSize="14sp"/>-->
+
+<!--                       <TextView-->
+<!--                           android:id="@+id/txt_unloading_time"-->
+<!--                           android:layout_width="wrap_content"-->
+<!--                           android:layout_height="wrap_content"-->
+<!--                           android:textColor="@color/colorPrimary"-->
+<!--                           android:textSize="14sp"-->
+<!--                           android:textStyle="bold"/>-->
+<!--                   </LinearLayout>-->
+
+<!--                    <TextView-->
+<!--                        android:id="@+id/txt_penalty_info"-->
+<!--                        android:layout_width="wrap_content"-->
+<!--                        android:layout_height="wrap_content"-->
+<!--                        android:visibility="gone"-->
+<!--                        android:textColor="@color/colorerror"-->
+<!--                        android:textSize="14sp"-->
+<!--                        />-->
+<!--                </LinearLayout>-->
 
                 <!-- Distance and Time Section -->
                 <LinearLayout

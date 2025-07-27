@@ -1,0 +1,14 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="56dp" android:height="56dp"
+    android:viewportWidth="56" android:viewportHeight="56">
+
+    <!-- Coin shadow or ground -->
+    <path
+        android:fillColor="#F59E42"
+        android:pathData="M10,40c4,6 10,10 18,10s14-4 18-10l-6-4c-2,4-7,6-12,6s-10-2-12-6l-6,4z"/>
+
+    <!-- Simple hand shape -->
+    <path
+        android:fillColor="#E17C47"
+        android:pathData="M20,44l4,-8l8,4l4,-8l4,8l-8,4z"/>
+</vector>

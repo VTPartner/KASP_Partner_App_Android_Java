@@ -252,7 +252,14 @@
         <string name="recharge_now">ಈಗ ರೀಚಾರ್ಜ್ ಮಾಡಿ</string>
         <string name="my_withdrawal">ನನ್ನ ವ್ಯವಹಾರಗಳು</string>
         <string name="my_transaction">ನನ್ನ ವ್ಯವಹಾರಗಳು</string>
-
+        <string name="today_rides">ಇಂದಿನ ಪ್ರಯಾಣಗಳು</string>
+        <string name="today_earnings">ಇಂದಿನ ಆದಾಯ</string>
+        <string name="total_rides">ಒಟ್ಟು ಪ್ರಯಾಣಗಳು</string>
+        <string name="total_earnings">ಒಟ್ಟು ಆದಾಯ</string>
+        <string name="edit_profile">ಪ್ರೊಫೈಲ್ ಸಂಪಾದಿಸಿ</string>
+    <string name="invite_friends">Invite Friends</string>
+        <string name="earn_referrals">Earn Referrals</string>
+    <string name="enter_your_phone">Enter your phone number</string>
 
 
 </resources>

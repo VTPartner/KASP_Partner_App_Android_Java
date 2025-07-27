@@ -18,6 +18,7 @@ import android.location.Location;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.CountDownTimer;
 import android.os.Handler;
 import android.os.Looper;
 import android.util.Log;
@@ -80,6 +81,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -145,9 +147,10 @@ public class NewLiveRideActivity extends AppCompatActivity implements OnMapReady
     // Ride Details
     int minimumWaitingTime = 0;
     double penaltyCharges = 0;
+    double penaltyAmountFromApi = 0.0; // Store penalty amount from API
     String vehicleMapImage = "";
     double hikePrice = 0;
-            String customerName = "";
+    String customerName = "";
     String customerID = "";
     String pickupAddress = "";
     String dropAddress = ""; // For single drop display
@@ -170,6 +173,94 @@ public class NewLiveRideActivity extends AppCompatActivity implements OnMapReady
     private List<LatLng> allDropLatLngs = new ArrayList<>();
     private List<String> allDropAddresses = new ArrayList<>();
 
+    // --- Timer Persistence Helpers ---
+    private static final String PREF_LOADING_OVERTIME_START = "loading_overtime_start_";
+    private static final String PREF_UNLOADING_OVERTIME_START = "unloading_overtime_start_";
+    private static final String PREF_LOADING_TIMER_START = "loading_timer_start_";
+    private static final String PREF_UNLOADING_TIMER_START = "unloading_timer_start_";
+
+    private void saveTimerState(String key, long value) {
+        preferenceManager.saveLongValue(key + assignedBookingId, value);
+    }
+    private long getTimerState(String key) {
+        return preferenceManager.getLongValue(key + assignedBookingId, 0);
+    }
+    private void clearTimerState(String key) {
+        preferenceManager.removeValue(key + assignedBookingId);
+    }
+
+    // --- Timer Utility Methods for Waiting Penalty Info ---
+    private CountDownTimer loadingCountDownTimer;
+    private CountDownTimer unloadingCountDownTimer;
+
+    private void startLoadingCountdown(long millisLeft) {
+        if (loadingCountDownTimer != null) loadingCountDownTimer.cancel();
+        loadingCountDownTimer = new CountDownTimer(millisLeft, 1000) {
+            public void onTick(long millisUntilFinished) {
+                binding.loadingCountdown.setText("Loading Timer: " + formatTime(millisUntilFinished));
+            }
+            public void onFinish() {
+                binding.loadingCountdown.setText("Loading Timer: Overage");
+            }
+        }.start();
+    }
+
+    private void startLoadingOverageTimer(long overageMillis) {
+        if (loadingCountDownTimer != null) loadingCountDownTimer.cancel();
+        loadingCountDownTimer = new CountDownTimer(Long.MAX_VALUE, 1000) {
+            long currentOverage = overageMillis;
+            public void onTick(long millisUntilFinished) {
+                currentOverage += 1000;
+                binding.loadingCountdown.setText("Loading Timer: +" + formatTime(currentOverage));
+            }
+            public void onFinish() {}
+        }.start();
+    }
+
+    private void stopLoadingTimer() {
+        if (loadingCountDownTimer != null) {
+            loadingCountDownTimer.cancel();
+            loadingCountDownTimer = null;
+        }
+    }
+
+    private void startUnloadingCountdown(long millisLeft) {
+        if (unloadingCountDownTimer != null) unloadingCountDownTimer.cancel();
+        unloadingCountDownTimer = new CountDownTimer(millisLeft, 1000) {
+            public void onTick(long millisUntilFinished) {
+                binding.unloadingCountdown.setText("Unloading Timer: " + formatTime(millisUntilFinished));
+            }
+            public void onFinish() {
+                binding.unloadingCountdown.setText("Unloading Timer: Overage");
+            }
+        }.start();
+    }
+
+    private void startUnloadingOverageTimer(long overageMillis) {
+        if (unloadingCountDownTimer != null) unloadingCountDownTimer.cancel();
+        unloadingCountDownTimer = new CountDownTimer(Long.MAX_VALUE, 1000) {
+            long currentOverage = overageMillis;
+            public void onTick(long millisUntilFinished) {
+                currentOverage += 1000;
+                binding.unloadingCountdown.setText("Unloading Timer: +" + formatTime(currentOverage));
+            }
+            public void onFinish() {}
+        }.start();
+    }
+
+    private void stopUnloadingTimer() {
+        if (unloadingCountDownTimer != null) {
+            unloadingCountDownTimer.cancel();
+            unloadingCountDownTimer = null;
+        }
+    }
+
+    private String formatTime(long millis) {
+        long seconds = millis / 1000;
+        long minutes = seconds / 60;
+        long secs = seconds % 60;
+        return String.format(Locale.getDefault(), "%02d:%02d", minutes, secs);
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -445,13 +536,24 @@ public class NewLiveRideActivity extends AppCompatActivity implements OnMapReady
             String buttonText = "";
 
             // Determine if button should be shown and what text to display
-            if (nextAction.startsWith(ACTION_CONFIRM_REACHED_DROP) ||
-                    (nextAction.equals(ACTION_SEND_PAYMENT_DETAILS) &&
-                            !STATUS_MAKE_PAYMENT.equals(currentApiStatus))) {
-
-                if (isWithinDropThreshold || STATUS_MAKE_PAYMENT.equals(currentApiStatus)) {
+            if (nextAction.startsWith(ACTION_CONFIRM_REACHED_DROP)) {
+                // Show reached drop button only when within proximity threshold
+                if (isWithinDropThreshold) {
                     shouldShowButton = true;
-                    buttonText = nextAction;
+                    // For single drop, show "Reached Drop Location 1"
+                    if (multipleDrops == 0 || allDropLatLngs.size() <= 1) {
+                        buttonText = "Reached Drop Location 1";
+                    } else {
+                        // For multiple drops, show "Reached Drop X"
+                        buttonText = nextAction;
+                    }
+                }
+            } else if (ACTION_SEND_PAYMENT_DETAILS.equals(nextAction)) {
+                // Show "Send Payment Details" button when within proximity threshold
+                // This is for the last drop after unloading timer starts
+                if (isWithinDropThreshold) {
+                    shouldShowButton = true;
+                    buttonText = "Send Payment Details";
                 }
             }
 
@@ -461,8 +563,8 @@ public class NewLiveRideActivity extends AppCompatActivity implements OnMapReady
                 binding.btnSendPaymentDetails.setText(buttonText);
             }
 
-            // Show toast if moving out of threshold
-            if (!shouldShowButton && !STATUS_MAKE_PAYMENT.equals(currentApiStatus)) {
+            // Show toast if moving out of threshold (only for reached drop actions, not payment)
+            if (!shouldShowButton && nextAction.startsWith(ACTION_CONFIRM_REACHED_DROP)) {
                 showToast("Get closer to drop location to mark delivery");
             }
         });
@@ -557,7 +659,7 @@ public class NewLiveRideActivity extends AppCompatActivity implements OnMapReady
         binding.imgCall.setOnClickListener(v -> handleCallClick());
         binding.txtTripDetails.setOnClickListener(v -> toggleTripDetails());
         binding.cancelTripBtn.setOnClickListener(v -> showCancelBookingBottomSheet());
-        
+
         setupStatusButtonListeners();
     }
 
@@ -736,43 +838,14 @@ public class NewLiveRideActivity extends AppCompatActivity implements OnMapReady
             currentApiStatus = rideDetails.getString("booking_status"); // Store the status from API
             minimumWaitingTime = rideDetails.getInt("minimum_waiting_time");
             penaltyCharges = rideDetails.getDouble("penalty_charge");
+            penaltyAmountFromApi = rideDetails.optDouble("penalty_amount", 0.0); // Get penalty amount from API
             vehicleMapImage = rideDetails.getString("vehicle_map_image");
             hikePrice = rideDetails.getDouble("hike_price");
             System.out.println("minimumWaitingTime::"+minimumWaitingTime);
             System.out.println("penaltyCharges::"+penaltyCharges);
+            System.out.println("penaltyAmountFromApi::"+penaltyAmountFromApi);
             System.out.println("currentApiStatus::"+currentApiStatus);
-            //It will start can culating the timings
-            if (currentApiStatus.equalsIgnoreCase(STATUS_DRIVER_ARRIVED)) {
-                // Initialize timer
-                timerManager = new UnloadingTimerManager(this, assignedBookingId,
-                        binding.txtUnloadingTime, binding.txtPenaltyInfo,
-                        new UnloadingTimerManager.UnloadingTimerListener() {
-                            @Override
-                            public void onPenaltyUpdated(double totalPenalty, long penaltyMinutes) {
-                                // Store penalty for API update
-                                penaltyCharges = totalPenalty;
-                            }
 
-                            @Override
-                            public void onTimerFinished() {
-                                showToast("Free unloading time finished!");
-                            }
-                        });
-
-                binding.timerContainer.setVisibility(View.VISIBLE);
-                timerManager.startTimer(minimumWaitingTime, penaltyCharges);
-            } else if (currentApiStatus.equalsIgnoreCase(STATUS_START_TRIP)) {
-                if (timerManager != null) {
-                    double finalPenalty = timerManager.getCurrentPenalty();
-                    if (finalPenalty > 0) {
-                        penaltyCharges = finalPenalty;
-                        // Update penalty amount in backend
-                        updatePenaltyAmount(finalPenalty);
-                    }
-                    timerManager.stopTimer();
-                }
-                binding.timerContainer.setVisibility(View.GONE);
-            }
 
             bookingIdStr = rideDetails.getString("booking_id");
             // assignedBookingId should already be set
@@ -799,15 +872,25 @@ public class NewLiveRideActivity extends AppCompatActivity implements OnMapReady
             // --- Multiple Drop Details ---
             multipleDrops = rideDetails.optInt("multiple_drops", 0); // Default to 0 (single)
             Log.d(TAG, "Multiple Drops Count: " + multipleDrops);
+            Log.d(TAG, "Drop Locations String: " + rideDetails.optString("drop_locations", "null"));
+            Log.d(TAG, "Drop Contacts String: " + rideDetails.optString("drop_contacts", "null"));
 
             dropLocationsArray = null; // Reset before parsing
             dropContactsArray = null;
             allDropLatLngs.clear();
             allDropAddresses.clear();
 
-            if (multipleDrops > 0) {
-                String dropLocationsStr = rideDetails.optString("drop_locations");
-                String dropContactsStr = rideDetails.optString("drop_contacts");
+            // Check if we have drop locations (even for single drops)
+            String dropLocationsStr = rideDetails.optString("drop_locations");
+            String dropContactsStr = rideDetails.optString("drop_contacts");
+            
+            // If we have drop locations but multiple_drops is 0, treat as single drop
+            if (multipleDrops == 0 && dropLocationsStr != null && !dropLocationsStr.isEmpty() && !dropLocationsStr.equals("[]")) {
+                Log.d(TAG, "Single drop with drop_locations data found");
+                // Keep multipleDrops as 0, but we'll use the drop_locations data for consistency
+            }
+
+            if (multipleDrops > 0 || (dropLocationsStr != null && !dropLocationsStr.isEmpty() && !dropLocationsStr.equals("[]"))) {
 
                 if (dropLocationsStr != null && !dropLocationsStr.isEmpty() && !dropLocationsStr.equals("[]")) {
                     try {
@@ -880,11 +963,21 @@ public class NewLiveRideActivity extends AppCompatActivity implements OnMapReady
                 binding.dropLocationsContainer.removeAllViews(); // Clear multi-drop UI
             }
 
-            // --- Determine Next Action & Update Buttons ---
-            // **Important:** Load index *before* determining next status
-            loadCurrentDropIndex();
-            updateNextStatus(currentApiStatus);
-            updateStatusButtons();
+                    // --- Determine Next Action & Update Buttons ---
+        // **Important:** Load index *before* determining next status
+        loadCurrentDropIndex();
+        updateNextStatus(currentApiStatus);
+        updateStatusButtons();
+        
+        // Update drop button visibility when status changes to ensure proper button display
+        if (STATUS_MAKE_PAYMENT.equals(currentApiStatus) || 
+            (nextAction != null && (nextAction.startsWith(ACTION_CONFIRM_REACHED_DROP) || 
+                ACTION_SEND_PAYMENT_DETAILS.equals(nextAction)))) {
+            updateDropButtonVisibility();
+        }
+
+            // --- Waiting Penalty Info (Timer & Penalty UI) ---
+            showWaitingPenaltyInfo(rideDetails.optJSONObject("waiting_time_info"), rideDetails);
 
         } catch (JSONException e) {
             Log.e(TAG, "Fatal error updating ride details from JSON", e);
@@ -895,6 +988,196 @@ public class NewLiveRideActivity extends AppCompatActivity implements OnMapReady
             showToast("An unexpected error occurred.");
             handleNoLiveRideFound();
         }
+    }
+
+    private void showWaitingPenaltyInfo(JSONObject waitingInfo, JSONObject rideDetails) {
+        System.out.println("waitingInfo::"+waitingInfo);
+        
+        // Debug: Print rideDetails to see what's available
+        if (rideDetails != null) {
+            System.out.println("rideDetails unloading start times: " + rideDetails.optString("unloading_wait_start_times", "null"));
+            System.out.println("rideDetails unloading end times: " + rideDetails.optString("unloading_wait_end_times", "null"));
+            System.out.println("rideDetails status: " + currentApiStatus);
+            System.out.println("minimumWaitingTime: " + minimumWaitingTime);
+        }
+        
+        // Debug: Print waitingInfo keys to see what's available
+        if (waitingInfo != null) {
+            System.out.println("waitingInfo keys:");
+            Iterator<String> keys = waitingInfo.keys();
+            while (keys.hasNext()) {
+                String key = keys.next();
+                if (key.contains("unloading") || key.contains("wait")) {
+                    System.out.println("  Key: " + key + " = " + waitingInfo.opt(key));
+                }
+            }
+        }
+        
+        if (waitingInfo == null) {
+            binding.waitingPenaltyContainer.setVisibility(View.GONE);
+            return;
+        }
+        binding.waitingPenaltyContainer.setVisibility(View.VISIBLE);
+
+        double loadingWait = waitingInfo.optDouble("loading_wait", 0);
+        double allowedLoading = waitingInfo.optDouble("allowed_loading_wait", 0);
+        double loadingPenalty = waitingInfo.optDouble("loading_penalty", 0);
+        double totalPenalty = waitingInfo.optDouble("total_penalty", 0);
+        JSONArray unloadingWaits = waitingInfo.optJSONArray("unloading_waits");
+        System.out.println("unloadingWaits::"+unloadingWaits);
+        // --- Loading Timer ---
+        long loadingStart = rideDetails.optLong("loading_wait_start_time", 0);
+        long loadingEnd = rideDetails.optLong("loading_wait_end_time", 0);
+        if (loadingStart > 0 && loadingEnd == 0) {
+            long now = System.currentTimeMillis();
+            long elapsed = (now - loadingStart * 1000) / 1000; // seconds
+            long allowedSeconds = (long) (allowedLoading * 60);
+            if (elapsed < allowedSeconds) {
+                long left = allowedSeconds - elapsed;
+                startLoadingCountdown(left * 1000);
+            } else {
+                long overage = elapsed - allowedSeconds;
+                startLoadingOverageTimer(overage * 1000);
+            }
+        } else {
+            stopLoadingTimer();
+            if (loadingWait >= allowedLoading) {
+                binding.loadingCountdown.setText("Loading Timer: Overage");
+            } else {
+                binding.loadingCountdown.setText("Loading Timer: Not running");
+            }
+        }
+
+        // --- Unloading Timer (for current drop) ---
+        // Get unloading data from rideDetails (which comes from the main API response)
+        JSONArray unloadingStarts = null;
+        JSONArray unloadingEnds = null;
+        
+        try {
+            // Try to get from rideDetails first - parse the string values
+            String unloadingStartsStr = rideDetails.optString("unloading_wait_start_times", "");
+            String unloadingEndsStr = rideDetails.optString("unloading_wait_end_times", "");
+            
+            if (unloadingStartsStr != null && !unloadingStartsStr.isEmpty()) {
+                unloadingStarts = new JSONArray(unloadingStartsStr);
+            }
+            if (unloadingEndsStr != null && !unloadingEndsStr.isEmpty()) {
+                unloadingEnds = new JSONArray(unloadingEndsStr);
+            }
+            
+            // Fallback: If no unloading data from rideDetails, try to get from waitingInfo
+            if (unloadingStarts == null && waitingInfo != null) {
+                unloadingStarts = waitingInfo.optJSONArray("unloading_wait_start_times");
+                unloadingEnds = waitingInfo.optJSONArray("unloading_wait_end_times");
+                System.out.println("Fallback unloadingStarts from waitingInfo: " + unloadingStarts);
+                System.out.println("Fallback unloadingEnds from waitingInfo: " + unloadingEnds);
+            }
+            
+            System.out.println("Final unloadingStarts: " + unloadingStarts);
+            System.out.println("Final unloadingEnds: " + unloadingEnds);
+        } catch (Exception e) {
+            System.out.println("Error parsing unloading arrays: " + e.getMessage());
+        }
+        
+        // Find the current drop's unloading timer
+        int currentDropUnloadingIndex = -1;
+        if (unloadingStarts != null && unloadingStarts.length() > 0) {
+            int startsCount = unloadingStarts.length();
+            int endsCount = unloadingEnds != null ? unloadingEnds.length() : 0;
+
+            // If we have more starts than ends, the last start is currently running
+            if (startsCount > endsCount) {
+                currentDropUnloadingIndex = endsCount; // This is the current drop being unloaded
+            }
+        }
+
+        if (currentDropUnloadingIndex >= 0) {
+            double allowedUnloading = 0;
+            
+            // Try to get allowed unloading time from unloading_waits array
+            if (unloadingWaits != null && currentDropUnloadingIndex < unloadingWaits.length()) {
+                JSONObject currentDropInfo = unloadingWaits.optJSONObject(currentDropUnloadingIndex);
+                if (currentDropInfo != null) {
+                    allowedUnloading = currentDropInfo.optDouble("allowed_wait", 0);
+                }
+            }
+            
+            // Fallback to general allowed unloading time
+            if (allowedUnloading == 0) {
+                allowedUnloading = waitingInfo.optDouble("allowed_unloading", 0);
+            }
+            
+            // If still no allowed time, use minimum waiting time as fallback
+            if (allowedUnloading == 0) {
+                allowedUnloading = minimumWaitingTime;
+            }
+            
+            double unloadingStartSec = unloadingStarts.optDouble(currentDropUnloadingIndex, 0);
+            long nowSec = System.currentTimeMillis() / 1000;
+            long elapsed = nowSec - (long)unloadingStartSec;
+            
+            if (elapsed < 0) elapsed = 0;
+            
+            if (allowedUnloading > 0) {
+                long allowedSeconds = (long) (allowedUnloading * 60);
+                if (elapsed < allowedSeconds) {
+                    long left = allowedSeconds - elapsed;
+                    startUnloadingCountdown(left * 1000);
+                } else {
+                    long overage = elapsed - allowedSeconds;
+                    startUnloadingOverageTimer(overage * 1000);
+                }
+            } else {
+                // If no allowed time specified, just show elapsed time
+                startUnloadingCountdown(elapsed * 1000);
+            }
+        } else {
+            // Fallback: If no unloading timer data but status indicates we should be unloading
+            if (currentApiStatus.startsWith(STATUS_REACHED_DROP_PREFIX) && !STATUS_MAKE_PAYMENT.equals(currentApiStatus)) {
+                // Start a basic unloading timer with minimum waiting time
+                System.out.println("Starting fallback unloading timer with minimum waiting time: " + minimumWaitingTime);
+                long allowedSeconds = (long) (minimumWaitingTime * 60);
+                startUnloadingCountdown(allowedSeconds * 1000);
+                
+                // Also show a message to indicate this is a fallback timer
+                binding.unloadingCountdown.setText("Unloading Timer: " + formatTime(allowedSeconds * 1000) + " (Fallback)");
+            } else {
+                stopUnloadingTimer();
+                binding.unloadingCountdown.setText("Unloading Timer: Not running");
+            }
+        }
+
+        // --- Info Texts ---
+        String loadingText = String.format(
+                Locale.getDefault(),
+                "Loading Wait: %.1f / %.1f min (Penalty: ₹%.0f)",
+                loadingWait, allowedLoading, loadingPenalty
+        );
+        binding.loadingWaitInfo.setText(loadingText);
+
+        StringBuilder unloadingText = new StringBuilder();
+        if (unloadingWaits != null && unloadingWaits.length() > 0) {
+            for (int i = 0; i < unloadingWaits.length(); i++) {
+                JSONObject dropInfo = unloadingWaits.optJSONObject(i);
+                if (dropInfo != null) {
+                    double wait = dropInfo.optDouble("wait_time", 0);
+                    double allowed = dropInfo.optDouble("allowed_wait", 0);
+                    double penalty = dropInfo.optDouble("penalty", 0);
+                    unloadingText.append(String.format(
+                            Locale.getDefault(),
+                            "Drop %d: %.1f / %.1f min (Penalty: ₹%.0f)\n",
+                            dropInfo.optInt("drop_index", i) + 1, wait, allowed, penalty
+                    ));
+                }
+            }
+        } else {
+            unloadingText.append("No unloading wait recorded.");
+        }
+        binding.unloadingWaitInfo.setText(unloadingText.toString().trim());
+        binding.penaltyInfo.setText(String.format(
+                Locale.getDefault(),
+                "Total Penalty: ₹%.0f", totalPenalty
+        ));
     }
 
     private void updateDropLocationsUI() {
@@ -933,7 +1216,7 @@ public class NewLiveRideActivity extends AppCompatActivity implements OnMapReady
                         itemBinding.dropContact.setTextColor(Color.GRAY);
                     } else {
                         itemBinding.dropContact.setText(name + " · " + mobile);
-                        
+
                     }
                 } else {
                     itemBinding.dropContact.setText("No contact information");
@@ -1011,7 +1294,7 @@ public class NewLiveRideActivity extends AppCompatActivity implements OnMapReady
                 if (multipleDrops > 0 && !allDropLatLngs.isEmpty()) {
                     nextAction = ACTION_CONFIRM_REACHED_DROP + "1";
                 } else {
-                    nextAction = ACTION_SEND_PAYMENT_DETAILS;
+                    nextAction = ACTION_CONFIRM_REACHED_DROP + "1";
                 }
                 break;
 
@@ -1026,7 +1309,20 @@ public class NewLiveRideActivity extends AppCompatActivity implements OnMapReady
 
             default:
                 if (currentApiStatus.startsWith(STATUS_REACHED_DROP_PREFIX)) {
-                    handleReachedDropStatus();
+                    // Check if this is the last drop
+                    int dropNumber = getDropNumberFromStatus(currentApiStatus);
+                    if (dropNumber > 0) {
+                        if ((multipleDrops > 0 && dropNumber >= allDropLatLngs.size()) || 
+                            (multipleDrops <= 0 && dropNumber >= 1)) {
+                            // This is the last drop - show "Send Payment Details" button
+                            handleLastDropReached();
+                        } else {
+                            // More drops remaining
+                            handleReachedDropStatus();
+                        }
+                    } else {
+                        handleReachedDropStatus();
+                    }
                 } else {
                     Log.w(TAG, "Unhandled API Status: " + currentApiStatus);
                     if (totalPrice > 0) {
@@ -1046,13 +1342,21 @@ public class NewLiveRideActivity extends AppCompatActivity implements OnMapReady
                 // More drops remaining
                 nextAction = ACTION_CONFIRM_REACHED_DROP + (currentDropIndex + 1);
             } else {
-                // All drops completed
-                nextAction = ACTION_SEND_PAYMENT_DETAILS;
+                // All drops completed - show the last drop button first
+                nextAction = ACTION_CONFIRM_REACHED_DROP + allDropLatLngs.size();
             }
         } else {
-            // Single drop scenario - move to payment
-            nextAction = ACTION_SEND_PAYMENT_DETAILS;
+            // Single drop scenario - show the drop button first
+            nextAction = ACTION_CONFIRM_REACHED_DROP + "1";
         }
+    }
+
+    private void handleLastDropReached() {
+        // When the last drop is reached, show "Send Payment Details" button
+        // This will be called after unloading timer starts
+        nextAction = ACTION_SEND_PAYMENT_DETAILS;
+        updateStatusButtons();
+        updateDropButtonVisibility();
     }
 
     // Updates button visibility and text based on 'nextAction'
@@ -1067,15 +1371,17 @@ public class NewLiveRideActivity extends AppCompatActivity implements OnMapReady
             binding.btnVerifyOtp.setVisibility(View.VISIBLE);
         } else if (ACTION_START_TRIP.equals(nextAction)) {
             binding.btnSendTrip.setVisibility(View.VISIBLE);
-        } else if (nextAction != null &&
-                (nextAction.startsWith(ACTION_CONFIRM_REACHED_DROP) ||
-                        nextAction.equals(ACTION_SEND_PAYMENT_DETAILS))) {
-            // Only show payment/drop confirmation buttons if:
-            // 1. We're at final payment stage (STATUS_MAKE_PAYMENT)
-            // 2. OR we're within threshold of the drop location
-            if (STATUS_MAKE_PAYMENT.equals(currentApiStatus) || isWithinDropThreshold) {
+        } else if (nextAction != null && nextAction.startsWith(ACTION_CONFIRM_REACHED_DROP)) {
+            // Show reached drop button only when within proximity threshold
+            if (isWithinDropThreshold) {
                 binding.btnSendPaymentDetails.setVisibility(View.VISIBLE);
                 binding.btnSendPaymentDetails.setText(nextAction);
+            }
+        } else if (ACTION_SEND_PAYMENT_DETAILS.equals(nextAction)) {
+            // Show "Send Payment Details" button when within proximity threshold
+            if (isWithinDropThreshold) {
+                binding.btnSendPaymentDetails.setVisibility(View.VISIBLE);
+                binding.btnSendPaymentDetails.setText("Send Payment Details");
             }
         } else if (ACTION_END_TRIP.equals(nextAction)) {
             binding.btnEndTrip.setVisibility(View.VISIBLE);
@@ -1165,7 +1471,27 @@ public class NewLiveRideActivity extends AppCompatActivity implements OnMapReady
 
     // Specific confirmation for reaching a drop-off point
     private void handleReachedDropConfirmation() {
-        if (multipleDrops <= 0 || allDropLatLngs.isEmpty() || currentDropIndex >= allDropLatLngs.size()) {
+        Log.d(TAG, "handleReachedDropConfirmation - multipleDrops: " + multipleDrops + ", allDropLatLngs.size: " + allDropLatLngs.size() + ", currentDropIndex: " + currentDropIndex);
+        
+        // Handle single drop case
+        if (multipleDrops <= 0) {
+            // For single drop, use the main destination address
+            new AlertDialog.Builder(this, R.style.AlertDialogTheme)
+                    .setTitle("Confirm Drop 1")
+                    .setMessage("Have you reached Drop 1 at:\n" + dropAddress + "?")
+                    .setPositiveButton("Yes, Reached", (dialog, which) -> {
+                        // Always set status to "Reached Drop Location 1" first
+                        // This allows unloading timer to start and then shows "Send Payment Details" button
+                        String apiStatusUpdate = getReachedDropStatus(1);
+                        updateRideStatus(apiStatusUpdate);
+                    })
+                    .setNegativeButton("No", null)
+                    .show();
+            return;
+        }
+
+        // Handle multiple drops case
+        if (allDropLatLngs.isEmpty() || currentDropIndex >= allDropLatLngs.size()) {
             showToast("Invalid drop state");
             return;
         }
@@ -1177,15 +1503,9 @@ public class NewLiveRideActivity extends AppCompatActivity implements OnMapReady
                 .setTitle("Confirm Drop " + dropNumber)
                 .setMessage("Have you reached Drop " + dropNumber + " at:\n" + address + "?")
                 .setPositiveButton("Yes, Reached", (dialog, which) -> {
-                    String apiStatusUpdate;
-                    if (currentDropIndex + 1 >= allDropLatLngs.size()) {
-                        // Last drop
-                        apiStatusUpdate = STATUS_MAKE_PAYMENT;
-                    } else {
-                        // Generate dynamic status for any drop number
-                        apiStatusUpdate = getReachedDropStatus(dropNumber);
-                    }
-
+                    // Always set status to "Reached Drop Location X" first
+                    // This allows unloading timer to start and then shows "Send Payment Details" button
+                    String apiStatusUpdate = getReachedDropStatus(dropNumber);
                     updateRideStatus(apiStatusUpdate);
                 })
                 .setNegativeButton("No", null)
@@ -1252,9 +1572,8 @@ public class NewLiveRideActivity extends AppCompatActivity implements OnMapReady
 
                     // Calculate final amount including penalty if status is Make Payment
                     if (STATUS_MAKE_PAYMENT.equals(statusToUpdate)) {
-                        // Get saved penalty amount if any
-                        float penaltyAmount = preferenceManager.getFloatValue(
-                                "penalty_amount_" + assignedBookingId, 0.0f);
+                        // Use penalty amount from API response
+                        double penaltyAmount = penaltyAmountFromApi;
                         double finalAmount = totalPrice + penaltyAmount;
 
                         params.put("total_payment", Math.round(finalAmount));
@@ -1348,8 +1667,9 @@ public class NewLiveRideActivity extends AppCompatActivity implements OnMapReady
             return;
         }
 
-        // Get saved penalty amount if any
-        float penaltyAmount = preferenceManager.getFloatValue("penalty_amount_" + assignedBookingId, 0.0f);
+        // Use penalty amount from API response
+        double penaltyAmount = penaltyAmountFromApi;
+        double totalAmount = totalPrice;
         double finalAmount = Math.round(totalPrice + penaltyAmount);
 
         DialogPaymentDetailsBinding dialogBinding = DialogPaymentDetailsBinding.inflate(getLayoutInflater());
@@ -1358,41 +1678,38 @@ public class NewLiveRideActivity extends AppCompatActivity implements OnMapReady
                 .setCancelable(false)
                 .create();
 
-        //Showing Wallet Amount if Used
-
-        if(walletAmount>0){
+        // Show wallet amount if used
+        if(walletAmount > 0){
             dialogBinding.walletLyt.setVisibility(View.VISIBLE);
             dialogBinding.txtWalletAmtUsed.setText("₹" + Math.round(walletAmount));
-        }else{
+        } else {
             dialogBinding.walletLyt.setVisibility(View.GONE);
         }
 
+        // Base fare is the original amount before penalty
+        double baseFare = totalAmount;
 
-        // Show penalty amount if exists
+        // Add penalty to get final total
         if (penaltyAmount > 0) {
+            totalAmount += penaltyAmount;
             dialogBinding.penaltyContainer.setVisibility(View.VISIBLE);
             dialogBinding.baseFareValue.setVisibility(View.VISIBLE);
             dialogBinding.penaltyValue.setText("₹" + Math.round(penaltyAmount));
-            // Show base fare
-            dialogBinding.baseFareValue.setText("Base Fare ₹" + Math.round(totalPrice));
+            dialogBinding.baseFareValue.setText("Estimation Fare ₹" + Math.round(baseFare));
         } else {
             dialogBinding.penaltyContainer.setVisibility(View.GONE);
             dialogBinding.baseFareValue.setVisibility(View.GONE);
         }
 
-        // Show final amount
-        dialogBinding.amountValue.setText("₹" + Math.round(finalAmount));
-
-        dialogBinding.cashRadioButton.setChecked(true);
+        // Show final total amount
+        dialogBinding.amountValue.setText("₹" + Math.round(totalAmount));
 
         dialogBinding.cancelButton.setOnClickListener(v -> dialog.dismiss());
-
         dialogBinding.confirmButton.setOnClickListener(v -> {
-            String paymentMethod = getSelectedPaymentType(dialogBinding);
             dialog.dismiss();
+            String paymentMethod = getSelectedPaymentType(dialogBinding);
             processPayment(String.valueOf(finalAmount), paymentMethod);
         });
-
         dialog.show();
     }
 
@@ -1442,11 +1759,9 @@ public class NewLiveRideActivity extends AppCompatActivity implements OnMapReady
                     params.put("customer_id", customerID);
                     params.put("total_amount", Math.round(Double.parseDouble(amount))); // Send rounded amount
 
-                    // Add penalty amount if exists
-                    float penaltyAmount = preferenceManager.getFloatValue(
-                            "penalty_amount_" + assignedBookingId, 0.0f);
-                    if (penaltyAmount > 0) {
-                        params.put("penalty_amount", Math.round(penaltyAmount));
+                    // Add penalty amount from API if exists
+                    if (penaltyAmountFromApi > 0) {
+                        params.put("penalty_amount", Math.round(penaltyAmountFromApi));
                     }
                 } catch (JSONException | NumberFormatException e) {
                     Log.e(TAG, "Error creating payment JSON params", e);
@@ -2154,7 +2469,7 @@ public class NewLiveRideActivity extends AppCompatActivity implements OnMapReady
         LatLng targetLatLng = null;
         String targetLabel = "Destination";
 
-            // During the trip, navigate to the current drop target
+        // During the trip, navigate to the current drop target
 //        if (currentApiStatus != null && currentApiStatus.equals(STATUS_START_TRIP)) {
         if (currentApiStatus != null ) {
             if (multipleDrops > 0 && !allDropLatLngs.isEmpty()) {

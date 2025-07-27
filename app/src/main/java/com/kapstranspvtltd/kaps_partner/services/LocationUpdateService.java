@@ -13,6 +13,7 @@ import android.content.pm.PackageManager;
 import android.location.Location;
 import android.net.Uri;
 import android.os.Build;
+import android.os.Handler;
 import android.os.IBinder;
 import android.os.Looper;
 import android.provider.Settings;
@@ -32,7 +33,9 @@ import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationResult;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.location.Priority;
+import com.google.firebase.messaging.FirebaseMessaging;
 import com.kapstranspvtltd.kaps_partner.SplashScreenActivity;
+import com.kapstranspvtltd.kaps_partner.fcm.AccessToken;
 import com.kapstranspvtltd.kaps_partner.network.APIClient;
 import com.kapstranspvtltd.kaps_partner.network.VolleySingleton;
 import com.kapstranspvtltd.kaps_partner.utils.PreferenceManager;
@@ -43,6 +46,8 @@ import org.json.JSONObject;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class LocationUpdateService extends Service {
     public LocationUpdateService() {
@@ -59,6 +64,10 @@ public class LocationUpdateService extends Service {
     private static Location lastKnownLocation = null;
     private static final Object locationLock = new Object();
 
+    private Handler tokenHandler;
+    private Runnable tokenRunnable;
+    private static final long TOKEN_REFRESH_INTERVAL = 2 * 60 * 1000L; // 2 minutes
+
     @Override
     public void onCreate() {
         super.onCreate();
@@ -66,7 +75,112 @@ public class LocationUpdateService extends Service {
         preferenceManager = new PreferenceManager(this);
         volleySingleton = VolleySingleton.getInstance(this);
         createNotificationChannel();
+
+        // Starting the periodic token fetch
+        startTokenRefreshLoop();
     }
+
+    private void startTokenRefreshLoop() {
+        tokenHandler = new Handler(Looper.getMainLooper());
+        tokenRunnable = new Runnable() {
+            @Override
+            public void run() {
+                getFCMToken();
+                tokenHandler.postDelayed(this, TOKEN_REFRESH_INTERVAL);
+            }
+        };
+        tokenHandler.post(tokenRunnable); // Start the first run
+    }
+
+
+    private void getFCMToken() {
+        FirebaseMessaging.getInstance().getToken()
+                .addOnCompleteListener(task -> {
+                    if (!task.isSuccessful()) {
+                        Log.w("FCM", "Fetching FCM registration token failed", task.getException());
+                        return;
+                    }
+
+                    String token = task.getResult();
+                    System.out.println("Driver device token::" + token);
+                    preferenceManager.saveStringValue("goods_driver_token", token);
+                    updateDriverAuthToken(token);
+                });
+    }
+
+    private void updateDriverAuthToken(String deviceToken) {
+        Log.d("FCMNewTokenFound", "updating goods driver authToken");
+
+        String driverId = preferenceManager.getStringValue("goods_driver_id");
+        String cabDriverId = preferenceManager.getStringValue("cab_driver_id");
+        if (driverId.isEmpty() || deviceToken == null || deviceToken.isEmpty()) {
+
+            return;
+        }
+
+
+        // Using ExecutorService instead of Coroutines
+        ExecutorService executor = Executors.newSingleThreadExecutor();
+        Handler handler = new Handler(Looper.getMainLooper());
+
+        executor.execute(() -> {
+            try {
+                String serverToken = AccessToken.getAccessToken();
+                System.out.println("deviceToken::" + deviceToken);
+                System.out.println("------------");
+                System.out.println("serverToken::" + serverToken);
+                String url = APIClient.baseUrl + "update_firebase_goods_driver_token";
+
+                JSONObject jsonBody = new JSONObject();
+                jsonBody.put("goods_driver_id", driverId);
+                jsonBody.put("authToken", deviceToken);
+
+                JsonObjectRequest request = new JsonObjectRequest(
+                        Request.Method.POST,
+                        url,
+                        jsonBody,
+                        response -> {
+                            String message = response.optString("message");
+                            Log.d("Auth", "FCM Token update from LocationUpdateService response: " + message);
+
+                        },
+                        error -> {
+                            Log.e("Auth", "Error updating token: " + error.getMessage());
+                            error.printStackTrace();
+                        }
+                ) {
+                    @Override
+                    public Map<String, String> getHeaders() {
+                        Map<String, String> headers = new HashMap<>();
+                        headers.put("Content-Type", "application/json");
+                        headers.put("Authorization", "Bearer " + serverToken);
+                        return headers;
+                    }
+                };
+
+                // Add retry policy
+                request.setRetryPolicy(new DefaultRetryPolicy(
+                        30000,
+                        DefaultRetryPolicy.DEFAULT_MAX_RETRIES,
+                        DefaultRetryPolicy.DEFAULT_BACKOFF_MULT
+                ));
+
+                // Execute on main thread
+                handler.post(() -> {
+                    VolleySingleton.getInstance(getApplicationContext())
+                            .addToRequestQueue(request);
+                });
+
+            } catch (Exception e) {
+                Log.e("Auth", "Error in token update process: " + e.getMessage());
+                e.printStackTrace();
+            }
+        });
+
+        // Shutdown executor after use
+        executor.shutdown();
+    }
+
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
@@ -118,9 +232,11 @@ public class LocationUpdateService extends Service {
 
         if (ActivityCompat.checkSelfPermission(this,
                 Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
-            fusedLocationClient.requestLocationUpdates(locationRequest,
-                    locationCallback,
-                    Looper.getMainLooper());
+            if(fusedLocationClient != null) {
+                fusedLocationClient.requestLocationUpdates(locationRequest,
+                        locationCallback,
+                        Looper.getMainLooper());
+            }
         }
     }
 
@@ -289,8 +405,9 @@ public class LocationUpdateService extends Service {
     @Override
     public void onTaskRemoved(Intent rootIntent) {
         super.onTaskRemoved(rootIntent);
-        if (isStoppedManually == false) {
-            // Restart service if it wasn't manually stopped
+
+
+        if (!isStoppedManually) {
             Intent restartService = new Intent(getApplicationContext(), LocationUpdateService.class);
             PendingIntent pendingIntent = PendingIntent.getService(
                     getApplicationContext(),
@@ -302,36 +419,47 @@ public class LocationUpdateService extends Service {
             AlarmManager alarmManager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
             alarmManager.set(AlarmManager.RTC_WAKEUP, System.currentTimeMillis() + 1000, pendingIntent);
         }
+
     }
 
     @Override
     public void onDestroy() {
         super.onDestroy();
-        if(isStoppedManually && locationCallback !=null){
+
+        if (tokenHandler != null && tokenRunnable != null) {
+            tokenHandler.removeCallbacks(tokenRunnable);
+        }
+        // Always remove location updates to avoid duplicates
+        if (fusedLocationClient != null && locationCallback != null) {
             fusedLocationClient.removeLocationUpdates(locationCallback);
         }
-//
-        if (locationCallback != null) {
-            if (isStoppedManually == false)  {
-                Intent serviceIntent = new Intent(this, LocationUpdateService.class);
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            startForegroundService(serviceIntent);
-        } else {
-            startService(serviceIntent);
+
+        // Restart only if not manually stopped
+        if (!isStoppedManually) {
+            Log.d(TAG, "Service destroyed unexpectedly, restarting...");
+
+            Intent restartServiceIntent = new Intent(getApplicationContext(), LocationUpdateService.class);
+            PendingIntent pendingIntent = PendingIntent.getService(
+                    getApplicationContext(),
+                    1,
+                    restartServiceIntent,
+                    PendingIntent.FLAG_IMMUTABLE
+            );
+
+            AlarmManager alarmManager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
+            alarmManager.set(
+                    AlarmManager.RTC_WAKEUP,
+                    System.currentTimeMillis() + 1000,
+                    pendingIntent
+            );
         }
 
-                // Clear last known location when service is manually stopped
-                synchronized (locationLock) {
-                    lastKnownLocation = null;
-                }
-//                // Restart service if it wasn't manually stopped
-//                Intent broadcastIntent = new Intent("com.vtpartnertranspvtltd.vt_partner.RESTART_SERVICE");
-//                sendBroadcast(broadcastIntent);
-//                fusedLocationClient.removeLocationUpdates(locationCallback);
-            }
-
+        // Clear the last known location
+        synchronized (locationLock) {
+            lastKnownLocation = null;
         }
     }
+
 
     @Nullable
     @Override

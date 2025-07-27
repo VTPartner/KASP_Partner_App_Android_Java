@@ -253,5 +253,13 @@
     <string name="recharge_now">Recharge Now</string>
     <string name="my_withdrawal">My Transactions</string>
     <string name="my_transaction">My Transactions</string>
+    <string name="today_rides">Today Rides</string>
+    <string name="today_earnings">Today Earnings</string>
+    <string name="total_rides">Total Rides</string>
+    <string name="total_earnings">Total Earnings</string>
+    <string name="edit_profile">Edit Profile</string>
+    <string name="invite_friends">Invite Friends</string>
+    <string name="earn_referrals">Earn Referrals</string>
+    <string name="enter_your_phone">Enter your phone number</string>
 
 </resources>

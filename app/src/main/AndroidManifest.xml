@@ -56,7 +56,8 @@
             android:exported="false" />
         <activity
             android:name=".goods_driver_activities.withdrawals.GoodsDriverWithdrawBottomSheet"
-            android:exported="false" />
+            android:exported="false"
+            tools:ignore="Instantiatable" />
         <activity
             android:name=".cab_driver_activities.settings_pages.CabAgentWalletActivity"
             android:exported="false" />
@@ -482,6 +483,12 @@
         </activity>
         <activity
             android:name=".goods_driver_activities.NewLiveRideActivity"
+            android:exported="false" />
+        <activity
+            android:name=".goods_driver_activities.GoodsAgentEnterReferralActivity"
+            android:exported="false" />
+        <activity
+            android:name=".goods_driver_activities.GoodsAgentInviteEarnActivity"
             android:exported="false" />
         <activity
             android:name=".goods_driver_activities.fragments.RechargeFragment"

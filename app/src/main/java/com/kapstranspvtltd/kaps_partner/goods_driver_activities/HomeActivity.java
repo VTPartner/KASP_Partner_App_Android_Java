@@ -489,6 +489,7 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         // Setup click listeners
         menuIcon.setOnClickListener(v -> binding.drawerLayout.openDrawer(GravityCompat.START));
+
         dutySwipeButton = binding.dutySwipeButton;
         binding.dutySwipeButton.setOnSlideCompleteListener(() -> {
             if (!isUserAction || isRecreating) {
@@ -1088,7 +1089,13 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
                 intent = new Intent(this, GoodsFAQSActivity.class);
             } else if (itemId == R.id.nav_help) {
 //                intent = new Intent(this, HelpAndSupportActivity.class);
-                openWebUrl("https://vtpartner.org/terms&conditions");
+                openWebUrl("https://kaps9.in/terms&conditions");
+            }
+            else if (itemId == R.id.nav_invite_friends) {
+                intent = new Intent(this, GoodsAgentInviteEarnActivity.class);
+            }
+            else if (itemId == R.id.nav_earn_referrals) {
+                intent = new Intent(this, GoodsAgentEnterReferralActivity.class);
             }
 
             // Second group items (Account actions)
@@ -1113,6 +1120,8 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         // Optional: Set item background color when selected
 //        binding.navView.setItemBackgroundResource(R.drawable.nav_item_background_selector);
+        if(binding.navView !=null)
+            binding.navView.setItemIconTintList(null);
     }
 
     private BottomSheetDialog languageBottomSheet;

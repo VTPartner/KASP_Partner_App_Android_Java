@@ -236,7 +236,14 @@
     <string name="recharge_now">आत्ताच रिचार्ज करा</string>
     <string name="my_withdrawal">माझे व्यवहार</string>
     <string name="my_transaction">माझे व्यवहार</string>
-
+    <string name="today_rides">आजच्या सवारी</string>
+    <string name="today_earnings">आजचे उत्पन्न</string>
+    <string name="total_rides">एकूण सवारी</string>
+    <string name="total_earnings">एकूण उत्पन्न</string>
+    <string name="edit_profile">प्रोफाइल संपादित करा</string>
+    <string name="invite_friends">Invite Friends</string>
+    <string name="earn_referrals">Earn Referrals</string>
+    <string name="enter_your_phone">Enter your phone number</string>
 
 
 </resources>

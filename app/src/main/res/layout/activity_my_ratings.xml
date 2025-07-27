@@ -15,7 +15,7 @@
             android:layout_width="match_parent"
             android:layout_height="?attr/actionBarSize"
             android:background="?attr/colorPrimary"
-            app:title="My Ratings"
+            app:title="@string/my_ratings"
             app:titleTextColor="@color/white"
 
             />

@@ -90,7 +90,7 @@
 
             <com.google.android.material.card.MaterialCardView
                 android:id="@+id/cabDriverCard"
-
+android:visibility="gone"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_margin="8dp"
@@ -135,6 +135,7 @@
                 android:id="@+id/jcbProviderCard"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:visibility="gone"
                 android:layout_margin="8dp"
                 android:stateListAnimator="@animator/card_state_list_anim"
 
@@ -179,6 +180,7 @@
                 android:layout_width="match_parent"
 
                 android:layout_height="wrap_content"
+                android:visibility="gone"
                 android:layout_margin="8dp"
                 android:stateListAnimator="@animator/card_state_list_anim"
                 app:cardCornerRadius="12dp"
@@ -219,7 +221,7 @@
 
             <com.google.android.material.card.MaterialCardView
                 android:id="@+id/handymanCard"
-
+android:visibility="gone"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_margin="8dp"

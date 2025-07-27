@@ -243,7 +243,14 @@
     <string name="recharge_now">अभी रिचार्ज करें</string>
     <string name="my_withdrawal">मेरे लेनदेन</string>
     <string name="my_transaction">मेरे लेनदेन</string>
-
+    <string name="today_rides">आज की सवारियाँ</string>
+    <string name="today_earnings">आज की कमाई</string>
+    <string name="total_rides">कुल सवारियाँ</string>
+    <string name="total_earnings">कुल कमाई</string>
+    <string name="edit_profile">प्रोफ़ाइल संपादित करें</string>
+    <string name="invite_friends">Invite Friends</string>
+    <string name="earn_referrals">Earn Referrals</string>
+    <string name="enter_your_phone">Enter your phone number</string>
 
 
 </resources>

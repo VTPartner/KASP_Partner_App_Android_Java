@@ -105,6 +105,7 @@ public class FCMService extends FirebaseMessagingService {
     @Override
     public void onNewToken(@NonNull String token) {
         super.onNewToken(token);
+        System.out.println("FCM onNewToken::"+token);
         updateDriverToken(token);
     }
 
@@ -117,7 +118,7 @@ public class FCMService extends FirebaseMessagingService {
 
 
         String url = "";
-        String key = "", value = "";
+        String key, value;
         String tokenKey; // Key for saving token in preferences
 
         if (!driverId.isEmpty()) {
@@ -146,6 +147,8 @@ public class FCMService extends FirebaseMessagingService {
             value = handymanAgentId;
             tokenKey = "handyman_token";
         } else {
+            value = "";
+            key = "";
             tokenKey = "";
         }
 
@@ -166,6 +169,7 @@ public class FCMService extends FirebaseMessagingService {
                     response -> {
                         Log.d(TAG, "Token updated successfully");
                         // Save token based on driver type
+                        System.out.println("Updated FCM TOKEN FROM ONNewTOken for key:"+key+" value:"+value);
                         preferenceManager.saveStringValue(tokenKey, token);
                     },
                     error -> {
@@ -632,7 +636,7 @@ public class FCMService extends FirebaseMessagingService {
 //        boolean isAppForeground = isAppInForeground();
         boolean isAppForeground = true;
         FloatingWindowService floatingService = FloatingWindowService.getInstance();
-
+        System.out.println("FCM floatingService::"+floatingService);
         if (isAppForeground || floatingService != null) {
             System.out.println("floatingService is " + (floatingService != null ? "not null" : "null"));
             try {
@@ -676,19 +680,19 @@ public class FCMService extends FirebaseMessagingService {
         stopService(floatingIntent);
     }
     private boolean isAppInForeground() {
-        return true;
-//        ActivityManager activityManager = (ActivityManager) getSystemService(Context.ACTIVITY_SERVICE);
-//        List<ActivityManager.RunningAppProcessInfo> appProcesses = activityManager.getRunningAppProcesses();
-//        if (appProcesses == null) return false;
-//
-//        String packageName = getPackageName();
-//        for (ActivityManager.RunningAppProcessInfo appProcess : appProcesses) {
-//            if (appProcess.importance == ActivityManager.RunningAppProcessInfo.IMPORTANCE_FOREGROUND
-//                    && appProcess.processName.equals(packageName)) {
-//                return true;
-//            }
-//        }
-//        return false;
+//        return true;
+        ActivityManager activityManager = (ActivityManager) getSystemService(Context.ACTIVITY_SERVICE);
+        List<ActivityManager.RunningAppProcessInfo> appProcesses = activityManager.getRunningAppProcesses();
+        if (appProcesses == null) return false;
+
+        String packageName = getPackageName();
+        for (ActivityManager.RunningAppProcessInfo appProcess : appProcesses) {
+            if (appProcess.importance == ActivityManager.RunningAppProcessInfo.IMPORTANCE_FOREGROUND
+                    && appProcess.processName.equals(packageName)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private void showBookingNotification(String bookingId, Map<String, String> data) {

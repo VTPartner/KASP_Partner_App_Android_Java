@@ -96,4 +96,7 @@ dependencies {
 
     //Chip
     implementation ("org.threeten:threetenbp:1.5.1")
+
+    //Lottie animation
+    implementation ("com.airbnb.android:lottie:3.4.0")
 }

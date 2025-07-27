@@ -4,6 +4,8 @@ import android.Manifest;
 import android.content.Context;
 import android.content.Intent;
 import android.location.LocationManager;
+import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextUtils;
@@ -18,9 +20,12 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.kapstranspvtltd.kaps_partner.models.AppContent;
 import com.kapstranspvtltd.kaps_partner.models.CountryCodeItem;
+import com.kapstranspvtltd.kaps_partner.utils.AppContentManager;
 import com.kapstranspvtltd.kaps_partner.utils.CustPrograssbar;
 import com.kapstranspvtltd.kaps_partner.utils.Utility;
 import com.kapstranspvtltd.kaps_partner.R;
@@ -30,27 +35,72 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class LoginActivity extends AppCompatActivity {
-
     private ActivityLoginBinding binding;
-
     private List<CountryCodeItem> cCodes = new ArrayList<>();
-
     private String codeSelect;
 
     private CustPrograssbar custPrograssbar;
     private static final int DEFAULT_INDIA_POSITION = 0; // Will be updated when we get codes
 
+    @RequiresApi(api = Build.VERSION_CODES.M)
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         binding = ActivityLoginBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
 
+        // Load dynamic content
+        loadDynamicContent();
 
         setupClickListeners();
         setupLocationServices();
         getCountryCodes();
         setupMobileValidation();
+        updateContinueButtonAppearance(false);
+    }
+
+    private void loadDynamicContent() {
+        AppContent loginContent = AppContentManager.getInstance(this)
+                .getFirstContentForScreen("login");
+
+        if (loginContent != null) {
+            // Load login screen content
+            ImageView loginImage = binding.loginImage;
+            TextView loginDescription = binding.loginDescription;
+
+            // Set description
+            if (loginDescription != null && !loginContent.getDescription().equals("NA")) {
+                loginDescription.setText(loginContent.getDescription());
+            }
+
+            // Set image
+            if (loginImage != null && !loginContent.getImageUrl().equals("NA")) {
+                if (loginContent.getImageUrl().startsWith("http")) {
+                    com.bumptech.glide.Glide.with(this)
+                            .load(loginContent.getImageUrl())
+                            .placeholder(R.drawable.logo)
+                            .error(R.drawable.logo)
+                            .into(loginImage);
+                } else {
+                    // Handle local drawable resources
+                    try {
+                        int resourceId = getResources().getIdentifier(
+                                loginContent.getImageUrl().replace("@drawable/", ""),
+                                "drawable",
+                                getPackageName()
+                        );
+                        if (resourceId != 0) {
+                            loginImage.setImageResource(resourceId);
+                        }
+                    } catch (Exception e) {
+                        // Fallback to default image
+                        loginImage.setImageResource(R.drawable.logo);
+                    }
+                }
+            }
+
+            System.out.println("Login content loaded: " + loginContent.getTitle());
+        }
     }
 
     private void setupLocationServices() {
@@ -64,27 +114,60 @@ public class LoginActivity extends AppCompatActivity {
 
     private void setupMobileValidation() {
         binding.edMobile.addTextChangedListener(new TextWatcher() {
+            private boolean isProcessing = false;
+
             @Override
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
 
             @Override
-            public void onTextChanged(CharSequence s, int start, int before, int count) {}
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                // Skip if we're already processing to avoid recursion
+                if (isProcessing) return;
+
+                // Handle pasted text
+                if (count > 1) {
+                    isProcessing = true;
+                    String input = s.toString();
+
+                    // Remove common country code prefixes
+                    input = input.replaceAll("^\\+?91|^0091|^91", "");
+
+                    // Remove any non-digit characters
+                    input = input.replaceAll("[^0-9]", "");
+
+                    // Take last 10 digits if longer
+                    if (input.length() > 10) {
+                        input = input.substring(input.length() - 10);
+                    }
+
+                    // Update text field
+                    binding.edMobile.setText(input);
+                    binding.edMobile.setSelection(input.length());
+
+                    isProcessing = false;
+                    return;
+                }
+            }
 
             @Override
             public void afterTextChanged(Editable s) {
-                // Remove any non-digit characters
+                if (isProcessing) return;
+
+                isProcessing = true;
+
+                // Handle single character input
                 String filtered = s.toString().replaceAll("[^0-9]", "");
+
+                if (filtered.length() > 10) {
+                    filtered = filtered.substring(0, 10);
+                }
+
                 if (!filtered.equals(s.toString())) {
                     binding.edMobile.setText(filtered);
                     binding.edMobile.setSelection(filtered.length());
                 }
 
-                // Limit to 10 digits
-                if (filtered.length() > 10) {
-                    filtered = filtered.substring(0, 10);
-                    binding.edMobile.setText(filtered);
-                    binding.edMobile.setSelection(filtered.length());
-                }
+                isProcessing = false;
             }
         });
     }
@@ -106,7 +189,25 @@ public class LoginActivity extends AppCompatActivity {
     private void setupClickListeners() {
         binding.imgBack.setOnClickListener(v -> finish());
 
+        // Terms and Conditions click listener
+        binding.txtTermsConditions.setOnClickListener(v -> {
+            openUrl("https://www.kaps9.in/terms&conditions");
+        });
+
+
+
+        // Checkbox listener
+        binding.checkboxTerms.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            binding.txtContinue.setEnabled(isChecked);
+            updateContinueButtonAppearance(isChecked);
+        });
+
         binding.txtContinue.setOnClickListener(v -> {
+            if (!binding.checkboxTerms.isChecked()) {
+                Toast.makeText(this, "Please accept the terms and conditions", Toast.LENGTH_SHORT).show();
+                return;
+            }
+
             if (isValidMobileNumber(binding.edMobile.getText().toString())) {
                 String mobileNumber = binding.edMobile.getText().toString();
                 String countryCode = codeSelect; // Get selected country code
@@ -119,6 +220,26 @@ public class LoginActivity extends AppCompatActivity {
             }
         });
     }
+
+    private void openUrl(String url) {
+        try {
+            Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
+            startActivity(intent);
+        } catch (Exception e) {
+            Toast.makeText(this, "Unable to open link", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    private void updateContinueButtonAppearance(boolean isEnabled) {
+        if (isEnabled) {
+            binding.txtContinue.setBackground(getResources().getDrawable(R.drawable.rounded_button));
+            binding.txtContinue.setTextColor(getResources().getColor(R.color.white));
+        } else {
+            binding.txtContinue.setBackground(getResources().getDrawable(R.drawable.rounded_button_disabled));
+            binding.txtContinue.setTextColor(getResources().getColor(R.color.white));
+        }
+    }
+
 
     private boolean isValidMobileNumber(String mobile) {
         if (TextUtils.isEmpty(mobile)) {

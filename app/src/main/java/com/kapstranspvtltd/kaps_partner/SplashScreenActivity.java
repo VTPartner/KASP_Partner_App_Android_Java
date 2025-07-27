@@ -4,11 +4,14 @@ import android.Manifest;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.content.res.Configuration;
+import android.content.res.Resources;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.PowerManager;
 import android.provider.Settings;
+import android.widget.ImageView;
 
 import androidx.appcompat.app.AppCompatActivity;
 
@@ -26,8 +29,12 @@ import com.kapstranspvtltd.kaps_partner.handyman_agent_activities.HandyManAgentH
 import com.kapstranspvtltd.kaps_partner.handyman_agent_activities.HandyManLoginScreenActivity;
 import com.kapstranspvtltd.kaps_partner.jcb_crane_agent_activities.JcbCraneAgentLoginScreenActivity;
 import com.kapstranspvtltd.kaps_partner.jcb_crane_agent_activities.JcbCraneHomeActivity;
+import com.kapstranspvtltd.kaps_partner.models.AppContent;
+import com.kapstranspvtltd.kaps_partner.utils.AppContentManager;
 import com.kapstranspvtltd.kaps_partner.utils.PreferenceManager;
 import com.kapstranspvtltd.kaps_partner.R;
+
+import java.util.Locale;
 
 
 public class SplashScreenActivity extends AppCompatActivity {
@@ -42,16 +49,35 @@ public class SplashScreenActivity extends AppCompatActivity {
         HANDYMAN
     }
 
+    private void setLocale(String langCode) {
+        Locale locale = new Locale(langCode);
+        Locale.setDefault(locale);
+        Resources resources = getResources();
+        Configuration config = resources.getConfiguration();
+        config.setLocale(locale);
+        resources.updateConfiguration(config, resources.getDisplayMetrics());
+    }
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_splash_screen);
 
         preferenceManager = new PreferenceManager(this);
+        loadSplashScreenContent();
+        proceedToNextScreen();
+    }
 
-//        String goodsDriverID = preferenceManager.getStringValue("goods_driver_id");
+    private void proceedToNextScreen() {
+        //        String goodsDriverID = preferenceManager.getStringValue("goods_driver_id");
 //        String goodsDriverName = preferenceManager.getStringValue("goods_driver_name");
         Boolean firstRun = preferenceManager.getBooleanValue("firstRun");
+        String language = preferenceManager.getStringValue("language");
+        if(language != null && !language.isEmpty())
+        {
+            setLocale(language);
+        }
+
+
 
         new Handler().postDelayed(() -> {
             // This method will be executed once the timer is over
@@ -68,6 +94,7 @@ public class SplashScreenActivity extends AppCompatActivity {
 //                    finish();
 //                }
             } else {
+//                Intent i = new Intent(SplashScreenActivity.this, IntroActivity.class);
                 Intent i = new Intent(SplashScreenActivity.this, IntroActivity.class);
                 startActivity(i);
                 finish();
@@ -76,6 +103,39 @@ public class SplashScreenActivity extends AppCompatActivity {
 
         }, 3000);
     }
+
+    private void loadSplashScreenContent() {
+        AppContent splashContent = AppContentManager.getInstance(this)
+                .getFirstContentForScreen("agent_splash_screen");
+        System.out.println("agent_splashContent::"+splashContent);
+        if (splashContent != null && !splashContent.getImageUrl().equals("NA")) {
+            ImageView splashLogo = findViewById(R.id.splash_logo);
+
+            if (splashLogo != null) {
+                if (splashContent.getImageUrl().startsWith("http")) {
+                    com.bumptech.glide.Glide.with(this)
+                            .load(splashContent.getImageUrl())
+                            .placeholder(R.drawable.logo)
+                            .error(R.drawable.logo)
+                            .into(splashLogo);
+                } else {
+                    try {
+                        int resourceId = getResources().getIdentifier(
+                                splashContent.getImageUrl().replace("@drawable/", ""),
+                                "drawable",
+                                getPackageName()
+                        );
+                        if (resourceId != 0) {
+                            splashLogo.setImageResource(resourceId);
+                        }
+                    } catch (Exception e) {
+                        splashLogo.setImageResource(R.drawable.logo);
+                    }
+                }
+            }
+        }
+    }
+
 /*
     private void checkPermissionsAndProceed() {
         if (areAllPermissionsGranted()) {

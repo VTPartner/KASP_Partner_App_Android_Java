@@ -23,14 +23,17 @@ import com.android.volley.toolbox.JsonObjectRequest;
 import com.google.firebase.FirebaseApp;
 import com.google.firebase.messaging.FirebaseMessaging;
 import com.kapstranspvtltd.kaps_partner.fcm.AccessToken;
+import com.kapstranspvtltd.kaps_partner.models.AppContent;
 import com.kapstranspvtltd.kaps_partner.network.APIClient;
 import com.kapstranspvtltd.kaps_partner.network.VolleySingleton;
+import com.kapstranspvtltd.kaps_partner.utils.AppContentManager;
 import com.kapstranspvtltd.kaps_partner.utils.PreferenceManager;
 import com.kapstranspvtltd.kaps_partner.R;
 
 import org.json.JSONObject;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -51,8 +54,25 @@ public class MyApplication extends Application {
         FirebaseApp.initializeApp(this);
 
         getFCMToken();
+        // Fetch app content for all screens
+        fetchAppContent();
     }
 
+    private void fetchAppContent() {
+        AppContentManager.getInstance(this).fetchAppContent(this, new AppContentManager.AppContentCallback() {
+            @Override
+            public void onSuccess(Map<String, List<AppContent>> content) {
+                Log.d("MyApplication", "App content fetched successfully");
+                // Load splash screen content immediately
+//                loadSplashScreenContent();
+            }
+
+            @Override
+            public void onError(String error) {
+                Log.e("MyApplication", "Error fetching app content: " + error);
+            }
+        });
+    }
 
 
     private void getFCMToken() {

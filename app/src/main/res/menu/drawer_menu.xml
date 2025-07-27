@@ -3,64 +3,76 @@
     <group android:checkableBehavior="single">
         <item
             android:id="@+id/nav_home"
-            android:icon="@drawable/ic_home"
+            android:icon="@drawable/my_home"
+            android:iconTint="@null"
             android:title="@string/home" />
         <item
             android:id="@+id/nav_change_language"
-            android:icon="@drawable/change_language"
+            android:icon="@drawable/language_change"
+            android:iconTint="@null"
             android:title="@string/change_language" />
         <item
             android:id="@+id/nav_live_ride"
-            android:icon="@drawable/baseline_share_location_24"
+            android:icon="@drawable/my_live_ride"
+            android:iconTint="@null"
             android:title="@string/live_ride" />
         <item
             android:id="@+id/nav_rides"
-            android:icon="@drawable/ic_rides"
+            android:icon="@drawable/my_all_rides"
             android:title="@string/my_rides" />
         <item
             android:id="@+id/nav_earnings"
-            android:icon="@drawable/ic_earnings"
+            android:icon="@drawable/my_earning"
             android:title="@string/my_earnings" />
         <item
             android:id="@+id/nav_recharge"
-            android:icon="@drawable/ic_recharge"
+            android:icon="@drawable/my_recharge_plans"
             android:title="@string/recharge" />
         <item
             android:id="@+id/nav_recharge_history"
-            android:icon="@drawable/ic_history"
+            android:icon="@drawable/recharge_history"
             android:title="@string/recharge_history" />
         <item
             android:id="@+id/nav_ratings"
-            android:icon="@drawable/ic_star"
+            android:icon="@drawable/my_ratings"
             android:title="@string/my_ratings" />
 
         <item
             android:id="@+id/nav_wallet"
-            android:icon="@drawable/ic_recharge"
+            android:icon="@drawable/my_wallet"
             android:title="@string/my_wallet" />
 
         <item
             android:id="@+id/nav_withdraw"
-            android:icon="@drawable/ic_recharge"
+            android:icon="@drawable/my_transactions"
             android:title="@string/my_withdrawal" />
         <item
+            android:id="@+id/nav_invite_friends"
+            android:icon="@drawable/invite_my_frnds"
+            android:title="@string/invite_friends" />
+        <item
+            android:id="@+id/nav_earn_referrals"
+            android:icon="@drawable/earn_money_from_invitation"
+            android:title="@string/earn_referrals" />
+        <item
             android:id="@+id/nav_faqs"
-            android:icon="@drawable/ic_faq"
+            android:icon="@drawable/my_faqs"
             android:title="@string/my_faqs" />
         <item
             android:id="@+id/nav_help"
-            android:icon="@drawable/ic_help"
+            android:icon="@drawable/my_help_support"
             android:title="@string/help_and_support" />
+
     </group>
 
     <group android:checkableBehavior="single">
         <item
             android:id="@+id/nav_delete_account"
-            android:icon="@drawable/ic_delete"
+            android:icon="@drawable/my_delete_account"
             android:title="@string/delete_account" />
         <item
             android:id="@+id/nav_logout"
-            android:icon="@drawable/ic_logout"
+            android:icon="@drawable/my_logout"
             android:title="@string/logout" />
     </group>
 </menu>

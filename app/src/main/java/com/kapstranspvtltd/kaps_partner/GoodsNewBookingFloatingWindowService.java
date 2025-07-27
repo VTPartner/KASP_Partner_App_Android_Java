@@ -50,6 +50,7 @@ import com.kapstranspvtltd.kaps_partner.goods_driver_activities.HomeActivity;
 import com.kapstranspvtltd.kaps_partner.goods_driver_activities.NewLiveRideActivity;
 import com.kapstranspvtltd.kaps_partner.network.APIClient;
 import com.kapstranspvtltd.kaps_partner.network.VolleySingleton;
+import com.kapstranspvtltd.kaps_partner.services.LocationUpdateService;
 import com.kapstranspvtltd.kaps_partner.utils.PreferenceManager;
 
 import org.json.JSONArray;
@@ -496,18 +497,19 @@ public class GoodsNewBookingFloatingWindowService extends Service {
 
                 FusedLocationProviderClient fusedLocationClient =
                         LocationServices.getFusedLocationProviderClient(this);
+                if(fusedLocationClient != null) {
+                    fusedLocationClient.getLastLocation().addOnSuccessListener(location -> {
+                        if (location != null) {
+                            // Save current location for future use
+                            preferenceManager.saveFloatValue("last_known_lat", (float) location.getLatitude());
+                            preferenceManager.saveFloatValue("last_known_lng", (float) location.getLongitude());
 
-                fusedLocationClient.getLastLocation().addOnSuccessListener(location -> {
-                    if (location != null) {
-                        // Save current location for future use
-                        preferenceManager.saveFloatValue("last_known_lat", (float) location.getLatitude());
-                        preferenceManager.saveFloatValue("last_known_lng", (float) location.getLongitude());
-
-                        // Get precise distance with Google Distance Matrix API
-                        getDrivingDistance(location.getLatitude(), location.getLongitude(),
-                                pickupLat, pickupLng, distanceView);
-                    }
-                });
+                            // Get precise distance with Google Distance Matrix API
+                            getDrivingDistance(location.getLatitude(), location.getLongitude(),
+                                    pickupLat, pickupLng, distanceView);
+                        }
+                    });
+                }
             }
         } catch (Exception e) {
             Log.e(TAG, "Error calculating distance: " + e.getMessage());
@@ -578,6 +580,9 @@ public class GoodsNewBookingFloatingWindowService extends Service {
 
                 // Stop the service itself
                 stopSelf();
+
+                //
+                restartLocationFetchService();
             }
         }.start();
     }
@@ -697,6 +702,19 @@ public class GoodsNewBookingFloatingWindowService extends Service {
         // Stop the service
         stopForeground(true); // Remove notification
         stopSelf(); // Stop the service
+
+        restartLocationFetchService();
+    }
+
+    private void restartLocationFetchService() {
+        System.out.println("Start Location Updates Goods Driver");
+        // Start LocationService
+        Intent serviceIntent = new Intent(this, LocationUpdateService.class);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            startForegroundService(serviceIntent);
+        } else {
+            startService(serviceIntent);
+        }
     }
 
     private void handleVolleyError(VolleyError error) {
@@ -705,9 +723,12 @@ public class GoodsNewBookingFloatingWindowService extends Service {
                 String errorJson = new String(error.networkResponse.data, StandardCharsets.UTF_8);
                 JSONObject errorObj = new JSONObject(errorJson);
 
-                if (errorObj.optString("message").contains("No Data Found")) {
+                if (errorObj.optString("message").contains("No Data Found") || errorObj.optString("message").contains("Driver is already assigned to this booking")) {
                     handleNoDataFound();
-                } else {
+                } else if (errorObj.optString("message").contains("Booking is already cancelled")){
+                    handleBookingCancelled();
+                }
+                else {
                     String message = errorObj.optString("message", "Something went wrong");
                     showToast(message);
                 }
@@ -717,6 +738,14 @@ public class GoodsNewBookingFloatingWindowService extends Service {
         } else {
             handleDefaultError(error);
         }
+    }
+
+    private void handleBookingCancelled() {
+
+            preferenceManager.saveStringValue("current_booking_id_assigned", "");
+        showToast("Booking cancelled by the customer.\nPlease respond promptly to new booking requests.");
+        onDestroy();
+
     }
 
     private void handleNoDataFound() {
@@ -795,10 +824,16 @@ public class GoodsNewBookingFloatingWindowService extends Service {
             // Kill the process if needed (last resort)
             android.os.Process.killProcess(android.os.Process.myPid());
 
+            //restart the service to update locations
+            restartLocationFetchService();
+
         } catch (Exception e) {
             Log.e(TAG, "Error in onDestroy: " + e.getMessage());
             // Force stop even if there's an error
             stopSelf();
+
+            //restart the service to update locations
+            restartLocationFetchService();
         }
     }
 
