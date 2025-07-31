@@ -1795,6 +1795,7 @@ public class NewLiveRideActivity extends AppCompatActivity implements OnMapReady
 
     private void handlePaymentSuccess() {
         // Already on main thread from processPayment callback
+        preferenceManager.saveBooleanValue("isOnLiveRide",false);
         hideLoading();
         clearRideState(); // Clear saved state for this ride
         showToast("Trip Completed Successfully!");
@@ -1829,7 +1830,7 @@ public class NewLiveRideActivity extends AppCompatActivity implements OnMapReady
         // Consider clearing other ride detail variables if necessary
 
 
-        preferenceManager.saveBooleanValue("isOnLiveRide",false);
+
 
         preferenceManager.saveBooleanValue("isPickupNotificationSent",false);
         String bookingId = assignedBookingId+"";
@@ -2470,8 +2471,8 @@ public class NewLiveRideActivity extends AppCompatActivity implements OnMapReady
         String targetLabel = "Destination";
 
         // During the trip, navigate to the current drop target
-//        if (currentApiStatus != null && currentApiStatus.equals(STATUS_START_TRIP)) {
-        if (currentApiStatus != null ) {
+        if (currentApiStatus != null && (currentApiStatus.equals(STATUS_START_TRIP) || currentApiStatus.equals(STATUS_REACHED_DROP_PREFIX) || currentApiStatus.equals(STATUS_MAKE_PAYMENT)) ) {
+//        if (currentApiStatus != null ) {
             if (multipleDrops > 0 && !allDropLatLngs.isEmpty()) {
                 if (currentDropIndex < allDropLatLngs.size()) {
                     targetLatLng = allDropLatLngs.get(currentDropIndex);

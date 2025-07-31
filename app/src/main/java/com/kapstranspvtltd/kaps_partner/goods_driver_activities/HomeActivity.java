@@ -1733,7 +1733,12 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
 //                }
                 planExpired = true;
                 binding.currentPlanValidity.setText("Plan Expired");
+                boolean isOnLiveRide = preferenceManager.getBooleanValue("isOnLiveRide");
 
+                if(isOnline && isOnLiveRide == false) {
+                    showError("Please recharge to receive rides");
+                    updateDriverStatus(false);
+                }
                 showPurchasePlanButton();
 
                 binding.currentPlanValidity.setTextColor(getResources().getColor(R.color.colorerror));
