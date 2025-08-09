@@ -34,6 +34,7 @@ import com.kapstranspvtltd.kaps_partner.driver_app_activities.DriverAgentHomeAct
 import com.kapstranspvtltd.kaps_partner.driver_app_activities.DriverAgentNewBookingAcceptService;
 import com.kapstranspvtltd.kaps_partner.fcm.popups.GoodsBookingAcceptActivity;
 import com.kapstranspvtltd.kaps_partner.goods_driver_activities.HomeActivity;
+import com.kapstranspvtltd.kaps_partner.goods_driver_activities.NewLiveRideActivity;
 import com.kapstranspvtltd.kaps_partner.handyman_agent_activities.HandyManAgentHomeActivity;
 import com.kapstranspvtltd.kaps_partner.handyman_agent_activities.HandyManNewBookingAcceptService;
 import com.kapstranspvtltd.kaps_partner.jcb_crane_agent_activities.JcbCraneDriverNewBookingAcceptService;
@@ -287,6 +288,26 @@ public class FCMService extends FirebaseMessagingService {
                 // Launch activity on main thread
                 new Handler(Looper.getMainLooper()).post(() -> {
                     handleHandymanAgentNewBooking(data);
+                });
+            }
+
+            else if ("goods_live_ride_screen".equals(data.get("intent"))) {
+                String bookingId = data.get("booking_id");
+                String title = data.get("title");
+                String body = data.get("body");
+                System.out.println("driver home bookingId::" + bookingId);
+// Create notification channel for Android O and above
+                createDriverNotificationChannel();
+
+                // Show notification
+                showNotification(title, body);
+                // Launch activity on main thread
+                new Handler(Looper.getMainLooper()).post(() -> {
+                    Intent intent = new Intent(this, NewLiveRideActivity.class);
+                    intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK |
+                            Intent.FLAG_ACTIVITY_CLEAR_TOP |
+                            Intent.FLAG_ACTIVITY_SINGLE_TOP);
+                    startActivity(intent);
                 });
             }
 

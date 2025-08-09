@@ -222,6 +222,11 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
         getFCMToken();
 
 
+        binding.refreshBtn.setOnClickListener(v -> {
+            Intent intent = new Intent(this, HomeActivity.class);
+            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+            startActivity(intent);
+        });
 
     }
 
@@ -2158,18 +2163,22 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
                             switch (status) {
                                 case "0":
                                     isVerified = false;
+                                    binding.brandName.setVisibility(View.GONE);
                                     updateVerificationStatus("You are not yet verified");
                                     break;
                                 case "2":
                                     isVerified = false;
+                                    binding.brandName.setVisibility(View.GONE);
                                     updateVerificationStatus("You are blocked");
                                     break;
                                 case "3":
                                     isVerified = false;
+                                    binding.brandName.setVisibility(View.GONE);
                                     updateVerificationStatus("You are rejected");
                                     break;
                                 default:
                                     isVerified = true;
+                                    binding.brandName.setVisibility(View.VISIBLE);
                                     showDutyStatusCheckBox(true, isOnline);
                                     if (isOnline)
                                         startLocationUpdates();

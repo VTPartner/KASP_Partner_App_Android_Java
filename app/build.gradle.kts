@@ -13,7 +13,7 @@ android {
         applicationId = "com.kapstranspvtltd.kaps_partner"
         minSdk = 27
         targetSdk = 34
-        versionCode = 11
+        versionCode = 12
         versionName = "0.0.1"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"

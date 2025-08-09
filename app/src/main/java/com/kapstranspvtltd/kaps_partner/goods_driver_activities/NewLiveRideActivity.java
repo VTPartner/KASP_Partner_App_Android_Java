@@ -193,29 +193,7 @@ public class NewLiveRideActivity extends AppCompatActivity implements OnMapReady
     private CountDownTimer loadingCountDownTimer;
     private CountDownTimer unloadingCountDownTimer;
 
-    private void startLoadingCountdown(long millisLeft) {
-        if (loadingCountDownTimer != null) loadingCountDownTimer.cancel();
-        loadingCountDownTimer = new CountDownTimer(millisLeft, 1000) {
-            public void onTick(long millisUntilFinished) {
-                binding.loadingCountdown.setText("Loading Timer: " + formatTime(millisUntilFinished));
-            }
-            public void onFinish() {
-                binding.loadingCountdown.setText("Loading Timer: Overage");
-            }
-        }.start();
-    }
 
-    private void startLoadingOverageTimer(long overageMillis) {
-        if (loadingCountDownTimer != null) loadingCountDownTimer.cancel();
-        loadingCountDownTimer = new CountDownTimer(Long.MAX_VALUE, 1000) {
-            long currentOverage = overageMillis;
-            public void onTick(long millisUntilFinished) {
-                currentOverage += 1000;
-                binding.loadingCountdown.setText("Loading Timer: +" + formatTime(currentOverage));
-            }
-            public void onFinish() {}
-        }.start();
-    }
 
     private void stopLoadingTimer() {
         if (loadingCountDownTimer != null) {
@@ -224,35 +202,66 @@ public class NewLiveRideActivity extends AppCompatActivity implements OnMapReady
         }
     }
 
-    private void startUnloadingCountdown(long millisLeft) {
-        if (unloadingCountDownTimer != null) unloadingCountDownTimer.cancel();
-        unloadingCountDownTimer = new CountDownTimer(millisLeft, 1000) {
-            public void onTick(long millisUntilFinished) {
-                binding.unloadingCountdown.setText("Unloading Timer: " + formatTime(millisUntilFinished));
-            }
-            public void onFinish() {
-                binding.unloadingCountdown.setText("Unloading Timer: Overage");
-            }
-        }.start();
-    }
-
-    private void startUnloadingOverageTimer(long overageMillis) {
-        if (unloadingCountDownTimer != null) unloadingCountDownTimer.cancel();
-        unloadingCountDownTimer = new CountDownTimer(Long.MAX_VALUE, 1000) {
-            long currentOverage = overageMillis;
-            public void onTick(long millisUntilFinished) {
-                currentOverage += 1000;
-                binding.unloadingCountdown.setText("Unloading Timer: +" + formatTime(currentOverage));
-            }
-            public void onFinish() {}
-        }.start();
-    }
 
     private void stopUnloadingTimer() {
         if (unloadingCountDownTimer != null) {
             unloadingCountDownTimer.cancel();
             unloadingCountDownTimer = null;
         }
+    }
+
+    private void startLoadingCountdown(long millisLeft) {
+        if (loadingCountDownTimer != null) loadingCountDownTimer.cancel();
+        System.out.println("Starting loading countdown: " + (millisLeft/1000) + " seconds");
+        loadingCountDownTimer = new CountDownTimer(millisLeft, 1000) {
+            public void onTick(long millisUntilFinished) {
+                binding.loadingCountdown.setText("Loading Timer: " + formatTime(millisUntilFinished));
+            }
+            public void onFinish() {
+                binding.loadingCountdown.setText("Loading Timer: Time Up! (Penalty applies)");
+                System.out.println("Loading timer finished - penalty applies");
+            }
+        }.start();
+    }
+
+    private void startLoadingOverageTimer(long overageMillis) {
+        if (loadingCountDownTimer != null) loadingCountDownTimer.cancel();
+        System.out.println("Starting loading overage timer: " + (overageMillis/1000) + " seconds overage");
+        loadingCountDownTimer = new CountDownTimer(Long.MAX_VALUE, 1000) {
+            long currentOverage = overageMillis;
+            public void onTick(long millisUntilFinished) {
+                currentOverage += 1000;
+                binding.loadingCountdown.setText("Loading Timer: +" + formatTime(currentOverage) + " (Penalty)");
+            }
+            public void onFinish() {}
+        }.start();
+    }
+
+    private void startUnloadingCountdown(long millisLeft) {
+        if (unloadingCountDownTimer != null) unloadingCountDownTimer.cancel();
+        System.out.println("Starting unloading countdown: " + (millisLeft/1000) + " seconds");
+        unloadingCountDownTimer = new CountDownTimer(millisLeft, 1000) {
+            public void onTick(long millisUntilFinished) {
+                binding.unloadingCountdown.setText("Unloading Timer: " + formatTime(millisUntilFinished));
+            }
+            public void onFinish() {
+                binding.unloadingCountdown.setText("Unloading Timer: Time Up! (Penalty applies)");
+                System.out.println("Unloading timer finished - penalty applies");
+            }
+        }.start();
+    }
+
+    private void startUnloadingOverageTimer(long overageMillis) {
+        if (unloadingCountDownTimer != null) unloadingCountDownTimer.cancel();
+        System.out.println("Starting unloading overage timer: " + (overageMillis/1000) + " seconds overage");
+        unloadingCountDownTimer = new CountDownTimer(Long.MAX_VALUE, 1000) {
+            long currentOverage = overageMillis;
+            public void onTick(long millisUntilFinished) {
+                currentOverage += 1000;
+                binding.unloadingCountdown.setText("Unloading Timer: +" + formatTime(currentOverage) + " (Penalty)");
+            }
+            public void onFinish() {}
+        }.start();
     }
 
     private String formatTime(long millis) {
@@ -990,160 +999,135 @@ public class NewLiveRideActivity extends AppCompatActivity implements OnMapReady
         }
     }
 
+    private void stopAllTimers() {
+        stopLoadingTimer();
+        stopUnloadingTimer();
+        System.out.println("All timers stopped");
+    }
+
     private void showWaitingPenaltyInfo(JSONObject waitingInfo, JSONObject rideDetails) {
-        System.out.println("waitingInfo::"+waitingInfo);
-        
-        // Debug: Print rideDetails to see what's available
-        if (rideDetails != null) {
-            System.out.println("rideDetails unloading start times: " + rideDetails.optString("unloading_wait_start_times", "null"));
-            System.out.println("rideDetails unloading end times: " + rideDetails.optString("unloading_wait_end_times", "null"));
-            System.out.println("rideDetails status: " + currentApiStatus);
-            System.out.println("minimumWaitingTime: " + minimumWaitingTime);
-        }
-        
-        // Debug: Print waitingInfo keys to see what's available
-        if (waitingInfo != null) {
-            System.out.println("waitingInfo keys:");
-            Iterator<String> keys = waitingInfo.keys();
-            while (keys.hasNext()) {
-                String key = keys.next();
-                if (key.contains("unloading") || key.contains("wait")) {
-                    System.out.println("  Key: " + key + " = " + waitingInfo.opt(key));
-                }
-            }
-        }
-        
+        System.out.println("waitingInfo::" + waitingInfo);
+        System.out.println("currentApiStatus::" + currentApiStatus);
+
         if (waitingInfo == null) {
             binding.waitingPenaltyContainer.setVisibility(View.GONE);
             return;
         }
+
+        // Hide penalty info if status is "Make Payment" or "End Trip"
+        if (STATUS_MAKE_PAYMENT.equals(currentApiStatus) || STATUS_END_TRIP.equals(currentApiStatus)) {
+            stopAllTimers();
+            binding.waitingPenaltyContainer.setVisibility(View.GONE);
+            return;
+        }
+
         binding.waitingPenaltyContainer.setVisibility(View.VISIBLE);
 
         double loadingWait = waitingInfo.optDouble("loading_wait", 0);
         double allowedLoading = waitingInfo.optDouble("allowed_loading_wait", 0);
         double loadingPenalty = waitingInfo.optDouble("loading_penalty", 0);
         double totalPenalty = waitingInfo.optDouble("total_penalty", 0);
+        double allowedUnloadingPerDrop = waitingInfo.optDouble("allowed_unloading_per_drop", 0);
+        boolean isMultipleDrops = waitingInfo.optBoolean("is_multiple_drops", false);
+        int numDrops = waitingInfo.optInt("num_drops", 1);
         JSONArray unloadingWaits = waitingInfo.optJSONArray("unloading_waits");
-        System.out.println("unloadingWaits::"+unloadingWaits);
-        // --- Loading Timer ---
+
+        System.out.println("Timer info - Multiple drops: " + isMultipleDrops + ", Num drops: " + numDrops);
+        System.out.println("Allowed loading: " + allowedLoading + ", Allowed unloading per drop: " + allowedUnloadingPerDrop);
+
+        // --- Loading Timer Management ---
         long loadingStart = rideDetails.optLong("loading_wait_start_time", 0);
         long loadingEnd = rideDetails.optLong("loading_wait_end_time", 0);
-        if (loadingStart > 0 && loadingEnd == 0) {
-            long now = System.currentTimeMillis();
-            long elapsed = (now - loadingStart * 1000) / 1000; // seconds
+
+        if (STATUS_OTP_VERIFIED.equals(currentApiStatus) && loadingStart > 0 && loadingEnd == 0) {
+            // Loading timer is active
+            long now = System.currentTimeMillis() / 1000;
+            long elapsed = now - loadingStart;
             long allowedSeconds = (long) (allowedLoading * 60);
+
             if (elapsed < allowedSeconds) {
                 long left = allowedSeconds - elapsed;
                 startLoadingCountdown(left * 1000);
+                System.out.println("Starting loading countdown: " + left + " seconds left");
             } else {
                 long overage = elapsed - allowedSeconds;
                 startLoadingOverageTimer(overage * 1000);
+                System.out.println("Loading overage: " + overage + " seconds");
             }
         } else {
             stopLoadingTimer();
-            if (loadingWait >= allowedLoading) {
-                binding.loadingCountdown.setText("Loading Timer: Overage");
+            if (loadingWait >= allowedLoading && loadingWait > 0) {
+                binding.loadingCountdown.setText("Loading Timer: Completed with overage");
+            } else if (loadingWait > 0) {
+                binding.loadingCountdown.setText("Loading Timer: Completed within time");
             } else {
-                binding.loadingCountdown.setText("Loading Timer: Not running");
+                binding.loadingCountdown.setText("Loading Timer: Not started");
             }
         }
 
-        // --- Unloading Timer (for current drop) ---
-        // Get unloading data from rideDetails (which comes from the main API response)
+        // --- Unloading Timer Management ---
         JSONArray unloadingStarts = null;
         JSONArray unloadingEnds = null;
-        
+
         try {
-            // Try to get from rideDetails first - parse the string values
             String unloadingStartsStr = rideDetails.optString("unloading_wait_start_times", "");
             String unloadingEndsStr = rideDetails.optString("unloading_wait_end_times", "");
-            
-            if (unloadingStartsStr != null && !unloadingStartsStr.isEmpty()) {
+
+            if (unloadingStartsStr != null && !unloadingStartsStr.isEmpty() && !unloadingStartsStr.equals("[]")) {
                 unloadingStarts = new JSONArray(unloadingStartsStr);
             }
-            if (unloadingEndsStr != null && !unloadingEndsStr.isEmpty()) {
+            if (unloadingEndsStr != null && !unloadingEndsStr.isEmpty() && !unloadingEndsStr.equals("[]")) {
                 unloadingEnds = new JSONArray(unloadingEndsStr);
             }
-            
-            // Fallback: If no unloading data from rideDetails, try to get from waitingInfo
-            if (unloadingStarts == null && waitingInfo != null) {
-                unloadingStarts = waitingInfo.optJSONArray("unloading_wait_start_times");
-                unloadingEnds = waitingInfo.optJSONArray("unloading_wait_end_times");
-                System.out.println("Fallback unloadingStarts from waitingInfo: " + unloadingStarts);
-                System.out.println("Fallback unloadingEnds from waitingInfo: " + unloadingEnds);
-            }
-            
-            System.out.println("Final unloadingStarts: " + unloadingStarts);
-            System.out.println("Final unloadingEnds: " + unloadingEnds);
+
+            System.out.println("Unloading starts: " + unloadingStarts);
+            System.out.println("Unloading ends: " + unloadingEnds);
         } catch (Exception e) {
             System.out.println("Error parsing unloading arrays: " + e.getMessage());
         }
-        
-        // Find the current drop's unloading timer
-        int currentDropUnloadingIndex = -1;
-        if (unloadingStarts != null && unloadingStarts.length() > 0) {
+
+        // Determine if unloading timer should be active
+        boolean shouldShowUnloadingTimer = currentApiStatus.startsWith(STATUS_REACHED_DROP_PREFIX) &&
+                !STATUS_MAKE_PAYMENT.equals(currentApiStatus);
+
+        if (shouldShowUnloadingTimer && unloadingStarts != null && unloadingStarts.length() > 0) {
             int startsCount = unloadingStarts.length();
             int endsCount = unloadingEnds != null ? unloadingEnds.length() : 0;
 
             // If we have more starts than ends, the last start is currently running
             if (startsCount > endsCount) {
-                currentDropUnloadingIndex = endsCount; // This is the current drop being unloaded
-            }
-        }
+                int currentDropUnloadingIndex = endsCount;
+                double unloadingStartSec = unloadingStarts.optDouble(currentDropUnloadingIndex, 0);
 
-        if (currentDropUnloadingIndex >= 0) {
-            double allowedUnloading = 0;
-            
-            // Try to get allowed unloading time from unloading_waits array
-            if (unloadingWaits != null && currentDropUnloadingIndex < unloadingWaits.length()) {
-                JSONObject currentDropInfo = unloadingWaits.optJSONObject(currentDropUnloadingIndex);
-                if (currentDropInfo != null) {
-                    allowedUnloading = currentDropInfo.optDouble("allowed_wait", 0);
-                }
-            }
-            
-            // Fallback to general allowed unloading time
-            if (allowedUnloading == 0) {
-                allowedUnloading = waitingInfo.optDouble("allowed_unloading", 0);
-            }
-            
-            // If still no allowed time, use minimum waiting time as fallback
-            if (allowedUnloading == 0) {
-                allowedUnloading = minimumWaitingTime;
-            }
-            
-            double unloadingStartSec = unloadingStarts.optDouble(currentDropUnloadingIndex, 0);
-            long nowSec = System.currentTimeMillis() / 1000;
-            long elapsed = nowSec - (long)unloadingStartSec;
-            
-            if (elapsed < 0) elapsed = 0;
-            
-            if (allowedUnloading > 0) {
-                long allowedSeconds = (long) (allowedUnloading * 60);
-                if (elapsed < allowedSeconds) {
-                    long left = allowedSeconds - elapsed;
-                    startUnloadingCountdown(left * 1000);
-                } else {
-                    long overage = elapsed - allowedSeconds;
-                    startUnloadingOverageTimer(overage * 1000);
+                if (unloadingStartSec > 0) {
+                    long nowSec = System.currentTimeMillis() / 1000;
+                    long elapsed = nowSec - (long)unloadingStartSec;
+
+                    if (elapsed < 0) elapsed = 0;
+
+                    long allowedSeconds = (long) (allowedUnloadingPerDrop * 60);
+
+                    if (elapsed < allowedSeconds) {
+                        long left = allowedSeconds - elapsed;
+                        startUnloadingCountdown(left * 1000);
+                        System.out.println("Starting unloading countdown: " + left + " seconds left for drop " + (currentDropUnloadingIndex + 1));
+                    } else {
+                        long overage = elapsed - allowedSeconds;
+                        startUnloadingOverageTimer(overage * 1000);
+                        System.out.println("Unloading overage: " + overage + " seconds for drop " + (currentDropUnloadingIndex + 1));
+                    }
                 }
             } else {
-                // If no allowed time specified, just show elapsed time
-                startUnloadingCountdown(elapsed * 1000);
+                // All unloading sessions completed
+                stopUnloadingTimer();
+                binding.unloadingCountdown.setText("Unloading Timer: All drops completed");
             }
         } else {
-            // Fallback: If no unloading timer data but status indicates we should be unloading
-            if (currentApiStatus.startsWith(STATUS_REACHED_DROP_PREFIX) && !STATUS_MAKE_PAYMENT.equals(currentApiStatus)) {
-                // Start a basic unloading timer with minimum waiting time
-                System.out.println("Starting fallback unloading timer with minimum waiting time: " + minimumWaitingTime);
-                long allowedSeconds = (long) (minimumWaitingTime * 60);
-                startUnloadingCountdown(allowedSeconds * 1000);
-                
-                // Also show a message to indicate this is a fallback timer
-                binding.unloadingCountdown.setText("Unloading Timer: " + formatTime(allowedSeconds * 1000) + " (Fallback)");
+            stopUnloadingTimer();
+            if (STATUS_MAKE_PAYMENT.equals(currentApiStatus)) {
+                binding.unloadingCountdown.setText("Unloading Timer: Payment phase");
             } else {
-                stopUnloadingTimer();
-                binding.unloadingCountdown.setText("Unloading Timer: Not running");
+                binding.unloadingCountdown.setText("Unloading Timer: Not active");
             }
         }
 
@@ -1163,21 +1147,31 @@ public class NewLiveRideActivity extends AppCompatActivity implements OnMapReady
                     double wait = dropInfo.optDouble("wait_time", 0);
                     double allowed = dropInfo.optDouble("allowed_wait", 0);
                     double penalty = dropInfo.optDouble("penalty", 0);
+                    boolean isCurrent = dropInfo.optBoolean("is_current", false);
+
+                    String status = isCurrent ? " (Current)" : "";
                     unloadingText.append(String.format(
                             Locale.getDefault(),
-                            "Drop %d: %.1f / %.1f min (Penalty: ₹%.0f)\n",
-                            dropInfo.optInt("drop_index", i) + 1, wait, allowed, penalty
+                            "Drop %d: %.1f / %.1f min (Penalty: ₹%.0f)%s\n",
+                            dropInfo.optInt("drop_index", i) + 1, wait, allowed, penalty, status
                     ));
                 }
             }
         } else {
-            unloadingText.append("No unloading wait recorded.");
+            if (isMultipleDrops) {
+                unloadingText.append("Multiple drops - No unloading recorded yet.");
+            } else {
+                unloadingText.append("Single drop - No unloading recorded yet.");
+            }
         }
         binding.unloadingWaitInfo.setText(unloadingText.toString().trim());
-        binding.penaltyInfo.setText(String.format(
+
+        String penaltyText = String.format(
                 Locale.getDefault(),
-                "Total Penalty: ₹%.0f", totalPenalty
-        ));
+                "Total Penalty: ₹%.0f (Loading: ₹%.0f + Unloading: ₹%.0f)",
+                totalPenalty, loadingPenalty, totalPenalty - loadingPenalty
+        );
+        binding.penaltyInfo.setText(penaltyText);
     }
 
     private void updateDropLocationsUI() {
@@ -1268,6 +1262,12 @@ public class NewLiveRideActivity extends AppCompatActivity implements OnMapReady
         this.currentApiStatus = currentApiStatus;
         nextAction = "";
 
+        // Stop all timers when reaching Make Payment or End Trip status
+        if (STATUS_MAKE_PAYMENT.equals(currentApiStatus) || STATUS_END_TRIP.equals(currentApiStatus)) {
+            stopAllTimers();
+            System.out.println("Timers stopped due to status: " + currentApiStatus);
+        }
+
         if (currentApiStatus.startsWith(STATUS_REACHED_DROP_PREFIX)) {
             // Extract drop number from status
             int completedDropNumber = getDropNumberFromStatus(currentApiStatus);
@@ -1304,6 +1304,7 @@ public class NewLiveRideActivity extends AppCompatActivity implements OnMapReady
 
             case STATUS_END_TRIP:
                 nextAction = "";
+                stopAllTimers(); // Ensure timers are stopped
                 handleNoLiveRideFound();
                 break;
 
@@ -1312,8 +1313,8 @@ public class NewLiveRideActivity extends AppCompatActivity implements OnMapReady
                     // Check if this is the last drop
                     int dropNumber = getDropNumberFromStatus(currentApiStatus);
                     if (dropNumber > 0) {
-                        if ((multipleDrops > 0 && dropNumber >= allDropLatLngs.size()) || 
-                            (multipleDrops <= 0 && dropNumber >= 1)) {
+                        if ((multipleDrops > 0 && dropNumber >= allDropLatLngs.size()) ||
+                                (multipleDrops <= 0 && dropNumber >= 1)) {
                             // This is the last drop - show "Send Payment Details" button
                             handleLastDropReached();
                         } else {
@@ -1887,6 +1888,7 @@ public class NewLiveRideActivity extends AppCompatActivity implements OnMapReady
     @Override
     public void onMapReady(@NonNull GoogleMap googleMap) {
         mMap = googleMap;
+
         Log.d(TAG, "Map is ready.");
         try {
             // Basic map settings
@@ -2695,6 +2697,10 @@ public class NewLiveRideActivity extends AppCompatActivity implements OnMapReady
     protected void onDestroy() {
         super.onDestroy();
         Log.d(TAG, "onDestroy");
+
+        // Stop all timers
+        stopAllTimers();
+
         if (locationUpdateReceiver != null) {
             try {
                 unregisterReceiver(locationUpdateReceiver);
@@ -2702,7 +2708,8 @@ public class NewLiveRideActivity extends AppCompatActivity implements OnMapReady
                 Log.e(TAG, "Error unregistering location receiver", e);
             }
         }
-        // Clean up resources
+
+        // Clean up other resources
         if (timerManager != null) {
             timerManager.pauseTimer();
         }
@@ -2710,16 +2717,8 @@ public class NewLiveRideActivity extends AppCompatActivity implements OnMapReady
         if (progressDialog != null && progressDialog.isShowing()) {
             progressDialog.dismiss();
         }
-        executorService.shutdown(); // Shutdown background thread executor
-        mainThreadHandler.removeCallbacksAndMessages(null); // Clear pending main thread tasks
-
-        // Decide whether to stop location updates
-        // If the ride is ongoing based on isLiveRide flag, maybe keep it running?
-        // If navigating away definitively, stop it.
-        // if (!preferenceManager.getBooleanValue("isLiveRide", false)) {
-        //      stopLocationUpdates();
-        // }
-
+        executorService.shutdown();
+        mainThreadHandler.removeCallbacksAndMessages(null);
     }
 
 

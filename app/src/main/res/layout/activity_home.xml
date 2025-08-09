@@ -41,6 +41,7 @@
                         app:tint="@color/white" />
 
                     <TextView
+                        android:id="@+id/brandName"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_centerInParent="true"
@@ -302,6 +303,19 @@
             android:layout_centerInParent="true"
             android:background="@drawable/swipe_button_background"
              />
+
+        <com.google.android.material.floatingactionbutton.FloatingActionButton
+            android:id="@+id/refreshBtn"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="20dp"
+            android:layout_marginBottom="100dp"
+            android:backgroundTint="@color/white"
+            app:layout_constraintBottom_toTopOf="@+id/duty_swipe_button"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:srcCompat="@drawable/refresh"
+
+            android:contentDescription="Refresh" />
 
         <com.google.android.material.floatingactionbutton.FloatingActionButton
             android:id="@+id/live_order_fab"
